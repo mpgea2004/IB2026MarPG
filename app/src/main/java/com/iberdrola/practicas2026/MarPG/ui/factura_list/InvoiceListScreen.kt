@@ -48,6 +48,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -267,8 +269,15 @@ fun LastInvoiceItem(invoice: Invoice) {
                         fontWeight = FontWeight.Medium
                     )
                 }
-                Icon(if (invoice.contractType == ContractType.LUZ) Icons.Outlined.Lightbulb else Icons.Outlined.PropaneTank,
-                    contentDescription = null, tint = GreenIberdrola, modifier = Modifier.size(32.dp))
+                Icon(
+                    painter = if (invoice.contractType == ContractType.LUZ)
+                        rememberVectorPainter(Icons.Outlined.Lightbulb) //Convierte el Vector a Painter
+                    else
+                        painterResource(R.drawable.ic_invoice_gas),
+                    contentDescription = null,
+                    tint = GreenIberdrola,
+                    modifier = Modifier.size(32.dp)
+                )
             }
             Text(text = invoice.amount.toCurrencyFormat(), fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 8.dp))
             Text(
@@ -389,11 +398,11 @@ fun FilterButton(onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.dp, GreenIberdrola),
+        border = BorderStroke(1.5.dp, GreenIberdrola),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
         modifier = Modifier.height(32.dp)
     ) {
-        Icon(Icons.Default.Tune, null, tint = GreenIberdrola, modifier = Modifier.size(16.dp))
+        Icon(painter = painterResource(R.drawable.ic_invoice_filter), null, tint = GreenIberdrola, modifier = Modifier.size(16.dp))
         Spacer(modifier = Modifier.width(8.dp))
         Text(stringResource(R.string.invoice_list_filter_button), color = GreenIberdrola, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
