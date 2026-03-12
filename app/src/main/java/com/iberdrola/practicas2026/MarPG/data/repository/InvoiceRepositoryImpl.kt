@@ -8,6 +8,7 @@ import com.iberdrola.practicas2026.MarPG.data.mapper.toDomainList
 import com.iberdrola.practicas2026.MarPG.data.mapper.toEntity
 import com.iberdrola.practicas2026.MarPG.data.model.InvoiceResponse
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceApiServer
+import com.iberdrola.practicas2026.MarPG.data.network.InvoiceException
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.resository.InvoiceRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -16,6 +17,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import retrofit2.HttpException
+import java.io.IOException
+import java.net.UnknownHostException
 
 class InvoiceRepositoryImpl @Inject constructor(
     private val invoiceApiServer: InvoiceApiServer,
@@ -36,37 +40,50 @@ class InvoiceRepositoryImpl @Inject constructor(
                 val entities = response.invoices.map { it.toEntity() }
                 invoiceDao.insertInvoices(entities)
 
-                //Opcion 2: Local }
-
                 emit(remoteInvoices)
             }catch (e: Exception){
-                //Si falla la conexion pues usamos el caché que haya en room
-                e.printStackTrace()
-                val cachedInvoices = getInvoicesFromDatabaseOnce()
-                emit(cachedInvoices)
+                val cached = getInvoicesFromDatabaseOnce()
+
+                // Mapeamos el error de sistema a nuestra excepción personalizada
+                val customException = when (e) {
+                    is UnknownHostException, is IOException -> InvoiceException.NoInternet
+                    is HttpException -> InvoiceException.ServerError(e.code())
+                    else -> InvoiceException.Unknown
+                }
+
+                if (cached.isNotEmpty()) {
+                    emit(cached) //Primero damos los datos que tenemos
+                    throw customException //Y luego lanzamos el aviso para el ViewModel
+                } else {
+                    throw customException
+                }
             }
 
         }else {
+            try {
+                //Simulo tiempo de carga entre 1 y 3 segundos
+                val delayTime = (1000..3000).random().toLong()
+                delay(delayTime)
 
-            //Simulo tiempo de carga entre 1 y 3 segundos
-            val delay = (1000..3000).random().toLong()
-            delay(delay)
+                //Intento leer el archivo de assets
+                val jsonText = context.assets.open("invoice.json").bufferedReader().use {
+                    it.readText()
+                }
 
-            //leo el archivo y lo guardo en un String
-            val jsonText = context.assets.open("invoice.json").bufferedReader().use {
-                it.readText()
+                //Intento convertir el texto en objeto
+                val response = gson.fromJson(jsonText, InvoiceResponse::class.java)
+
+                //transformo y emito
+                val invoiceList = response.invoices.toDomainList()
+                emit(invoiceList)
+
+            } catch (e: Exception) {
+                //Si el archivo no existe, el JSON es inválido o falla el mapeo,
+                //lanzo la excepción personalizada para que el ViewModel la capture.
+                e.printStackTrace()
+                throw InvoiceException.LocalDataError
             }
-
-            //Despues convierto el texto en el objeto de respuesta
-            val response = gson.fromJson(jsonText, InvoiceResponse::class.java)
-
-            //Luego transformo la lista de los datos son a datos de la app
-            val invoiceList = response.invoices.toDomainList()
-
-            emit(invoiceList)
         }
-
-
     }
 
     /**

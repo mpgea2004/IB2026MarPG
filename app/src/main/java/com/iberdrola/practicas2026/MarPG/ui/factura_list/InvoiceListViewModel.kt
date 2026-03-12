@@ -12,7 +12,7 @@ import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.use_case.GetInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,24 +35,32 @@ class InvoiceListViewModel @Inject constructor(
     //Obtengo el valor de la ruta, si no existe por defcto es false
     private val isCloud: Boolean = savedStateHandle["isCloud"] ?: false
 
+    //Estado para el mensaje de error
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+
     init {
         loadInvoices()
     }
 
     private fun loadInvoices() {
         viewModelScope.launch {
-            try {
-                //Inicializo en LOADING para mostrar el esqueleto
-                state = InvoiceListState.LOADING
+            //Inicializo en LOADING para mostrar el esqueleto
+            state = InvoiceListState.LOADING
+            errorMessage = null//Lo limpio
 
-                getInvoicesUseCase(isCloud).collect { invoices ->
-                    allInvoices = invoices
-                    updateFilteredInvoices()
+            getInvoicesUseCase(isCloud).catch { e ->
+                //caturo la excepcion lanzada por el repo
+                errorMessage = e.message
+
+                //compruebo si la lista es vacia despues del error, y si es asi muestro el estado de no hay datos
+                if(allInvoices.isEmpty()){
+                    state = InvoiceListState.NODATA
                 }
-            } catch (e: Exception) {
-                //si el archivo no existe, el JSON está mal o falla la red...
-                e.printStackTrace() // Para verlo en el Logcat
-                state = InvoiceListState.NODATA
+            }.collect { invoices ->
+                //recibo la lista(ya sea de red o de la caché de Room)
+                allInvoices = invoices
+                updateFilteredInvoices()
             }
         }
     }
@@ -87,5 +95,9 @@ class InvoiceListViewModel @Inject constructor(
     fun selectTab(index: Int) {
         selectedTab = index
         updateFilteredInvoices()
+    }
+    //Función para limpiar el error
+    fun clearErrorMessage() {
+        errorMessage = null
     }
 }

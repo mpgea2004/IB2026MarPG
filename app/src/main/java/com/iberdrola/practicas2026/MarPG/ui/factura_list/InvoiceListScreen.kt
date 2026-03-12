@@ -35,9 +35,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +59,8 @@ import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
+import com.iberdrola.practicas2026.MarPG.ui.components.ErrorBanner
+import com.iberdrola.practicas2026.MarPG.ui.components.InvoiceEmptyState
 import com.iberdrola.practicas2026.MarPG.ui.components.InvoiceNotAvailableDialog
 import com.iberdrola.practicas2026.MarPG.ui.components.ShimmerInvoiceList
 import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
@@ -69,6 +74,22 @@ fun InvoiceListScreen(
 ) {
     val currentState = viewModel.state
     val selectedTab = viewModel.selectedTab
+    val errorMessage = viewModel.errorMessage //recupero el error del VM
+
+    // Necesitamos esto para manejar el Snackbar
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    //cada vez que errorMessage cambie y no sea nulo, lanzamos el aviso
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(
+                message = it,
+                duration = SnackbarDuration.Short
+            )
+            //y lo limpio para que no vuelva a saltar
+            viewModel.clearErrorMessage()
+        }
+    }
 
     //estado para controlar el diálogo
     var showNotAvailableDialog by remember { mutableStateOf(false) }
@@ -98,6 +119,10 @@ fun InvoiceListScreen(
                         Text("Atrás", color = Color(0xFF008244), fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
                     }
                     Spacer(modifier = Modifier.height(16.dp))
+                    //Si hay error y estamos en modo éxito (offline), avisamos arriba
+                    if (errorMessage != null && currentState is InvoiceListState.SUCCESS) {
+                        ErrorBanner(message = errorMessage)
+                    }
                     Text("Mis facturas", fontSize = 28.sp, fontWeight = FontWeight.Bold)
                     Text(
                         "C/ PALMA - ARTA KM 49, 5, 4ºA -PINTO - MADRID",
@@ -134,7 +159,7 @@ fun InvoiceListScreen(
                     ShimmerInvoiceList(brush = shimmerBrush())
                 }
                 InvoiceListState.NODATA -> {
-                    InvoiceEmptyState()
+                    InvoiceEmptyState(message = errorMessage)
                 }
                 is InvoiceListState.SUCCESS -> {
                     //Esto ya es el contenido
@@ -306,37 +331,7 @@ fun StatusBadge(status: InvoiceStatus) {
     }
 }
 
-@Composable
-fun InvoiceEmptyState() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Info,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = Color.LightGray
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "No tienes facturas disponibles",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "En este momento no hay facturas para mostrar en esta categoría. Si crees que es un error, contacta con atención al cliente.",
-            fontSize = 14.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center
-        )
-    }
-}
+
 
 @Composable
 fun InvoiceTabItem(
