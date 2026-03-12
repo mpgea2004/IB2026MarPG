@@ -5,9 +5,11 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 
 @Composable
 fun InvoiceNotAvailableDialog(onDismiss: () -> Unit) {
@@ -15,13 +17,13 @@ fun InvoiceNotAvailableDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Información",
+                text = stringResource(R.string.invoice_not_available_title),
                 fontWeight = FontWeight.Bold
             )
         },
         text = {
             Text(
-                text = "Esta factura aún no está disponible.",
+                text = stringResource(R.string.invoice_not_available_message),
                 fontSize = 16.sp,
                 color = Color.Gray
             )
@@ -29,7 +31,7 @@ fun InvoiceNotAvailableDialog(onDismiss: () -> Unit) {
         confirmButton = {
             androidx.compose.material3.TextButton(onClick = onDismiss) {
                 Text(
-                    text = "Aceptar",
+                    text = stringResource(R.string.invoice_not_available_button),
                     color = Color(0xFF008244),
                     fontWeight = FontWeight.Bold
                 )

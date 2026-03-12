@@ -48,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,6 +56,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
@@ -64,7 +66,12 @@ import com.iberdrola.practicas2026.MarPG.ui.components.InvoiceEmptyState
 import com.iberdrola.practicas2026.MarPG.ui.components.InvoiceNotAvailableDialog
 import com.iberdrola.practicas2026.MarPG.ui.components.ShimmerInvoiceList
 import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
+import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.LightRedIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
+import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 @Composable
 fun InvoiceListScreen(
@@ -99,7 +106,7 @@ fun InvoiceListScreen(
     }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = WhiteApp,
         topBar = {
             //Aqui pongo todo lo que es fijo
             Surface(
@@ -113,19 +120,19 @@ fun InvoiceListScreen(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { onBack() }
+                        modifier = Modifier.padding(top = 8.dp).clickable { onBack() }
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = Color(0xFF008244))
-                        Text("Atrás", color = Color(0xFF008244), fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola)
+                        Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    //Si hay error y estamos en modo éxito (offline), avisamos arriba
+                    //Si hay error y estoy en modo éxito (offline), avisamos arriba
                     if (errorMessage != null && currentState is InvoiceListState.SUCCESS) {
                         ErrorBanner(message = errorMessage)
                     }
-                    Text("Mis facturas", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold)
                     Text(
-                        "C/ PALMA - ARTA KM 49, 5, 4ºA -PINTO - MADRID",
+                        stringResource(R.string.invoice_list_subtitle),
                         color = Color.Black,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
@@ -139,12 +146,12 @@ fun InvoiceListScreen(
                         horizontalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
                         InvoiceTabItem(
-                            text = "Luz",
+                            text = stringResource(R.string.invoice_list_tab_light),
                             isSelected = selectedTab == 0,
                             onClick = { viewModel.selectTab(0) }
                         )
                         InvoiceTabItem(
-                            text = "Gas",
+                            text = stringResource(R.string.invoice_list_tab_gas),
                             isSelected = selectedTab == 1,
                             onClick = { viewModel.selectTab(1) }
                         )
@@ -193,7 +200,7 @@ fun InvoiceListContent(
                     modifier = Modifier.fillParentMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No tienes facturas de este tipo", color = Color.Gray)
+                    Text(stringResource(R.string.invoice_list_tap_no_invoices), color = TextGrey)
                 }
             }
         } else {
@@ -204,17 +211,15 @@ fun InvoiceListContent(
 
             // 2. TÍTULO HISTÓRICO, etse se queda anclado arriba cuando hago scroll
             stickyHeader {
-                Column(modifier = Modifier.background(Color.White)) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Histórico de facturas", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        FilterButton(onClick = { events.onFilter() })
-                    }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.invoice_list_historic_title), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    FilterButton(onClick = { events.onFilter() })
                 }
             }
 
@@ -243,22 +248,38 @@ fun LastInvoiceItem(invoice: Invoice) {
             .fillMaxWidth()
             .padding(16.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(2.dp, Color.LightGray)
+        colors = CardDefaults.cardColors(containerColor = WhiteApp),
+        border = BorderStroke(1.5.dp, GreenIberdrola)
     ) {
         Column(modifier = Modifier
             .padding(20.dp)
             .background(Color.White)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text("Última factura", fontWeight = FontWeight.Bold)
-                    Text("Factura ${invoice.contractType.name.lowercase()}", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.invoice_list_last_invoice_title), fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(
+                            id = R.string.invoice_list_invoice_type_label,
+                            invoice.contractType.name.lowercase()
+                        ),
+                        color = Color.Black,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
                 Icon(if (invoice.contractType == ContractType.LUZ) Icons.Outlined.Lightbulb else Icons.Outlined.PropaneTank,
-                    contentDescription = null, tint = Color(0xFF008244))
+                    contentDescription = null, tint = GreenIberdrola, modifier = Modifier.size(32.dp))
             }
             Text(text = invoice.amount.toCurrencyFormat(), fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 8.dp))
-            Text("${invoice.startDate} - ${invoice.endDate}", color = Color.Gray, fontSize = 12.sp)
+            Text(
+                text = stringResource(
+                    id = R.string.invoice_list_last_invoice_date_range,
+                    invoice.startDate,
+                    invoice.endDate
+                ),
+                color = TextGrey,
+                fontSize = 12.sp
+            )
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 16.dp),
                 thickness = DividerDefaults.Thickness,
@@ -284,7 +305,10 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
             //Bloque Izquierdo(Fecha, Tipo, Badge)
             Column(modifier = Modifier.weight(1f)) {
                 Text(dateDisplay, fontWeight = FontWeight.Bold)
-                Text("Factura ${invoice.contractType.name.lowercase()}", color = Color.Black, fontSize = 14.sp)
+                Text(text = stringResource(
+                    id = R.string.invoice_list_invoice_type_label,
+                    invoice.contractType.name.lowercase()
+                ), color = Color.Black, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 StatusBadge(invoice.status)
             }
@@ -293,14 +317,14 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = invoice.amount.toCurrencyFormat(),
-                    color = Color.Gray,
+                    color = TextGrey,
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp
                 )
                 Icon(
                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = null,
-                    tint = Color.Gray,
+                    tint = TextGrey,
                     modifier = Modifier.size(32.dp)
 
                 )
@@ -318,12 +342,12 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
 fun StatusBadge(status: InvoiceStatus) {
     val isPaid = status == InvoiceStatus.PAID
     Surface(
-        color = if (isPaid) Color(0xFFE8F5E9) else Color(0xFFFDECEA),
+        color = if (isPaid) LightGreenIberdrola else LightRedIberdrola,
         shape = RoundedCornerShape(12.dp)
     ) {
         Text(
             text = status.description,
-            color = if (isPaid) Color(0xFF008244) else Color(0xFFD32F2F),
+            color = if (isPaid) GreenIberdrola else Color(0xFFD32F2F),
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold
@@ -347,7 +371,7 @@ fun InvoiceTabItem(
             text = text,
             fontSize = 14.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) Color.Black else Color.Gray,
+            color = if (isSelected) Color.Black else TextGrey,
             modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 8.dp)
         )
         //Barra verde
@@ -355,7 +379,7 @@ fun InvoiceTabItem(
             modifier = Modifier
                 .height(3.dp)
                 .width(40.dp)
-                .background(if (isSelected) Color(0xFF008244) else Color.Transparent)
+                .background(if (isSelected) GreenIberdrola else Color.Transparent)
         )
     }
 }
@@ -365,13 +389,13 @@ fun FilterButton(onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.dp, Color(0xFF008244)),
+        border = BorderStroke(1.dp, GreenIberdrola),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
         modifier = Modifier.height(32.dp)
     ) {
-        Icon(Icons.Default.Tune, null, tint = Color(0xFF008244), modifier = Modifier.size(16.dp))
+        Icon(Icons.Default.Tune, null, tint = GreenIberdrola, modifier = Modifier.size(16.dp))
         Spacer(modifier = Modifier.width(8.dp))
-        Text("Filtrar", color = Color(0xFF008244), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Text(stringResource(R.string.invoice_list_filter_button), color = GreenIberdrola, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -391,14 +415,14 @@ fun InvoiceListLoadingPreview() {
                     Icon(
                         Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                         contentDescription = null,
-                        tint = Color(0xFF008244)
+                        tint = GreenIberdrola
                     )
-                    Text("Atrás", color = Color(0xFF008244), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Mis facturas", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    "C/ PALMA - ARTA KM 49, 5, 4ºA -PINTO - MADRID",
+                    stringResource(R.string.invoice_list_subtitle),
                     color = Color.Black,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
@@ -438,11 +462,11 @@ fun InvoiceListScreenPreview() {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = Color(0xFF008244))
-                        Text("Atrás", color = Color(0xFF008244), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.invoice_list_back), color =GreenIberdrola, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Mis facturas", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                    Text("C/ PALMA - ARTA KM 49, 5, 4ºA -PINTO - MADRID", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.invoice_list_subtitle), color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         ) { padding ->
@@ -465,11 +489,11 @@ fun InvoiceListNoDataPreview() {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = Color(0xFF008244))
-                        Text("Atrás", color = Color(0xFF008244), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Mis facturas", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                    Text("C/ PALMA - ARTA KM 49, 5, 4ºA -PINTO - MADRID", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.invoice_list_subtitle), color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         ) { padding ->

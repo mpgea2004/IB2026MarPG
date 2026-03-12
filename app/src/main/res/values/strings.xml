@@ -1,3 +1,31 @@
 <resources>
     <string name="app_name">IB2026MarPG</string>
+    <string name="home_header_subtitle">Gestión de energía y facturación</string>
+    <string name="home_header_title">¡Bienvenido!</string>
+    <string name="home_invoices_subtitle">Consulta tu historial y consumo</string>
+    <string name="home_invoices_title">Mis facturas</string>
+    <string name="home_footer_title">Origen de datos</string>
+    <string name="home_footer_typeS">Servidor (API)</string>
+    <string name="home_footer_typeL">Local (json)</string>
+    <string name="home_footer_subtitle">Modifica de dónde vienen los datos</string>
+    <string name="invoice_list_back">Atrás</string>
+    <string name="invoice_list_title">Mis facturas</string>
+    <string name="invoice_list_subtitle">C/ PALMA - ARTA KM 49, 5, 4ºA -PINTO - MADRID</string>
+    <string name="invoice_list_tap_no_invoices">No tienes facturas de este tipo</string>
+    <string name="invoice_list_historic_title">Histórico de facturas</string>
+    <string name="invoice_list_last_invoice_title">Última factura</string>
+    <string name="invoice_list_invoice_type_label">Factura %1$s</string>
+    <string name="invoice_list_last_invoice_date_range">%1$s - %2$s</string>
+    <string name="invoice_list_filter_button">Filtrar</string>
+    <string name="feedback_sheet_title">Tu opinión nos importa</string>
+    <string name="feedback_sheet_subtitle">¿Cómo de probable es que recomiendes esta app a amigos o familiares para que realicen sus gestiones?</string>
+    <string name="feedback_sheet_later">Responder más tarde</string>
+    <string name="invoice_empty_state_message">No tienes facturas disponibles</string>
+    <string name="invoice_empty_state_subtitle">En este momento no hay facturas para mostrar. Si crees que es un error, contacta con atención al cliente.</string>
+    <string name="invoice_not_available_title">Información</string>
+    <string name="invoice_not_available_message">Esta factura aún no está disponible.</string>
+    <string name="invoice_not_available_button">Aceptar</string>
+    <string name="invoice_list_tab_light">Luz</string>
+    <string name="invoice_list_tab_gas">Gas</string>
+
 </resources>

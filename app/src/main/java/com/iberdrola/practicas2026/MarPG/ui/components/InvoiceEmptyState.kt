@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.components
 
+import com.iberdrola.practicas2026.MarPG.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -22,6 +24,8 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun InvoiceEmptyState(message: String? = null) {
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -37,8 +41,8 @@ fun InvoiceEmptyState(message: String? = null) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            // Si el mensaje viene de la excepción, lo usamos. Si no, el por defecto.
-            text = message ?: "No tienes facturas disponibles",
+            //Si el mensaje viene de la excepción, lo usamos. Si no, el por defecto
+            text = message ?: stringResource(id = R.string.invoice_empty_state_message),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
@@ -46,7 +50,7 @@ fun InvoiceEmptyState(message: String? = null) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "En este momento no hay facturas para mostrar. Si crees que es un error, contacta con atención al cliente.",
+            text = stringResource(R.string.invoice_empty_state_subtitle),
             fontSize = 14.sp,
             color = Color.Gray,
             textAlign = TextAlign.Center

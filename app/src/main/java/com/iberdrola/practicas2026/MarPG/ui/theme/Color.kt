@@ -11,7 +11,11 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 
-val GreenIberdrola = Color(0xFF008244) // El verde corporativo
-val LightGreenIberdrola = Color(0xFFE8F5E9) // Para el badge "Pagada"
-val LightRedIberdrola = Color(0xFFFDECEA) // Para el badge "Pendiente"
+val GreenIberdrola = Color(0xFF008244)
+val LightGreenIberdrola = Color(0xFFE8F5E9)
+val LightRedIberdrola = Color(0xFFFDECEA)
 val TextGrey = Color(0xFF666666)
+
+val BackgroundApp = Color(0xFFF7F9F8) // El gris azulado/verdoso de fondo
+val BorderLight = Color(0xFFE0E0E0)   // Para los bordes de las tarjetas
+val WhiteApp = Color(0xFFFFFFFF)      // Blanco puro para las Cards

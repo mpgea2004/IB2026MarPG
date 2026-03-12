@@ -23,11 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 
 @Composable
 fun FeedbackSheetContent(
@@ -40,12 +42,12 @@ fun FeedbackSheetContent(
             .padding(bottom = 32.dp, start = 24.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Tu opinión nos importa", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.feedback_sheet_title), fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "¿Cómo de probable es que recomiendes esta app a amigos o familiares para que realicen sus gestiones?",
+            text = stringResource(R.string.feedback_sheet_subtitle),
             textAlign = TextAlign.Center,
             color = Color.Gray,
             fontSize = 15.sp,
@@ -84,7 +86,7 @@ fun FeedbackSheetContent(
 
         //Texto "Responder más tarde"
         Text(
-            text = "Responder más tarde",
+            text = stringResource(R.string.feedback_sheet_later),
             color = Color(0xFF008244),
             fontWeight = FontWeight.Bold,
             textDecoration = TextDecoration.Underline,
