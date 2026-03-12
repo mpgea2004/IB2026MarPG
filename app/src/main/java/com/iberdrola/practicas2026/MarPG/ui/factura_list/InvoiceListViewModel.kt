@@ -11,6 +11,7 @@ import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.use_case.GetInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,8 +37,10 @@ class InvoiceListViewModel @Inject constructor(
     private fun loadInvoices() {
         viewModelScope.launch {
             try {
-                //Inicializo en LOADING por si acaso
+                //Inicializo en LOADING para mostrar el esqueleto
                 state = InvoiceListState.LOADING
+
+
 
                 getInvoicesUseCase().collect { invoices ->
                     allInvoices = invoices

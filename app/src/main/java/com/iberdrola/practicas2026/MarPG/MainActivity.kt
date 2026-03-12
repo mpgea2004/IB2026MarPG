@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.rememberNavController
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
+import com.iberdrola.practicas2026.MarPG.ui.home.IberdrolaNavHost
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -20,23 +23,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val navController = rememberNavController()
+
             IB2026MarPGTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = Color.White
                 ) {
-                    // Llamamos directamente a tu pantalla
-                    val viewModel: InvoiceListViewModel = hiltViewModel()
-
-                    InvoiceListScreen(
-                        viewModel = viewModel,
-                        onBack = { finish() }, // Si pulsa atrás, cierra la actividad
-                        onNavigateToDetail = { invoice ->
-                            // De momento no hace nada hasta que tengamos la otra pantalla
-                        }
-                    )
+                    IberdrolaNavHost(navController = navController)
                 }
-
             }
         }
     }

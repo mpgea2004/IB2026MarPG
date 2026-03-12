@@ -124,7 +124,7 @@ fun ShimmerInvoiceItem(brush: Brush) {
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Cuadrado izquierda
+        //Cuadrado izquierda
         Box(
             modifier = Modifier
                 .size(32.dp)
@@ -133,7 +133,7 @@ fun ShimmerInvoiceItem(brush: Brush) {
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Rectángulo central (Estado/Fecha)
+        //Rectángulo central (Estado/Fecha)
         Box(
             modifier = Modifier
                 .width(160.dp)
@@ -141,10 +141,10 @@ fun ShimmerInvoiceItem(brush: Brush) {
                 .background(brush, shape = RoundedCornerShape(4.dp))
         )
 
-        // Empuja el último elemento a la derecha
+        //Empuja el último elemento a la derecha
         Spacer(modifier = Modifier.weight(1f))
 
-        // Cuadrado derecha (Flecha)
+        //Cuadrado derecha (Flecha)
         Box(
             modifier = Modifier
                 .size(20.dp)

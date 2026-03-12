@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDatabase
+import com.iberdrola.practicas2026.MarPG.data.network.InvoiceApiServer
 import com.iberdrola.practicas2026.MarPG.data.repository.InvoiceRepositoryImpl
 import com.iberdrola.practicas2026.MarPG.domain.resository.InvoiceRepository
 import dagger.Module
@@ -35,9 +36,15 @@ object AppModule {
     fun provideInvoiceRepository(
         @ApplicationContext context: Context,
         gson: Gson,
-        invoiceDao: InvoiceDao
+        invoiceDao: InvoiceDao,
+        invoiceApiServer: InvoiceApiServer
     ): InvoiceRepository {
-        return InvoiceRepositoryImpl(invoiceDao, gson, context)
+        return InvoiceRepositoryImpl(
+            invoiceApiServer = invoiceApiServer,
+            invoiceDao = invoiceDao,
+            gson = gson,
+            context = context
+        )
     }
 
 }

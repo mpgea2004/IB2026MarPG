@@ -6,6 +6,7 @@ import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.mapper.toDomain
 import com.iberdrola.practicas2026.MarPG.data.mapper.toDomainList
 import com.iberdrola.practicas2026.MarPG.data.model.InvoiceResponse
+import com.iberdrola.practicas2026.MarPG.data.network.InvoiceApiServer
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.resository.InvoiceRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -16,14 +17,28 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class InvoiceRepositoryImpl @Inject constructor(
+    private val invoiceApiServer: InvoiceApiServer,
     private val invoiceDao: InvoiceDao,
     private val gson: Gson,
     @ApplicationContext private val context: Context
 ): InvoiceRepository {
 
+    private val useRemote = true
+
     override fun getAllInvoices(): Flow<List<Invoice>> = flow {
-        //Espero un pelín para que parezca que carga internet
-        delay(1500)
+        if(useRemote){
+            //Opcion 1: Red (Mockoon)
+            //aqui no uso delay, ya que de por si la respuesta de la red suele tardar un pelin
+            val response = invoiceApiServer.getInvoices()
+            val remoteInvoices = response.invoices.toDomainList()
+            emit(remoteInvoices)
+
+            return@flow //esto es para que salga de la función flow, ya que se me quedaba pillado ahi, emitiendo lo siguiente
+        }
+
+        //Simulo tiempo de carga entre 1 y 3 segundos
+        val delay = (1000..3000).random().toLong()
+        delay(delay)
 
         //leo el archivo y lo guardo en un String
         val jsonText = context.assets.open("invoice.json").bufferedReader().use {
@@ -31,10 +46,10 @@ class InvoiceRepositoryImpl @Inject constructor(
         }
 
         //Despues convierto el texto en el objeto de respuesta
-        val answer = gson.fromJson(jsonText, InvoiceResponse::class.java)
+        val response = gson.fromJson(jsonText, InvoiceResponse::class.java)
 
         //Luego transformo la lista de los datos son a datos de la app
-        val invoiceList = answer.invoices.toDomainList()
+        val invoiceList = response.invoices.toDomainList()
 
         emit(invoiceList)
 
