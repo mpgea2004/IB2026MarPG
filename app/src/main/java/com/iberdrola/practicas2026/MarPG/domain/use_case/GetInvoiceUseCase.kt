@@ -12,8 +12,9 @@ class GetInvoiceUseCase @Inject constructor(
     private val repository: InvoiceRepository
 ) {
     //este método me permite llamar llamar a la clase como si fuera una función, y en este metodo llamo a la funcion getAllInvoices del repositorio y devuelvo la facturas ordenadas por fecha
-    operator fun invoke() : Flow<List<Invoice>> {
-        return repository.getAllInvoices().map{ invoices->
+    //Ademas recibe el booleano y lo pasa al repo
+    operator fun invoke(isCloud: Boolean) : Flow<List<Invoice>> {
+        return repository.getAllInvoices(isCloud).map{ invoices->
             invoices.sortedByDescending { DateMapper.toLocalDate(it.issueDate) }
         }
     }

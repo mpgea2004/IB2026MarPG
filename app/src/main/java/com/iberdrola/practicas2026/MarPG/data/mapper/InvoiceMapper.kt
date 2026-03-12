@@ -38,3 +38,20 @@ fun InvoiceDto.toDomain(): Invoice{
         status = if (this.status.uppercase() == "PAID") InvoiceStatus.PAID else InvoiceStatus.PENDING
     )
 }
+
+/**
+ * MAPPER 3: De DTO (API) a Entidad de Base de Datos (Room)
+ * Este es fundamental para guardar los datos en la caché.
+ */
+fun InvoiceDto.toEntity(): InvoiceEntity {
+    return InvoiceEntity(
+        id = this.id,
+        contractType = this.contractType.uppercase(),
+        amount = this.amount,
+        startDate = this.startDate,
+        endDate = this.endDate,
+        issueDate = this.issueDate,
+        status = this.status.uppercase()
+    )
+}
+fun List<InvoiceDto>.toEntityList() = this.map { it.toEntity() }

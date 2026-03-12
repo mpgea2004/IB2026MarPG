@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.mapper.toDomain
 import com.iberdrola.practicas2026.MarPG.data.mapper.toDomainList
+import com.iberdrola.practicas2026.MarPG.data.mapper.toEntity
 import com.iberdrola.practicas2026.MarPG.data.model.InvoiceResponse
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceApiServer
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
@@ -23,39 +24,65 @@ class InvoiceRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ): InvoiceRepository {
 
-    private val useRemote = true
+    override fun getAllInvoices(isCloud: Boolean): Flow<List<Invoice>> = flow {
+        if(isCloud){
+            try {
+                //Opcion 1: Red (Mockoon)
+                //aqui no uso delay, ya que de por si la respuesta de la red suele tardar un pelin
+                val response = invoiceApiServer.getInvoices()
+                val remoteInvoices = response.invoices.toDomainList()
 
-    override fun getAllInvoices(): Flow<List<Invoice>> = flow {
-        if(useRemote){
-            //Opcion 1: Red (Mockoon)
-            //aqui no uso delay, ya que de por si la respuesta de la red suele tardar un pelin
-            val response = invoiceApiServer.getInvoices()
-            val remoteInvoices = response.invoices.toDomainList()
-            emit(remoteInvoices)
+                //Guardo rl caché de Room
+                val entities = response.invoices.map { it.toEntity() }
+                invoiceDao.insertInvoices(entities)
 
-            return@flow //esto es para que salga de la función flow, ya que se me quedaba pillado ahi, emitiendo lo siguiente
+                //Opcion 2: Local }
+
+                emit(remoteInvoices)
+            }catch (e: Exception){
+                //Si falla la conexion pues usamos el caché que haya en room
+                e.printStackTrace()
+                val cachedInvoices = getInvoicesFromDatabaseOnce()
+                emit(cachedInvoices)
+            }
+
+        }else {
+
+            //Simulo tiempo de carga entre 1 y 3 segundos
+            val delay = (1000..3000).random().toLong()
+            delay(delay)
+
+            //leo el archivo y lo guardo en un String
+            val jsonText = context.assets.open("invoice.json").bufferedReader().use {
+                it.readText()
+            }
+
+            //Despues convierto el texto en el objeto de respuesta
+            val response = gson.fromJson(jsonText, InvoiceResponse::class.java)
+
+            //Luego transformo la lista de los datos son a datos de la app
+            val invoiceList = response.invoices.toDomainList()
+
+            emit(invoiceList)
         }
-
-        //Simulo tiempo de carga entre 1 y 3 segundos
-        val delay = (1000..3000).random().toLong()
-        delay(delay)
-
-        //leo el archivo y lo guardo en un String
-        val jsonText = context.assets.open("invoice.json").bufferedReader().use {
-            it.readText()
-        }
-
-        //Despues convierto el texto en el objeto de respuesta
-        val response = gson.fromJson(jsonText, InvoiceResponse::class.java)
-
-        //Luego transformo la lista de los datos son a datos de la app
-        val invoiceList = response.invoices.toDomainList()
-
-        emit(invoiceList)
 
 
     }
-//Aun no lo uso pero lo dejo por que más adelante lo usaré
+
+    /**
+     *Función auxiliar para obtener las facturas de Room una sola vez
+     */
+    private suspend fun getInvoicesFromDatabaseOnce(): List<Invoice> {
+        //leo la lista actual de entidades y la mapeo a dominio
+        return try {
+            //lectura de la caché
+            invoiceDao.getAllInvoicesOnce().map { it.toDomain() }
+        } catch (e: Exception) {
+            emptyList()//si falla devuelvo vacia
+        }
+    }
+
+    //Esto no lo uso pero no lo elimino, por si más adelante añadimos funcionalidades como añadir, o eliminar facturas que haya en la base de datos
     fun getInvoicesFromDatabase(): Flow<List<Invoice>> {
         //Aqui primero llamo al dao que me devuelve el flujo de facturas,
         //luego uso el .map de flow para entrar en la emision

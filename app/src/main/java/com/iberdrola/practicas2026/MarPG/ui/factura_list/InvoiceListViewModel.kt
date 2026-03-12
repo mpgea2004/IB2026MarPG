@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
@@ -17,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InvoiceListViewModel @Inject constructor(
-    private val getInvoicesUseCase: GetInvoiceUseCase
+    private val getInvoicesUseCase: GetInvoiceUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     // El estado que observa la UI
     var state by mutableStateOf<InvoiceListState>(InvoiceListState.LOADING)
@@ -30,6 +32,9 @@ class InvoiceListViewModel @Inject constructor(
     //Caché de todas las facturas, así no tengo que consultar la base de datos cuando pulse en la pestaña de gas o luz
     private var allInvoices : List<Invoice> = emptyList()
 
+    //Obtengo el valor de la ruta, si no existe por defcto es false
+    private val isCloud: Boolean = savedStateHandle["isCloud"] ?: false
+
     init {
         loadInvoices()
     }
@@ -40,9 +45,7 @@ class InvoiceListViewModel @Inject constructor(
                 //Inicializo en LOADING para mostrar el esqueleto
                 state = InvoiceListState.LOADING
 
-
-
-                getInvoicesUseCase().collect { invoices ->
+                getInvoicesUseCase(isCloud).collect { invoices ->
                     allInvoices = invoices
                     updateFilteredInvoices()
                 }

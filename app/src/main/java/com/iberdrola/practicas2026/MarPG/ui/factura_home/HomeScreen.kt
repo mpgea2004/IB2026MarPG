@@ -2,15 +2,18 @@ package com.iberdrola.practicas2026.MarPG.ui.factura_home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -29,7 +32,9 @@ fun HomeScreen(
     onNavigateToInvoices: () -> Unit,
     showFeedbackSheet: Boolean,
     onDismissSheet: () -> Unit,
-    onOptionSelected: (Int) -> Unit // Nueva función para pasar el 3 o el 10
+    onOptionSelected: (Int) -> Unit,
+    isCloudEnabled: Boolean,
+    onToggleCloud: (Boolean) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
 
@@ -48,6 +53,14 @@ fun HomeScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF008244))
             ) {
                 Text("Ir a Mis Facturas")
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = if (isCloudEnabled) "Origen: Nube" else "Origen: Assets Locales")
+                Spacer(Modifier.width(8.dp))
+                Switch(
+                    checked = isCloudEnabled,
+                    onCheckedChange = onToggleCloud
+                )
             }
         }
 

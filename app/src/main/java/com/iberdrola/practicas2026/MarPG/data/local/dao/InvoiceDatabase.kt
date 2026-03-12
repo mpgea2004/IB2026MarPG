@@ -30,22 +30,13 @@ abstract class InvoiceDatabase : RoomDatabase() {
                     "invoice_database.db"
                 )
                     .fallbackToDestructiveMigration()
-                    .addCallback(object : RoomDatabase.Callback() {
-                        override fun onCreate(db: SupportSQLiteDatabase) {
-                            super.onCreate(db)
-                            Executors.newSingleThreadExecutor().execute {
-                                INSTANCE?.let { database ->
-                                    prepopulateDatabase(database)
-                                }
-                            }
-                        }
-                    })
+                    //Ya no añado el Callback de prepopulateDatabase para que empiece vacía
                     .build()
                 INSTANCE = instance
                 instance
             }
         }
-
+        /*Esto lo comento porque ya no la uso
         private fun prepopulateDatabase(database: InvoiceDatabase) {
             val dao = database.invoiceDao()
 
@@ -75,5 +66,6 @@ abstract class InvoiceDatabase : RoomDatabase() {
                 )
             }
         }
+         */
     }
 }

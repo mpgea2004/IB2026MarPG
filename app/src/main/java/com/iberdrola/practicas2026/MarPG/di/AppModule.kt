@@ -25,8 +25,10 @@ object AppModule {
     }
 
     @Provides
-    fun provideInvoiceDao(db: InvoiceDatabase): InvoiceDao = db.invoiceDao()
-
+    @Singleton
+    fun provideInvoiceDao(database: InvoiceDatabase): InvoiceDao {
+        return database.invoiceDao()
+    }
     @Provides
     @Singleton
     fun provideGson(): Gson = Gson()
