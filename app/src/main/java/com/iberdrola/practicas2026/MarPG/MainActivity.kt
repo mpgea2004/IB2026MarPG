@@ -17,6 +17,7 @@ import com.iberdrola.practicas2026.MarPG.ui.home.IberdrolaNavHost
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+/** Punto de entrada principal de la aplicación. Configura Hilt y el contenedor de navegación. */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

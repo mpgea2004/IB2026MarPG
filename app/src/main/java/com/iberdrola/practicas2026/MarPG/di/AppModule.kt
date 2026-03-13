@@ -14,25 +14,38 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+/**
+ * Módulo principal de Inyección de Dependencias (Dagger Hilt)
+ * Provee las instancias únicas (Singletons) necesarias para toda la aplicación
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    /** Provee la instancia única de la base de datos Room */
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): InvoiceDatabase {
         return InvoiceDatabase.getDatabase(context)
     }
 
+    /** Provee el DAO para el acceso a las tablas de facturas */
     @Provides
     @Singleton
     fun provideInvoiceDao(database: InvoiceDatabase): InvoiceDao {
         return database.invoiceDao()
     }
+
+    /** Provee el motor de serialización GSON */
     @Provides
     @Singleton
     fun provideGson(): Gson = Gson()
 
+
+    /**
+     * Provee la implementación del repositorio de facturas
+     * Vincula la interfaz de dominio [InvoiceRepository] con su implementación de datos
+     */
     @Provides
     @Singleton
     fun provideInvoiceRepository(

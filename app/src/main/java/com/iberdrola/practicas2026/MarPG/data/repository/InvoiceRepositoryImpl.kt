@@ -21,6 +21,10 @@ import retrofit2.HttpException
 import java.io.IOException
 import java.net.UnknownHostException
 
+/**
+ * Implementación del repositorio de facturas
+ * Gestiona la lógica de decisión entre datos remotos (API), locales (Assets) y caché (Room)
+ */
 class InvoiceRepositoryImpl @Inject constructor(
     private val invoiceApiServer: InvoiceApiServer,
     private val invoiceDao: InvoiceDao,
@@ -28,6 +32,11 @@ class InvoiceRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ): InvoiceRepository {
 
+    /**
+     * Obtiene el listado de facturas según el modo seleccionado
+     * @param isCloud True para Mockoon + Caché, False para archivo JSON local
+     * @return [Flow] con la lista de facturas mapeadas a dominio
+     */
     override fun getAllInvoices(isCloud: Boolean): Flow<List<Invoice>> = flow {
         if(isCloud){
             try {
@@ -99,7 +108,10 @@ class InvoiceRepositoryImpl @Inject constructor(
         }
     }
 
-    //Esto no lo uso pero no lo elimino, por si más adelante añadimos funcionalidades como añadir, o eliminar facturas que haya en la base de datos
+    /**
+     * Obtiene facturas de Room mediante un flujo reactivo
+     * Actualmente en desuso, reservado para futuras funcionalidades
+     */
     fun getInvoicesFromDatabase(): Flow<List<Invoice>> {
         //Aqui primero llamo al dao que me devuelve el flujo de facturas,
         //luego uso el .map de flow para entrar en la emision

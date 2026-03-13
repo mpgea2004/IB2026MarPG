@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
+/** Lógica de carga, filtrado y agrupación de facturas por tipo y año */
 @HiltViewModel
 class InvoiceListViewModel @Inject constructor(
     private val checkFeedbackUseCase: CheckFeedbackUseCase,
@@ -49,6 +51,7 @@ class InvoiceListViewModel @Inject constructor(
         loadInvoices()
     }
 
+    /** Carga facturas desde el caso de uso y gestiona errores de flujo */
     private fun loadInvoices() {
         viewModelScope.launch {
             //Inicializo en LOADING para mostrar el esqueleto
@@ -70,7 +73,7 @@ class InvoiceListViewModel @Inject constructor(
             }
         }
     }
-
+    /** Filtra por contrato y agrupa por año de emisión */
     private fun updateFilteredInvoices() {
         //si no hay facturas tras la carga, estado ponemos el estado a NODATA directamente
         if (allInvoices.isEmpty()) {
@@ -98,16 +101,16 @@ class InvoiceListViewModel @Inject constructor(
         }
     }
 
-    //Función para controlar el feedback
+    /** Registra navegación de retorno para el conteo de feedback */
     fun registerBackNavigation() {
         checkFeedbackUseCase() //Solo sumo el intento en el repo compartido
     }
-
+    /** Cambia de categoría y actualiza la lista */
     fun selectTab(index: Int) {
         selectedTab = index
         updateFilteredInvoices()
     }
-    //Función para limpiar el error
+    /** Resetea el mensaje de error */
     fun clearErrorMessage() {
         errorMessage = null
     }

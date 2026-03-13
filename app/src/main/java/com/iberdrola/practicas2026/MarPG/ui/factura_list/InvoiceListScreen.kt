@@ -75,6 +75,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.LightRedIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
+/** Pantalla principal del listado de facturas con filtrado por tipo y estados de carga */
 @Composable
 fun InvoiceListScreen(
     viewModel: InvoiceListViewModel,
@@ -186,6 +187,8 @@ fun InvoiceListScreen(
         }
     }
 }
+
+/** Contenido scrolleable: última factura, cabecera fija e histórico */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun InvoiceListContent(
@@ -245,6 +248,7 @@ fun InvoiceListContent(
     }
 }
 
+/** Tarjeta destacada para la factura más reciente */
 @Composable
 fun LastInvoiceItem(invoice: Invoice) {
     Card(
@@ -301,6 +305,7 @@ fun LastInvoiceItem(invoice: Invoice) {
     }
 }
 
+/** Fila individual del histórico de facturas */
 @Composable
 fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
     val dateDisplay = DateMapper.formatToDisplay(invoice.issueDate)
@@ -349,6 +354,7 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
     }
 }
 
+/** Etiqueta de estado: Pagada (verde) o Pendiente (rojo) */
 @Composable
 fun StatusBadge(status: InvoiceStatus) {
     val isPaid = status == InvoiceStatus.PAID
@@ -366,7 +372,7 @@ fun StatusBadge(status: InvoiceStatus) {
     }
 }
 
-
+/** Pestaña de filtrado por energía */
 
 @Composable
 fun InvoiceTabItem(
@@ -394,7 +400,7 @@ fun InvoiceTabItem(
         )
     }
 }
-
+/** Botón de acceso a filtros */
 @Composable
 fun FilterButton(onClick: () -> Unit) {
     OutlinedButton(
@@ -409,7 +415,7 @@ fun FilterButton(onClick: () -> Unit) {
         Text(stringResource(R.string.invoice_list_filter_button), color = GreenIberdrola, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }
-
+/** Formatea Double a moneda (ej: 10,50 €) */
 fun Double.toCurrencyFormat(): String {
     //Formatea el Double con 2 decimales y cambia el punto por coma
     return String.format("%.2f", this).replace(".", ",") + " €"

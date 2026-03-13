@@ -22,6 +22,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * Componente visual para mostrar mensajes de error de forma destacada
+ * Utiliza un estilo de tarjeta (Card) con tonos rojizos para indicar advertencia
+ * * @param message El texto descriptivo del error a mostrar al usuario
+ */
 @Composable
 fun ErrorBanner(message: String) {
     Card(

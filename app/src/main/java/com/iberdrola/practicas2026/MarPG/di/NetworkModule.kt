@@ -9,11 +9,18 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
-//Fabrica la conexión a la API
+/**
+ * Módulo de red para la configuración de Retrofit
+ * Centraliza la comunicación con los servicios externos (Mockoon)
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
+    /**
+     * Configura y provee el cliente de Retrofit
+     * URL base: http://10.0.2.2:3000/ (Referencia al localhost desde el emulador)
+     */
     @Provides
     @Singleton
     fun provideRetrofit(): Retrofit {
@@ -23,6 +30,7 @@ object NetworkModule {
             .build()
     }
 
+    /** Provee la implementación de la interfaz [InvoiceApiServer] */
     @Provides
     @Singleton
     fun provideInvoiceApi(retrofit: Retrofit): InvoiceApiServer {

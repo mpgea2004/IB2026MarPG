@@ -7,6 +7,11 @@ import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 
 /**
+ * Mappers para la conversión entre capas de datos y dominio
+ * Facilita la transformación de [InvoiceEntity] e [InvoiceDto] al modelo [Invoice]
+ */
+
+/**
  * MAPPER 1: Para la Base de Datos(Room)
  */
 fun InvoiceEntity.toDomain(): Invoice {
@@ -22,7 +27,9 @@ fun InvoiceEntity.toDomain(): Invoice {
         status = if (this.status.uppercase() == "PAID") InvoiceStatus.PAID else InvoiceStatus.PENDING
     )
 }
-
+/**
+ * Convierte una lista de DTOs a una lista de modelos de dominio
+ */
 fun List<InvoiceDto>.toDomainList() = this.map { it.toDomain() }
 /**
  * MAPPER 2: Para el JSON(assets/Api)
@@ -54,4 +61,7 @@ fun InvoiceDto.toEntity(): InvoiceEntity {
         status = this.status.uppercase()
     )
 }
+/**
+ * Convierte una lista de DTOs a una lista de entidades para Room
+ */
 fun List<InvoiceDto>.toEntityList() = this.map { it.toEntity() }

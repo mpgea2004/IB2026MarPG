@@ -48,6 +48,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
+/** Pantalla principal: acceso a facturas y configuración de origen de datos */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -100,6 +101,7 @@ fun HomeScreen(
     }
 }
 
+/** Título y subtítulo de bienvenida */
 @Composable
 private fun HomeHeader() {
     Column {
@@ -119,6 +121,7 @@ private fun HomeHeader() {
     }
 }
 
+/** Tarjeta de acceso al listado de facturas */
 @Composable
 private fun InvoiceNavigationCard(onClick: () -> Unit) {
     Card(
@@ -170,6 +173,7 @@ private fun InvoiceNavigationCard(onClick: () -> Unit) {
     }
 }
 
+/** Switch para alternar entre Mockoon (Nube) y Assets (Local) */
 @Composable
 private fun DataSourceConfigSection(
     isCloudEnabled: Boolean,
@@ -219,6 +223,7 @@ private fun DataSourceConfigSection(
     }
 }
 
+/** BottomSheet para encuesta: carita (10) o luego (3) */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FeedbackBottomSheet(

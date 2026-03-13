@@ -4,11 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.iberdrola.practicas2026.MarPG.data.local.entities.InvoiceEntity
-import kotlinx.coroutines.runBlocking
-import java.util.concurrent.Executors
 
+/**
+ * Base de datos principal de la aplicación utilizando Room
+ * Define las entidades y versionado de la persistencia local
+ */
 @Database(
     version = 1,
     entities = [InvoiceEntity::class],
@@ -16,12 +17,18 @@ import java.util.concurrent.Executors
 )
 abstract class InvoiceDatabase : RoomDatabase() {
 
+    /**
+     * Provee el DAO para realizar operaciones sobre la tabla de facturas
+     */
     abstract fun invoiceDao(): InvoiceDao
 
     companion object {
         @Volatile
         private var INSTANCE: InvoiceDatabase? = null
 
+        /**
+         * Obtiene la instancia de la base de datos o la crea si no existe
+         */
         fun getDatabase(context: Context): InvoiceDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(

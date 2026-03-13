@@ -31,6 +31,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+/**
+ * Crea un pincel (Brush) con un gradiente lineal animado
+ * Simula el efecto de brillo "Shimmer" desplazándose por la pantalla
+ * * @param showShimmer Controla si se muestra la animación o un fondo transparente
+ * @param targetValue Distancia en píxeles que recorre la animación del gradiente
+ * @return Un [Brush] configurado con la animación infinita
+ */
 @Composable
 fun shimmerBrush(showShimmer: Boolean = true, targetValue: Float = 1000f): Brush {
     return if (showShimmer) {
@@ -64,6 +71,10 @@ fun shimmerBrush(showShimmer: Boolean = true, targetValue: Float = 1000f): Brush
     }
 }
 
+/**
+ * Esqueleto de carga que imita la estructura de la lista de facturas
+ * * @param brush El pincel animado obtenido de [shimmerBrush]
+ */
 @Composable
 fun ShimmerInvoiceList(brush: Brush) {
     Column(
@@ -116,6 +127,9 @@ fun ShimmerInvoiceList(brush: Brush) {
     }
 }
 
+/**
+ * Representación simplificada de una fila de factura para el estado de carga
+ */
 @Composable
 fun ShimmerInvoiceItem(brush: Brush) {
     Row(

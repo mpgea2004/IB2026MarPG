@@ -8,6 +8,10 @@ import androidx.room.Query
 import com.iberdrola.practicas2026.MarPG.data.local.entities.InvoiceEntity
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Interfaz de acceso a datos (DAO) para la entidad [InvoiceEntity]
+ * Define las operaciones SQL necesarias para gestionar la caché local de facturas
+ */
 @Dao
 interface InvoiceDao {
     /**

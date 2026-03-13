@@ -11,6 +11,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 
+/**
+ * Diálogo de alerta para informar que una factura no está disponible para su visualización
+ * Se utiliza como fallback cuando el usuario intenta interactuar con un elemento sin detalle
+ *
+ * @param onDismiss Callback que se ejecuta al cerrar el diálogo o pulsar el botón de confirmación
+ */
+
 @Composable
 fun InvoiceNotAvailableDialog(onDismiss: () -> Unit) {
     AlertDialog(

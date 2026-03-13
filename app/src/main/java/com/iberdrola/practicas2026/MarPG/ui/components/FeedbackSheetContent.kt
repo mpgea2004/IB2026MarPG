@@ -31,6 +31,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 
+
+/**
+ * Contenido visual para el BottomSheet de Feedback
+ * Presenta una escala de satisfacción mediante emojis y una opción para posponer
+ * * @param onRatingClick Acción a ejecutar cuando el usuario pulsa cualquier emoji
+ * @param onLaterClick Acción a ejecutar cuando el usuario pulsa "Responder más tarde"
+ */
 @Composable
 fun FeedbackSheetContent(
     onRatingClick: () -> Unit,

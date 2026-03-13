@@ -15,11 +15,14 @@ import androidx.navigation.navArgument
 import com.iberdrola.practicas2026.MarPG.ui.factura_home.HomeScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListScreen
 
+/** Definición de rutas de navegación de la aplicación */
 object Routes {
     const val HOME = "home"
-    const val INVOICE_LIST = "invoice_list/{isCloud}" //La ruta acepta el argumento para saber si los datos vienen de mockoon o no
+    /** Ruta del listado con argumento booleano para origen de datos */
+    const val INVOICE_LIST = "invoice_list/{isCloud}"
 }
 
+/** Grafo de navegación principal que gestiona el estado del origen de datos (Nube/Local) */
 @Composable
 fun IberdrolaNavHost(navController: NavHostController) {
 
@@ -28,6 +31,7 @@ fun IberdrolaNavHost(navController: NavHostController) {
 
     NavHost(navController = navController, startDestination = Routes.HOME) {
 
+        /** Pantalla de inicio: permite configurar el origen y navegar */
         composable(Routes.HOME) {
             HomeScreen(
                 onNavigateToInvoices = { navController.navigate("invoice_list/$isCloudEnabled") },
@@ -36,6 +40,7 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
+        /** Pantalla de listado: recibe el parámetro isCloud para el ViewModel */
         composable(
             Routes.INVOICE_LIST,
             arguments = listOf(navArgument("isCloud") { type = NavType.BoolType })) {
