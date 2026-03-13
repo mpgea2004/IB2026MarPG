@@ -59,10 +59,6 @@ fun HomeScreen(
 ) {
     val sheetState = rememberModalBottomSheetState()
 
-    // Compruebo el estado al entrar o volver a la pantalla
-    LaunchedEffect(Unit) {
-        viewModel.checkPendingFeedback()
-    }
 
     Scaffold(
         containerColor = Color(0xFFF7F9F8)

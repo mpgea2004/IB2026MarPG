@@ -4,33 +4,48 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.iberdrola.practicas2026.MarPG.data.repository.FeedbackRepository
-import com.iberdrola.practicas2026.MarPG.domain.use_case.UpdateFeedbackConfigUseCase
+import androidx.lifecycle.viewModelScope
+import com.iberdrola.practicas2026.MarPG.domain.use_case.CheckFeedbackUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** Gestión de estado para la Home y control de lógica de feedback */
-@HiltViewModel
+/** Gestión de estado para la Home y control de lógica de feedback con DataStore */@HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val feedbackRepository: FeedbackRepository,
-    private val updateFeedbackUseCase: UpdateFeedbackConfigUseCase
+    private val checkFeedbackUseCase: CheckFeedbackUseCase
 ) : ViewModel() {
 
     /** Controla la visibilidad del BottomSheet de feedback */
     var isSheetVisible by mutableStateOf(false)
+        private set
 
-    /** Verifica si el contador ha alcanzado el objetivo para mostrar el feedback */
-    fun checkPendingFeedback() {
-        if (feedbackRepository.feedbackCount >= feedbackRepository.feedbackTarget) {
-            isSheetVisible = true
+    init {
+        // Emoiezo a escuchar el contador en cuanto se crea la Home
+        observeFeedback()
+    }
+
+    /** * Se suscribe al flujo de DataStore.
+     * Cuando el contador llega a 0 en disco, la UI reacciona automáticamente.
+     */
+    private fun observeFeedback() {
+        viewModelScope.launch {
+            checkFeedbackUseCase.shouldShowFeedback().collect { shouldShow ->
+                isSheetVisible = shouldShow
+            }
         }
     }
 
-    /** * Actualiza la configuración de tregua y oculta el diálogo
-     * @param target Nuevo umbral de interacciones
+    /** * Aplica las reglas de Iberdrola según la opción elegida:
+     * - Valorar: 10
+     * - Luego: 3
+     * - Cerrar: 1
      */
     fun onOptionSelected(target: Int) {
-        updateFeedbackUseCase(target) //Esto resetea el contador a 0 y cambia el target
-        isSheetVisible = false
+        viewModelScope.launch {
+            // Guardamos la nueva tregua en DataStore y reseteamos
+            checkFeedbackUseCase.setNextTregua(target)
+            // Al cambiar el valor en DataStore, el collect de arriba
+            // recibirá un número > 0 y pondrá isSheetVisible a false solo.
+        }
     }
 }

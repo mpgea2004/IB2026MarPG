@@ -57,7 +57,11 @@ dependencies {
     // Hilt
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
-    ksp(libs.hilt.android.compiler) // <--- Cambiado a ksp
+    ksp(libs.hilt.android.compiler)
+
+    //DataStore
+    implementation(libs.androidx.datastore.preferences)
+
     // Room (Para el caché offline)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
@@ -66,7 +70,7 @@ dependencies {
     // Red: Retrofit + Gson + Retromock
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
-    implementation(libs.retromock) // Asegúrate de tenerlo en el libs.versions.toml
+    implementation(libs.retromock)
 
     // Testing
     testImplementation(libs.junit)

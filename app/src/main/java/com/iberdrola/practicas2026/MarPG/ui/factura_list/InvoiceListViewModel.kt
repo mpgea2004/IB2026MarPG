@@ -38,7 +38,7 @@ class InvoiceListViewModel @Inject constructor(
         private set
 
     //Caché de todas las facturas, así no tengo que consultar la base de datos cuando pulse en la pestaña de gas o luz
-    private var allInvoices : List<Invoice> = emptyList()
+    var allInvoices : List<Invoice> = emptyList()
 
     //Obtengo el valor de la ruta, si no existe por defcto es false
     private val isCloud: Boolean = savedStateHandle["isCloud"] ?: false
@@ -49,13 +49,16 @@ class InvoiceListViewModel @Inject constructor(
 
     init {
         loadInvoices()
+        observeFeedback() //empiezo a escuchar el feedback
     }
 
     /** Carga facturas desde el caso de uso y gestiona errores de flujo */
     private fun loadInvoices() {
         viewModelScope.launch {
-            //Inicializo en LOADING para mostrar el esqueleto
-            state = InvoiceListState.LOADING
+            //Inicializo en LOADING para mostrar el esqueleto si no hay datos
+            if (allInvoices.isEmpty()) {
+                state = InvoiceListState.LOADING
+            }
             errorMessage = null//Lo limpio
 
             getInvoicesUseCase(isCloud).catch { e ->
@@ -65,11 +68,22 @@ class InvoiceListViewModel @Inject constructor(
                 //compruebo si la lista es vacia despues del error, y si es asi muestro el estado de no hay datos
                 if(allInvoices.isEmpty()){
                     state = InvoiceListState.NODATA
+                }else {
+                    // Si ya teníamos la caché (del primer emit),
+                    // simplemente notificamos el error pero mantenemos el estado SUCCESS
+                    // La UI verá los datos y podrá mostrar un Toast con errorMessage
+                    updateFilteredInvoices()
                 }
             }.collect { invoices ->
                 //recibo la lista(ya sea de red o de la caché de Room)
                 allInvoices = invoices
-                updateFilteredInvoices()
+                // Si la lista está vacía de verdad (ni caché ni red)
+                if (allInvoices.isEmpty()) {
+                    state = InvoiceListState.NODATA
+                } else {
+                    errorMessage = null // Si llega un collect con éxito, limpiamos errores previos
+                    updateFilteredInvoices()
+                }
             }
         }
     }
@@ -103,7 +117,10 @@ class InvoiceListViewModel @Inject constructor(
 
     /** Registra navegación de retorno para el conteo de feedback */
     fun registerBackNavigation() {
-        checkFeedbackUseCase() //Solo sumo el intento en el repo compartido
+        viewModelScope.launch {
+            // Solo notifico que el usuario salió de la pantalla
+            checkFeedbackUseCase.notifyBackPress()
+        }
     }
     /** Cambia de categoría y actualiza la lista */
     fun selectTab(index: Int) {
@@ -113,5 +130,21 @@ class InvoiceListViewModel @Inject constructor(
     /** Resetea el mensaje de error */
     fun clearErrorMessage() {
         errorMessage = null
+    }
+
+    /** Función para refrescar las facturas */
+    fun refreshInvoices() {
+        loadInvoices()
+    }
+
+    // Para observar si mostramos el diálogo
+    private fun observeFeedback() {
+        viewModelScope.launch {
+            // Uso la función del UseCase que mira si el contador llegó a 0
+            checkFeedbackUseCase.shouldShowFeedback().collect { show ->
+                // Si el Flow emite TRUE, activo la variable que levanta el BottomSheet en la UI
+                shouldShowFeedback = show
+            }
+        }
     }
 }

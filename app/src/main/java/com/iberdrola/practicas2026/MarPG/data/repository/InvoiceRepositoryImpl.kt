@@ -6,6 +6,7 @@ import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.mapper.toDomain
 import com.iberdrola.practicas2026.MarPG.data.mapper.toDomainList
 import com.iberdrola.practicas2026.MarPG.data.mapper.toEntity
+import com.iberdrola.practicas2026.MarPG.data.mapper.toEntityList
 import com.iberdrola.practicas2026.MarPG.data.model.InvoiceResponse
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceApiServer
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceException
@@ -14,6 +15,7 @@ import com.iberdrola.practicas2026.MarPG.domain.resository.InvoiceRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -22,8 +24,9 @@ import java.io.IOException
 import java.net.UnknownHostException
 
 /**
- * Implementación del repositorio de facturas
- * Gestiona la lógica de decisión entre datos remotos (API), locales (Assets) y caché (Room)
+ * Implementación del repositorio de facturas.
+ * Centraliza la lógica de datos mediante el patrón Single Source of Truth (SSOT),
+ * priorizando la base de datos local (Room) sobre la red (Retrofit).
  */
 class InvoiceRepositoryImpl @Inject constructor(
     private val invoiceApiServer: InvoiceApiServer,
@@ -33,25 +36,25 @@ class InvoiceRepositoryImpl @Inject constructor(
 ): InvoiceRepository {
 
     /**
-     * Obtiene el listado de facturas según el modo seleccionado
-     * @param isCloud True para Mockoon + Caché, False para archivo JSON local
-     * @return [Flow] con la lista de facturas mapeadas a dominio
+     * Obtiene el listado de facturas.
+     * @param isCloud True: Sincroniza API con Room. False: Lee un archivo estático de Assets.
      */
     override fun getAllInvoices(isCloud: Boolean): Flow<List<Invoice>> = flow {
         if(isCloud){
+            //Preparo el flujo reactivo de la base de datos local (SSOT)
+            val databaseFlow = getInvoicesFromDatabase()
+
             try {
-                //Opcion 1: Red (Mockoon)
-                //aqui no uso delay, ya que de por si la respuesta de la red suele tardar un pelin
+                //Emito el primer valor de la DB rápido para que no haya espera
+                emit(getInvoicesFromDatabaseOnce())
+                //Intento de actualización desde Mockoon
                 val response = invoiceApiServer.getInvoices()
-                val remoteInvoices = response.invoices.toDomainList()
 
-                //Guardo rl caché de Room
-                val entities = response.invoices.map { it.toEntity() }
-                invoiceDao.insertInvoices(entities)
+                //Actualizamos la Fuente Única de Verdad
+                invoiceDao.clearCache()
+                invoiceDao.insertInvoices(response.invoices.toEntityList())
 
-                emit(remoteInvoices)
             }catch (e: Exception){
-                val cached = getInvoicesFromDatabaseOnce()
 
                 // Mapeamos el error de sistema a nuestra excepción personalizada
                 val customException = when (e) {
@@ -59,20 +62,15 @@ class InvoiceRepositoryImpl @Inject constructor(
                     is HttpException -> InvoiceException.ServerError(e.code())
                     else -> InvoiceException.Unknown
                 }
-
-                if (cached.isNotEmpty()) {
-                    emit(cached) //Primero damos los datos que tenemos
-                    throw customException //Y luego lanzamos el aviso para el ViewModel
-                } else {
-                    throw customException
-                }
+                throw customException
             }
+            emitAll(databaseFlow)
 
         }else {
+            // Modo Local (Assets)
             try {
                 //Simulo tiempo de carga entre 1 y 3 segundos
-                val delayTime = (1000..3000).random().toLong()
-                delay(delayTime)
+                delay((1000..3000).random().toLong())
 
                 //Intento leer el archivo de assets
                 val jsonText = context.assets.open("invoice.json").bufferedReader().use {
@@ -109,13 +107,11 @@ class InvoiceRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Obtiene facturas de Room mediante un flujo reactivo
-     * Actualmente en desuso, reservado para futuras funcionalidades
+     * Crea un flujo reactivo ligado a Room.
+     * El operador .map transforma las entidades de base de datos a modelos de dominio.
      */
     fun getInvoicesFromDatabase(): Flow<List<Invoice>> {
-        //Aqui primero llamo al dao que me devuelve el flujo de facturas,
-        //luego uso el .map de flow para entrar en la emision
-        //y luego uso el .map de list para transformar las entidades con el mapper
+
         return invoiceDao.getAllInvoices().map { entities ->
             entities.map { it.toDomain() }
         }

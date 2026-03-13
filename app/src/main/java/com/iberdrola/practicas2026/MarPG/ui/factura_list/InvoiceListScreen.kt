@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.PropaneTank
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +40,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -76,6 +78,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 /** Pantalla principal del listado de facturas con filtrado por tipo y estados de carga */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InvoiceListScreen(
     viewModel: InvoiceListViewModel,
@@ -85,6 +88,9 @@ fun InvoiceListScreen(
     val currentState = viewModel.state
     val selectedTab = viewModel.selectedTab
     val errorMessage = viewModel.errorMessage //recupero el error del VM
+
+    // Compruebo si estamos refrescando: estamos en LOADING pero ya hay datos en pantalla
+    val isRefreshing = viewModel.state is InvoiceListState.LOADING && viewModel.allInvoices.isNotEmpty()
 
     // Necesitamos esto para manejar el Snackbar
     val snackbarHostState = remember { SnackbarHostState() }
@@ -165,7 +171,13 @@ fun InvoiceListScreen(
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
+        //Así refresca la pagina, por si cambiaron cosas en la api o si ya no hay conexion
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.refreshInvoices() }, // Llamamos al método de carga del VM
+            modifier = Modifier.padding(padding).fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
+        ){
             when (currentState) {
                 InvoiceListState.LOADING -> {
                     ShimmerInvoiceList(brush = shimmerBrush())
