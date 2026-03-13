@@ -22,11 +22,7 @@ object Routes {
 
 @Composable
 fun IberdrolaNavHost(navController: NavHostController) {
-    //Declaro las variables de conteo
-    //Pongo -1 o 0 para que la primera vez salga
-    var feedbackCount by remember { mutableIntStateOf(0) }
-    var feedbackTarget by remember { mutableIntStateOf(0) }
-    var isSheetVisible by remember { mutableStateOf(false) }
+
     //si esta a true uso mockoon, si no uso el json que tengo en assets
     var isCloudEnabled by remember { mutableStateOf(false) }
 
@@ -35,19 +31,8 @@ fun IberdrolaNavHost(navController: NavHostController) {
         composable(Routes.HOME) {
             HomeScreen(
                 onNavigateToInvoices = { navController.navigate("invoice_list/$isCloudEnabled") },
-                showFeedbackSheet = isSheetVisible,
                 isCloudEnabled = isCloudEnabled,
                 onToggleCloud = { isCloudEnabled = it },
-                onDismissSheet = {
-                    feedbackTarget = 1 //Si lo cierra sin más, que vuelva a salir a la próxima
-                    feedbackCount = 0
-                    isSheetVisible = false
-                },
-                onOptionSelected = { tregua ->
-                    feedbackTarget = tregua //Aquí guarda el 3 o el 10
-                    feedbackCount = 0
-                    isSheetVisible = false
-                }
             )
         }
 
@@ -57,10 +42,6 @@ fun IberdrolaNavHost(navController: NavHostController) {
             InvoiceListScreen(
                 viewModel = hiltViewModel(),
                 onBack = {
-                    feedbackCount++ //Sumo uno al salir
-                    if (feedbackCount >= feedbackTarget) {
-                        isSheetVisible = true
-                    }
                     navController.popBackStack()//Vuelvo a home
                 },
                 onNavigateToDetail = { /*Aun no implementado*/ }

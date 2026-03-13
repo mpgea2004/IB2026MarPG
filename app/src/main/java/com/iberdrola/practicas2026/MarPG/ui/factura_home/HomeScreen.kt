@@ -32,6 +32,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.FeedbackSheetContent
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
@@ -49,14 +51,17 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    viewModel: HomeViewModel = hiltViewModel(),
     onNavigateToInvoices: () -> Unit,
-    showFeedbackSheet: Boolean,
-    onDismissSheet: () -> Unit,
-    onOptionSelected: (Int) -> Unit,
     isCloudEnabled: Boolean,
     onToggleCloud: (Boolean) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
+
+    // Compruebo el estado al entrar o volver a la pantalla
+    LaunchedEffect(Unit) {
+        viewModel.checkPendingFeedback()
+    }
 
     Scaffold(
         containerColor = Color(0xFFF7F9F8)
@@ -83,11 +88,13 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        if (showFeedbackSheet) {
+        //Conecto con el estado del ViewModel
+        if (viewModel.isSheetVisible) {
             FeedbackBottomSheet(
                 sheetState = sheetState,
-                onDismiss = onDismissSheet,
-                onOptionSelected = onOptionSelected
+                //Si el usuario cierra el sheet sin elegir, aplico tregua de 1
+                onDismiss = { viewModel.onOptionSelected(1) },
+                onOptionSelected = { tregua -> viewModel.onOptionSelected(tregua) }
             )
         }
     }
@@ -225,8 +232,8 @@ private fun FeedbackBottomSheet(
         containerColor = Color.White
     ) {
         FeedbackSheetContent(
-            onRatingClick = { onOptionSelected(10) },
-            onLaterClick = { onOptionSelected(3) },
+            onRatingClick = { onOptionSelected(10) },//Si dice carita, tregua de 10
+            onLaterClick = { onOptionSelected(3) },//Si dice más tarde, tregua de 3
         )
     }
 }

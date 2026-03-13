@@ -122,7 +122,9 @@ fun InvoiceListScreen(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 8.dp).clickable { onBack() }
+                        modifier = Modifier.padding(top = 8.dp).clickable {
+                            viewModel.registerBackNavigation()
+                            onBack() }
                     ) {
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola)
                         Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
