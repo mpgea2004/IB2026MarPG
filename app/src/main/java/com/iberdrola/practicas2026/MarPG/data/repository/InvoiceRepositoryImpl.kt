@@ -51,8 +51,7 @@ class InvoiceRepositoryImpl @Inject constructor(
                 val response = invoiceApiServer.getInvoices()
 
                 //Actualizamos la Fuente Única de Verdad
-                invoiceDao.clearCache()
-                invoiceDao.insertInvoices(response.invoices.toEntityList())
+                invoiceDao.refreshCache(response.invoices.toEntityList())
 
             }catch (e: Exception){
 

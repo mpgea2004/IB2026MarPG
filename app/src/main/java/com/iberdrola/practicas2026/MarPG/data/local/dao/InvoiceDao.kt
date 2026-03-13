@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import com.iberdrola.practicas2026.MarPG.data.local.entities.InvoiceEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -37,6 +38,15 @@ interface InvoiceDao {
      */
     @Query("DELETE FROM invoices")
     suspend fun clearCache()
+
+    /**
+     * Actualiza la caché con una nueva lista de facturas
+     */
+    @Transaction
+    suspend fun refreshCache(invoices: List<InvoiceEntity>) {
+        clearCache()
+        insertInvoices(invoices)
+    }
 
     /**
      * Inserta la factura en la base de datos, no la usamos asique está comentada, pero por si acaso lo implementamos luego, antes la usaba para cargar datos en la bd con el prepopulateDatabase
