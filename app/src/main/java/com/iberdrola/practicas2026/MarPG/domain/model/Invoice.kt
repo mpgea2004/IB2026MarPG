@@ -18,7 +18,14 @@ enum class InvoiceStatus(val description: String) {
     EN_TRAMITE("En trámite de cobro"),
     ANULADAS("Anuladas"),
     CUOTA_FIJA("Cuota Fija"),
-    UNKNOWN("Desconocido")
+    UNKNOWN("Desconocido");
+
+    //Método para obtener todas las descripciones de golpe para los filtros
+    companion object {
+        fun getAllDescriptions(): List<String> {
+            return entries.map { it.description }
+        }
+    }
 }
 
 /**

@@ -374,7 +374,14 @@ fun StatusBadge(status: InvoiceStatus) {
     val (backgroundColor, contentColor) = when (status) {
         InvoiceStatus.PAGADAS -> LightGreenIberdrola to GreenIberdrola
         InvoiceStatus.PENDIENTES_PAGO -> LightRedIberdrola to Color(0xFFD32F2F)
-        //Para estados como "En trámite" o "Cuota Fija" uso grises
+        InvoiceStatus.EN_TRAMITE ->
+            Color(0xFFE3F2FD) to Color(0xFF1976D2) // Azul
+
+        InvoiceStatus.ANULADAS ->
+            Color(0xFFEEEEEE) to Color(0xFF616161) // Gris
+
+        InvoiceStatus.CUOTA_FIJA ->
+            Color(0xFFF3E5F5) to Color(0xFF7B1FA2) // Morado
         else -> {
             Color(0xFFF5F5F5) to Color(0xFF616161)
         }

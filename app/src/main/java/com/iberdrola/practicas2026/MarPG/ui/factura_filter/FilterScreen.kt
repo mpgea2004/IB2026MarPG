@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
@@ -128,6 +129,9 @@ fun FilterContent(
     events: FilterEvents,
 ) {
 
+    val max = 500f
+    val min = 0f
+
     //Estados del datepicker
     var showFromPicker by remember { mutableStateOf(false) }
     var showToPicker by remember { mutableStateOf(false) }
@@ -148,13 +152,7 @@ fun FilterContent(
         )
     }
 
-    val statusOptions = listOf(
-        "Pagadas",
-        "Pendientes de Pago",
-        "En trámite de cobro",
-        "Anuladas",
-        "Cuota Fija"
-    )
+    val statusOptions = InvoiceStatus.getAllDescriptions()
 
     Column(
         modifier = modifier
@@ -249,7 +247,7 @@ fun FilterContent(
             onValueChange = { range ->
                 events.onPriceRangeChange(range.start, range.endInclusive)
             },
-            valueRange = 0f..200f,
+            valueRange = min..max,
             modifier = Modifier.fillMaxWidth(),
             startThumb = {
                 Box(
@@ -275,8 +273,8 @@ fun FilterContent(
                     val trackHeight = size.height
                     val width = size.width
 
-                    val startPos = width * ((rangeSliderState.activeRangeStart - 0f) / (200f - 0f))
-                    val endPos = width * ((rangeSliderState.activeRangeEnd - 0f) / (200f - 0f))
+                    val startPos = width * ((rangeSliderState.activeRangeStart - min) / (max - min))
+                    val endPos = width * ((rangeSliderState.activeRangeEnd - min) / (max - min))
 
                     //Línea Inactiva(gris)
                     drawLine(
