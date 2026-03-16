@@ -15,18 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lightbulb
-import androidx.compose.material.icons.outlined.PropaneTank
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
@@ -34,7 +30,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -53,9 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,13 +63,15 @@ import com.iberdrola.practicas2026.MarPG.ui.components.FilterEmptyState
 import com.iberdrola.practicas2026.MarPG.ui.components.InvoiceEmptyState
 import com.iberdrola.practicas2026.MarPG.ui.components.InvoiceNotAvailableDialog
 import com.iberdrola.practicas2026.MarPG.ui.components.ShimmerInvoiceList
+import com.iberdrola.practicas2026.MarPG.ui.components.list.FilterButton
+import com.iberdrola.practicas2026.MarPG.ui.components.list.InvoiceTabItem
+import com.iberdrola.practicas2026.MarPG.ui.components.list.StatusBadge
 import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
-import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
-import com.iberdrola.practicas2026.MarPG.ui.theme.LightRedIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import com.iberdrola.practicas2026.MarPG.ui.utils.toCurrencyFormat
 
 /** Pantalla principal del listado de facturas con filtrado por tipo y estados de carga */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,62 +110,35 @@ fun InvoiceListScreen(
         InvoiceNotAvailableDialog(onDismiss = { showNotAvailableDialog = false })
     }
 
+    //Creo el estado del Pager
+    val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
+
+    //Sincronizo el Pager con el ViewModel cuando cambia la página por swipe
+    LaunchedEffect(pagerState.currentPage) {
+        viewModel.selectTab(pagerState.currentPage)
+    }
+
+    //Si el ViewModel cambia el tab (ej. click en cabecera), muevo el Pager
+    LaunchedEffect(viewModel.selectedTab) {
+        if (pagerState.currentPage != viewModel.selectedTab) {
+            pagerState.animateScrollToPage(viewModel.selectedTab)
+        }
+    }
+
     Scaffold(
         containerColor = WhiteApp,
         topBar = {
-            //Aqui pongo todo lo que es fijo
-            Surface(
-                color = Color.White,
-                shadowElevation = 2.dp
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 8.dp).clickable {
-                            viewModel.registerBackNavigation()
-                            onBack() }
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola)
-                        Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    //Si hay error y estoy en modo éxito (offline), avisamos arriba
-                    if (errorMessage != null && currentState is InvoiceListState.SUCCESS) {
-                        ErrorBanner(message = errorMessage)
-                    }
-                    Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                    Text(
-                        stringResource(R.string.invoice_list_subtitle),
-                        color = Color.Black,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    //Tabs
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(24.dp)
-                    ) {
-                        InvoiceTabItem(
-                            text = stringResource(R.string.invoice_list_tab_light),
-                            isSelected = selectedTab == 0,
-                            onClick = { viewModel.selectTab(0) }
-                        )
-                        InvoiceTabItem(
-                            text = stringResource(R.string.invoice_list_tab_gas),
-                            isSelected = selectedTab == 1,
-                            onClick = { viewModel.selectTab(1) }
-                        )
-                    }
-                }
-            }
+            InvoiceListHeader(
+                selectedTab = selectedTab,
+                onTabSelected = { viewModel.selectTab(it) },
+                onBack = {
+                    viewModel.registerBackNavigation()
+                    onBack()
+                },
+                errorMessage = errorMessage,
+                showErrorBanner = currentState is InvoiceListState.SUCCESS && errorMessage != null            )
         }
+
     ) { padding ->
         //Así refresca la pagina, por si cambiaron cosas en la api o si ya no hay conexion
         PullToRefreshBox(
@@ -179,22 +147,94 @@ fun InvoiceListScreen(
             modifier = Modifier.padding(padding).fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ){
-            when (currentState) {
-                InvoiceListState.LOADING -> {
-                    ShimmerInvoiceList(brush = shimmerBrush())
-                }
-                InvoiceListState.NODATA -> {
-                    InvoiceEmptyState(message = errorMessage)
-                }
-                is InvoiceListState.SUCCESS -> {
-                    //Esto ya es el contenido
-                    InvoiceListContent(
-                        groupedInvoices = currentState.groupedInvoices,
-                        events = InvoiceListEvents(
-                            onFilter = { onNavigateToFilters() }
+            //Implemento el Pager para permitir el scroll lateral
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                userScrollEnabled = currentState !is InvoiceListState.LOADING // Bloqueamos scroll si carga
+            ) { page ->
+                when (currentState) {
+                    InvoiceListState.LOADING -> {
+                        ShimmerInvoiceList(brush = shimmerBrush())
+                    }
+
+                    InvoiceListState.NODATA -> {
+                        InvoiceEmptyState(message = errorMessage)
+                    }
+
+                    is InvoiceListState.SUCCESS -> {
+                        //Esto ya es el contenido
+                        InvoiceListContent(
+                            groupedInvoices = currentState.groupedInvoices,
+                            events = InvoiceListEvents(
+                                onFilter = { onNavigateToFilters() },
+                                onDetail = { invoice ->
+                                    showNotAvailableDialog = true
+                                }
+                            )
                         )
-                    )
+                    }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun InvoiceListHeader(
+    selectedTab: Int,
+    errorMessage: String?,
+    showErrorBanner: Boolean,
+    onTabSelected: (Int) -> Unit,
+    onBack: () -> Unit
+){
+    //Aqui pongo todo lo que es fijo
+    Surface(
+        color = Color.White,
+        shadowElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 8.dp).clickable { onBack() }
+            ) {
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola)
+                Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            //Si hay error y estoy en modo éxito (offline), avisamos arriba
+            if (showErrorBanner && errorMessage != null) {
+                ErrorBanner(message = errorMessage)
+            }
+            Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.invoice_list_subtitle),
+                color = Color.Black,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            //Tabs
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                InvoiceTabItem(
+                    text = stringResource(R.string.invoice_list_tab_light),
+                    isSelected = selectedTab == 0,
+                    onClick = { onTabSelected(0)}
+                )
+                InvoiceTabItem(
+                    text = stringResource(R.string.invoice_list_tab_gas),
+                    isSelected = selectedTab == 1,
+                    onClick = { onTabSelected(1)}
+                )
             }
         }
     }
@@ -367,89 +407,6 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
     }
 }
 
-/** Etiqueta de estado: Pagada (verde) o Pendiente (rojo) */
-@Composable
-fun StatusBadge(status: InvoiceStatus) {
-    // Defino los colores según el estado real
-    val (backgroundColor, contentColor) = when (status) {
-        InvoiceStatus.PAGADAS -> LightGreenIberdrola to GreenIberdrola
-        InvoiceStatus.PENDIENTES_PAGO -> LightRedIberdrola to Color(0xFFD32F2F)
-        InvoiceStatus.EN_TRAMITE ->
-            Color(0xFFE3F2FD) to Color(0xFF1976D2) // Azul
-
-        InvoiceStatus.ANULADAS ->
-            Color(0xFFEEEEEE) to Color(0xFF616161) // Gris
-
-        InvoiceStatus.CUOTA_FIJA ->
-            Color(0xFFF3E5F5) to Color(0xFF7B1FA2) // Morado
-        else -> {
-            Color(0xFFF5F5F5) to Color(0xFF616161)
-        }
-    }
-
-    Surface(
-        color = backgroundColor,
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Text(
-            text = status.description,
-            color = contentColor,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-/** Pestaña de filtrado por energía */
-
-@Composable
-fun InvoiceTabItem(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { onClick() }
-    ) {
-        Text(
-            text = text,
-            fontSize = 14.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) Color.Black else TextGrey,
-            modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 8.dp)
-        )
-        //Barra verde
-        Box(
-            modifier = Modifier
-                .height(3.dp)
-                .width(40.dp)
-                .background(if (isSelected) GreenIberdrola else Color.Transparent)
-        )
-    }
-}
-/** Botón de acceso a filtros */
-@Composable
-fun FilterButton(onClick: () -> Unit) {
-    OutlinedButton(
-        onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.5.dp, GreenIberdrola),
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-        modifier = Modifier.height(32.dp)
-    ) {
-        Icon(painter = painterResource(R.drawable.ic_invoice_filter), null, tint = GreenIberdrola, modifier = Modifier.size(16.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(stringResource(R.string.invoice_list_filter_button), color = GreenIberdrola, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-    }
-}
-/** Formatea Double a moneda (ej: 10,50 €) */
-fun Double.toCurrencyFormat(): String {
-    //Formatea el Double con 2 decimales y cambia el punto por coma
-    return String.format("%.2f", this).replace(".", ",") + " €"
-}
-
 @Preview(showBackground = true, backgroundColor = 0xFFF5F5F5)
 @Composable
 fun InvoiceListLoadingPreview() {
@@ -505,17 +462,15 @@ fun InvoiceListScreenPreview() {
 
         Scaffold(
             topBar = {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = Color(0xFF008244))
-                        Text(stringResource(R.string.invoice_list_back), color =GreenIberdrola, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                    Text(stringResource(R.string.invoice_list_subtitle), color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
+                InvoiceListHeader(
+                    selectedTab = 0,
+                    errorMessage = null,
+                    showErrorBanner = false,
+                    onTabSelected = {},
+                    onBack = {}
+                )
             }
-        ) { padding ->
+        ){ padding ->
             Box(modifier = Modifier.padding(padding)) {
                 InvoiceListContent(
                     groupedInvoices = groupedMock,
@@ -532,15 +487,13 @@ fun InvoiceListNoDataPreview() {
     IB2026MarPGTheme {
         Scaffold(
             topBar = {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = Color(0xFF008244))
-                        Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                    Text(stringResource(R.string.invoice_list_subtitle), color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
+                InvoiceListHeader(
+                    selectedTab = 0,
+                    errorMessage = null,
+                    showErrorBanner = false,
+                    onTabSelected = {},
+                    onBack = {}
+                )
             }
         ) { padding ->
             Box(modifier = Modifier.padding(padding)) {

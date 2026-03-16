@@ -57,6 +57,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
+import com.iberdrola.practicas2026.MarPG.ui.components.filter.DateRangeSection
+import com.iberdrola.practicas2026.MarPG.ui.components.filter.FilterActionButtons
+import com.iberdrola.practicas2026.MarPG.ui.components.filter.PriceRangeSection
+import com.iberdrola.practicas2026.MarPG.ui.components.filter.StatusFilterSection
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
@@ -174,54 +178,12 @@ fun FilterContent(
         Spacer(modifier = Modifier.height(32.dp))
 
         // Sección fecha
-        Text("Por fecha", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            // Campo DESDE
-            Box(modifier = Modifier.weight(1f).clickable { showFromPicker = true }) {
-                TextField(
-                    value = state.dateFrom,
-                    onValueChange = { }, // No se usa porque es readOnly
-                    readOnly = true,
-                    enabled = false, // Evita foco y teclado, el clic lo maneja el Box
-                    label = { Text("Desde", fontWeight = FontWeight.Bold) },
-                    modifier = Modifier.fillMaxWidth(),
-                    trailingIcon = {
-                        Icon(Icons.Default.CalendarToday, null, tint = GreenIberdrola)
-                    },
-                    colors = TextFieldDefaults.colors(
-                        disabledContainerColor = Color.Transparent,
-                        disabledIndicatorColor = Color.LightGray,
-                        disabledTextColor = Color.Black,
-                        disabledLabelColor = Color.Black
-                    )
-                )
-            }
-
-            // Campo HASTA
-            Box(modifier = Modifier.weight(1f).clickable { showToPicker = true }) {
-                TextField(
-                    value = state.dateTo,
-                    onValueChange = { },
-                    readOnly = true,
-                    enabled = false,
-                    label = { Text("Hasta", fontWeight = FontWeight.Bold) },
-                    modifier = Modifier.fillMaxWidth(),
-                    trailingIcon = {
-                        Icon(Icons.Default.CalendarToday, null, tint = GreenIberdrola)
-                    },
-                    colors = TextFieldDefaults.colors(
-                        disabledContainerColor = Color.Transparent,
-                        disabledIndicatorColor = Color.LightGray,
-                        disabledTextColor = Color.Black,
-                        disabledLabelColor = Color.Black
-                    )
-                )
-            }
-        }
+        DateRangeSection(
+            dateFrom = state.dateFrom,
+            dateTo = state.dateTo,
+            onFromClick = { showFromPicker = true },
+            onToClick = { showToPicker = true }
+        )
         Spacer(modifier = Modifier.height(40.dp))
 
         //Importe
@@ -229,143 +191,28 @@ fun FilterContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         //Etiqueta precio
-        Box(
-            modifier = Modifier
-                .background(LightGreenIberdrola, RoundedCornerShape(4.dp))
-                .align(Alignment.CenterHorizontally)
-                .padding(horizontal = 12.dp, vertical = 3.dp)
-        ) {
-            Text(
-                text = "${state.minPrice.toInt()}€ - ${state.maxPrice.toInt()}€",
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
-        }
-
-        RangeSlider(
-            value = state.minPrice..state.maxPrice,
-            onValueChange = { range ->
-                events.onPriceRangeChange(range.start, range.endInclusive)
-            },
-            valueRange = min..max,
-            modifier = Modifier.fillMaxWidth(),
-            startThumb = {
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .background(GreenIberdrola, shape = CircleShape)
-                )
-            },
-            endThumb = {
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .background(GreenIberdrola, shape = CircleShape)
-                )
-            },
-            track = { rangeSliderState ->
-                //He tenido dibujado la línea para que se una a los puntos
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(6.dp)
-                ) {
-                    val trackHeight = size.height
-                    val width = size.width
-
-                    val startPos = width * ((rangeSliderState.activeRangeStart - min) / (max - min))
-                    val endPos = width * ((rangeSliderState.activeRangeEnd - min) / (max - min))
-
-                    //Línea Inactiva(gris)
-                    drawLine(
-                        color = Color(0xFFE0E0E0),
-                        start = Offset(0f, trackHeight / 2),
-                        end = Offset(width, trackHeight / 2),
-                        strokeWidth = trackHeight,
-                        cap = StrokeCap.Round
-                    )
-
-                    //Línea Activa(Verde)
-                    drawLine(
-                        color = GreenIberdrola,
-                        start = Offset(startPos, trackHeight / 2),
-                        end = Offset(endPos, trackHeight / 2),
-                        strokeWidth = trackHeight,
-                        cap = StrokeCap.Round
-                    )
-                }
-            }
+        PriceRangeSection(
+            minPrice = state.minPrice,
+            maxPrice = state.maxPrice,
+            onRangeChange = { min, max -> events.onPriceRangeChange(min, max) }
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("${state.minPrice.toInt()} €", color = Color.Gray, fontSize = 14.sp)
-            Text("${state.maxPrice.toInt()} €", color = Color.Gray, fontSize = 14.sp)
-        }
 
         Spacer(modifier = Modifier.height(40.dp))
 
         //Estado
-        Text("Por estado", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(18.dp)
-        ) {
-            statusOptions.forEach { status ->
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { events.onStatusToggle(status) }
-                ) {
-
-                    Checkbox(
-                        checked = state.selectedStatuses.contains(status),
-                        onCheckedChange = null,
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = GreenIberdrola,
-                            uncheckedColor = GreenIberdrola
-                        )
-                    )
-
-                    Text(
-                        text = status,
-                        modifier = Modifier.padding(start = 8.dp),
-                        fontSize = 16.sp
-                    )
-                }
-            }
-        }
+        StatusFilterSection(
+            statusOptions = statusOptions,
+            selectedStatuses = state.selectedStatuses,
+            onStatusToggle = { events.onStatusToggle(it) }
+        )
 
         Spacer(modifier = Modifier.height(48.dp))
 
         //Botones final
-        Button(
-            onClick ={ events.onApply() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(54.dp),
-            shape = RoundedCornerShape(27.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = GreenIberdrola)
-        ) {
-            Text("Aplicar filtros", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Borrar filtros",
-            textDecoration = TextDecoration.Underline,
-            color = GreenIberdrola,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .clickable { events.onClear() }
-                .padding(bottom = 32.dp)
+        FilterActionButtons(
+            onApply = { events.onApply() },
+            onClear = { events.onClear() }
         )
     }
 }

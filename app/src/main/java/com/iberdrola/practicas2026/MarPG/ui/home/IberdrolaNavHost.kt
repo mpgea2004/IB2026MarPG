@@ -70,6 +70,7 @@ fun IberdrolaNavHost(navController: NavHostController) {
 
             FilterScreen(
                 listViewModel = invoiceListViewModel,
+                filterViewModel = hiltViewModel(),
                 onBack = { navController.popBackStack() }
             )
         }

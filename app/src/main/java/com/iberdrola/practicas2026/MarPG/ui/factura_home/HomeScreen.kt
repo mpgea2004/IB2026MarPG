@@ -43,6 +43,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.FeedbackSheetContent
+import com.iberdrola.practicas2026.MarPG.ui.components.home.DataSourceConfigSection
+import com.iberdrola.practicas2026.MarPG.ui.components.home.FeedbackBottomSheet
+import com.iberdrola.practicas2026.MarPG.ui.components.home.InvoiceNavigationCard
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
@@ -59,7 +62,35 @@ fun HomeScreen(
 ) {
     val sheetState = rememberModalBottomSheetState()
 
+// Si el VM dice que ya no debe verse, cerramos con animación
+    LaunchedEffect(viewModel.isSheetVisible) {
+        if (!viewModel.isSheetVisible) {
+            sheetState.hide()
+        }
+    }
 
+    HomeContent(
+        isCloudEnabled = isCloudEnabled,
+        isSheetVisible = viewModel.isSheetVisible,
+        sheetState = sheetState,
+        onNavigateToInvoices = onNavigateToInvoices,
+        onToggleCloud = onToggleCloud,
+        onSheetDismiss = { viewModel.onOptionSelected(1) },
+        onSheetOptionSelected = { tregua -> viewModel.onOptionSelected(tregua) }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeContent(
+    isCloudEnabled: Boolean,
+    isSheetVisible: Boolean,
+    sheetState: SheetState,
+    onNavigateToInvoices: () -> Unit,
+    onToggleCloud: (Boolean) -> Unit,
+    onSheetDismiss: () -> Unit,
+    onSheetOptionSelected: (Int) -> Unit
+) {
     Scaffold(
         containerColor = Color(0xFFF7F9F8)
     ) { padding ->
@@ -85,13 +116,11 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        //Conecto con el estado del ViewModel
-        if (viewModel.isSheetVisible) {
+        if (isSheetVisible) {
             FeedbackBottomSheet(
                 sheetState = sheetState,
-                //Si el usuario cierra el sheet sin elegir, aplico tregua de 1
-                onDismiss = { viewModel.onOptionSelected(1) },
-                onOptionSelected = { tregua -> viewModel.onOptionSelected(tregua) }
+                onDismiss = onSheetDismiss,
+                onOptionSelected = onSheetOptionSelected
             )
         }
     }
@@ -113,128 +142,6 @@ private fun HomeHeader() {
             fontSize = 16.sp,
             color = TextGrey,
             fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-/** Tarjeta de acceso al listado de facturas */
-@Composable
-private fun InvoiceNavigationCard(onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(130.dp)
-            .clickable { onClick() },
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = WhiteApp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Surface(
-                modifier = Modifier.size(56.dp),
-                shape = CircleShape,
-                color = LightGreenIberdrola
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.Description,
-                        contentDescription = null,
-                        tint = GreenIberdrola,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.home_invoices_title),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                Text(
-                    stringResource(R.string.home_invoices_subtitle),
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-            }
-        }
-    }
-}
-
-/** Switch para alternar entre Mockoon (Nube) y Assets (Local) */
-@Composable
-private fun DataSourceConfigSection(
-    isCloudEnabled: Boolean,
-    onToggleCloud: (Boolean) -> Unit
-) {
-    Column {
-        Text(
-            text = stringResource(R.string.home_footer_title),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
-        )
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            border = BorderStroke(1.dp, Color(0xFFE0E0E0))
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = if (isCloudEnabled) stringResource(R.string.home_footer_typeS) else stringResource(R.string.home_footer_typeL),
-                        fontWeight = FontWeight.Bold,
-                        color = if (isCloudEnabled) Color(0xFF008244) else Color.DarkGray
-                    )
-                    Text(
-                        text = stringResource(R.string.home_footer_subtitle),
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
-                }
-                Switch(
-                    checked = isCloudEnabled,
-                    onCheckedChange = onToggleCloud,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = Color(0xFF008244)
-                    )
-                )
-            }
-        }
-    }
-}
-
-/** BottomSheet para encuesta: carita (10) o luego (3) */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun FeedbackBottomSheet(
-    sheetState: SheetState,
-    onDismiss: () -> Unit,
-    onOptionSelected: (Int) -> Unit
-) {
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = Color.White
-    ) {
-        FeedbackSheetContent(
-            onRatingClick = { onOptionSelected(10) },//Si dice carita, tregua de 10
-            onLaterClick = { onOptionSelected(3) },//Si dice más tarde, tregua de 3
         )
     }
 }

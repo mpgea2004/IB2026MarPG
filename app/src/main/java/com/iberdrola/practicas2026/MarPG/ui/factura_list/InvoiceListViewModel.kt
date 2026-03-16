@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iberdrola.practicas2026.MarPG.data.network.InvoiceException
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.use_case.CheckFeedbackUseCase
@@ -67,36 +68,27 @@ class InvoiceListViewModel @Inject constructor(
             errorMessage = null//Lo limpio
 
             getInvoicesUseCase(isCloud).catch { e ->
-                //caturo la excepcion lanzada por el repo
-                errorMessage = e.message
+                errorMessage = if (e is InvoiceException) e.message else InvoiceException.Unknown.message
 
-                //compruebo si la lista es vacia despues del error, y si es asi muestro el estado de no hay datos
-                if(allInvoices.isEmpty()){
+                if (allInvoices.isEmpty()) {
                     state = InvoiceListState.NODATA
-                }else {
-                    // Si ya teníamos la caché (del primer emit),
-                    // simplemente notificamos el error pero mantenemos el estado SUCCESS
-                    // La UI verá los datos y podrá mostrar un Toast con errorMessage
-                    updateFilteredInvoices()
                 }
             }.collect { invoices ->
                 //recibo la lista(ya sea de red o de la caché de Room)
                 allInvoices = invoices
                 // Si la lista está vacía de verdad (ni caché ni red)
-                if (allInvoices.isEmpty()) {
-                    state = InvoiceListState.NODATA
-                } else {
-                    errorMessage = null // Si llega un collect con éxito, limpiamos errores previos
-                    updateFilteredInvoices()
-                }
+                if (invoices.isNotEmpty())
+                    errorMessage = null
+
+                updateFilteredInvoices()
+
             }
         }
     }
     /** Filtra por contrato, importe, estado, fecha y agrupa por año de emisión */
     private fun updateFilteredInvoices() {
         //Si no hay facturas cargadas, mueetro NODATA directamente
-        if (allInvoices.isEmpty()) {
-            state = InvoiceListState.NODATA
+        if (allInvoices.isEmpty() && state is InvoiceListState.LOADING) {
             return
         }
 
@@ -133,7 +125,11 @@ class InvoiceListViewModel @Inject constructor(
             }
         }
 
-        state = InvoiceListState.SUCCESS(groupedByYear)
+        if (filteredInvoices.isEmpty()) {
+            state = InvoiceListState.NODATA
+        } else {
+            state = InvoiceListState.SUCCESS(groupedByYear)
+        }
     }
 
     /** Registra navegación de retorno para el conteo de feedback */

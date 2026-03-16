@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import retrofit2.HttpException
 import java.io.IOException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
 /**
@@ -53,11 +55,13 @@ class InvoiceRepositoryImpl @Inject constructor(
                 //Actualizamos la Fuente Única de Verdad
                 invoiceDao.refreshCache(response.invoices.toEntityList())
 
-            }catch (e: Exception){
-
-                // Mapeamos el error de sistema a nuestra excepción personalizada
+            } catch (e: Exception) {
                 val customException = when (e) {
-                    is UnknownHostException, is IOException -> InvoiceException.NoInternet
+                    is UnknownHostException,
+                    is ConnectException,
+                    is SocketTimeoutException,
+                    is IOException -> InvoiceException.NetworkError
+
                     is HttpException -> InvoiceException.ServerError(e.code())
                     else -> InvoiceException.Unknown
                 }
