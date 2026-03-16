@@ -14,5 +14,5 @@ data class InvoiceEntity(
     val startDate: String, // Fecha de inicio del periodo
     val endDate: String, // Fecha de fin del periodo
     val issueDate: String, // Fecha de emisión de factura
-    val status: String // Estado: "PAID" o "PENDING"
+    val status: String // Estado: "Pagadas", "Pendientes de Pago", "En trámite de cobro", "Anuladas", "Cuota Fija"
 )

@@ -28,4 +28,25 @@
     <string name="invoice_list_tab_light">Luz</string>
     <string name="invoice_list_tab_gas">Gas</string>
 
+    <!--Pantalla filtar-->
+    <string name="filter_title">Filtrar facturas</string>
+    <string name="filter_label_date">Fecha de emisión</string>
+    <string name="filter_label_amount">Importe</string>
+    <string name="filter_label_status">Estado</string>
+
+    <string name="filter_date_from">Desde</string>
+    <string name="filter_date_to">Hasta</string>
+
+    <string name="filter_status_paid">Pagadas</string>
+    <string name="filter_status_pending">Pendientes de pago</string>
+    <string name="filter_status_processing">En trámite de cobro</string>
+    <string name="filter_status_cancelled">Anuladas</string>
+    <string name="filter_status_fixed">Cuota fija</string>
+
+    <string name="filter_button_apply">Aplicar</string>
+    <string name="filter_button_clear">Eliminar filtros</string>
+    <string name="filter_close_content_description">Cerrar pantalla de filtros</string>
+
+    <string name="filter_no_results">No hay facturas que coincidan con los filtros seleccionados.</string>
+
 </resources>

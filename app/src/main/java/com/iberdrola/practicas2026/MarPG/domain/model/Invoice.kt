@@ -9,11 +9,16 @@ enum class ContractType {
 }
 
 /**
- * Estados posibles de una factura con su descripción
+ * Estados posibles de una factura con su descripción exacta según requerimientos.
+ * La descripción se usa para mostrar en la UI y para mapear desde el JSON.
  */
 enum class InvoiceStatus(val description: String) {
-    PAID("Pagada"),
-    PENDING("Pendiente de pago")
+    PAGADAS("Pagadas"),
+    PENDIENTES_PAGO("Pendientes de Pago"),
+    EN_TRAMITE("En trámite de cobro"),
+    ANULADAS("Anuladas"),
+    CUOTA_FIJA("Cuota Fija"),
+    UNKNOWN("Desconocido")
 }
 
 /**
