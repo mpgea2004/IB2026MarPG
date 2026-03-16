@@ -85,9 +85,6 @@ fun InvoiceListScreen(
     val selectedTab = viewModel.selectedTab
     val errorMessage = viewModel.errorMessage //recupero el error del VM
 
-    // Compruebo si estamos refrescando: estamos en LOADING pero ya hay datos en pantalla
-    val isRefreshing = viewModel.state is InvoiceListState.LOADING && viewModel.allInvoices.isNotEmpty()
-
     // Necesitamos esto para manejar el Snackbar
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -142,7 +139,7 @@ fun InvoiceListScreen(
     ) { padding ->
         //Así refresca la pagina, por si cambiaron cosas en la api o si ya no hay conexion
         PullToRefreshBox(
-            isRefreshing = isRefreshing,
+            isRefreshing = viewModel.isRefreshing,
             onRefresh = { viewModel.refreshInvoices() }, // Llamamos al método de carga del VM
             modifier = Modifier.padding(padding).fillMaxSize(),
             contentAlignment = Alignment.TopCenter

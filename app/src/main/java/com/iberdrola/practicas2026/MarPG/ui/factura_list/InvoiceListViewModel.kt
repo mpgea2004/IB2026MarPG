@@ -15,6 +15,7 @@ import com.iberdrola.practicas2026.MarPG.domain.use_case.GetInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -51,6 +52,9 @@ class InvoiceListViewModel @Inject constructor(
 
     //Estado para el filtro
     var currentFilterState by mutableStateOf(FilterState())
+        private set
+
+    var isRefreshing by mutableStateOf(false)
         private set
 
     init {
@@ -151,7 +155,12 @@ class InvoiceListViewModel @Inject constructor(
 
     /** Función para refrescar las facturas */
     fun refreshInvoices() {
-        loadInvoices()
+        viewModelScope.launch {
+            isRefreshing = true
+            loadInvoices()
+            delay(500)
+            isRefreshing = false
+        }
     }
 
     // Para observar si mostramos el diálogo
