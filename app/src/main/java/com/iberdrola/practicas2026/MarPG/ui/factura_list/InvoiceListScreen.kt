@@ -66,6 +66,7 @@ import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
 import com.iberdrola.practicas2026.MarPG.ui.components.ErrorBanner
+import com.iberdrola.practicas2026.MarPG.ui.components.FilterEmptyState
 import com.iberdrola.practicas2026.MarPG.ui.components.InvoiceEmptyState
 import com.iberdrola.practicas2026.MarPG.ui.components.InvoiceNotAvailableDialog
 import com.iberdrola.practicas2026.MarPG.ui.components.ShimmerInvoiceList
@@ -212,36 +213,37 @@ fun InvoiceListContent(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
+        //ÚLTIMA FACTURA(Solo si hay alguna factura tras el filtro)
+        lastInvoice?.let {
+            item { LastInvoiceItem(it) }
+        }
+
+        //TÍTULO HISTÓRICO Y BOTÓN FILTRAR(SIEMPRE VISIBLE)
+        stickyHeader {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    stringResource(R.string.invoice_list_historic_title),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                FilterButton(onClick = { events.onFilter() })
+            }
+        }
+
+        //LÓGICA DE CONTENIDO O ESTADO VACÍO POR FILTRO
         if (groupedInvoices.isEmpty()) {
             item {
-                Box(
-                    modifier = Modifier.fillParentMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(stringResource(R.string.invoice_list_tap_no_invoices), color = TextGrey)
-                }
+                FilterEmptyState()
             }
         } else {
-            // 1. ÚLTIMA FACTURA
-            lastInvoice?.let {
-                item { LastInvoiceItem(it) }
-            }
-
-            // 2. TÍTULO HISTÓRICO, etse se queda anclado arriba cuando hago scroll
-            stickyHeader {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(stringResource(R.string.invoice_list_historic_title), fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    FilterButton(onClick = { events.onFilter() })
-                }
-            }
-
-            // 3.FACTURAS AGRUPADAS
+            //FACTURAS AGRUPADAS
             groupedInvoices.forEach { (year, invoicesOfYear) ->
                 item {
                     Text(

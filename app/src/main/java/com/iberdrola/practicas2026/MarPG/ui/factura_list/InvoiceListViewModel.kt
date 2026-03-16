@@ -124,20 +124,16 @@ class InvoiceListViewModel @Inject constructor(
             matchesType && matchesPrice && matchesStatus && matchesDate
         }
 
-        // Actualizo el estado de la UI según el resultado
-        state = if (filteredInvoices.isEmpty()) {
-            InvoiceListState.NODATA
-        } else {
-            //Agrupo por año usando el DateMapper
-            val groupedByYear = filteredInvoices.groupBy { invoice ->
-                try {
-                    DateMapper.toLocalDate(invoice.issueDate).year.toString()
-                } catch (e: Exception) {
-                    "Sin fecha" //Evito que la app pete si una fecha viene mal
-                }
+        // Actualizo el estado de la UI según el resultado, si no hay facturas, vacio
+        val groupedByYear = filteredInvoices.groupBy { invoice ->
+            try {
+                DateMapper.toLocalDate(invoice.issueDate).year.toString()
+            } catch (e: Exception) {
+                "Sin fecha"
             }
-            InvoiceListState.SUCCESS(groupedByYear)
         }
+
+        state = InvoiceListState.SUCCESS(groupedByYear)
     }
 
     /** Registra navegación de retorno para el conteo de feedback */

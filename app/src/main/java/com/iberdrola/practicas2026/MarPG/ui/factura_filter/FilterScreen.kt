@@ -24,13 +24,19 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,6 +61,8 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 
 @Composable
@@ -120,6 +128,26 @@ fun FilterContent(
     events: FilterEvents,
 ) {
 
+    //Estados del datepicker
+    var showFromPicker by remember { mutableStateOf(false) }
+    var showToPicker by remember { mutableStateOf(false) }
+
+    //Logica para enseñar el datepicker
+    if (showFromPicker) {
+        MyDatePickerDialog(
+            onDateSelected = { events.onDateFromChange(it) },
+            onDismiss = { showFromPicker = false }
+        )
+    }
+
+    if (showToPicker) {
+        MyDatePickerDialog(
+            minDateStr = state.dateFrom, // <--- AQUÍ RESTRINGIMOS
+            onDateSelected = { events.onDateToChange(it) },
+            onDismiss = { showToPicker = false }
+        )
+    }
+
     val statusOptions = listOf(
         "Pagadas",
         "Pendientes de Pago",
@@ -154,43 +182,48 @@ fun FilterContent(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            //Desde
-            TextField(
-                value = state.dateFrom,
-                onValueChange = { events.onDateFromChange(it) },
-                label = { Text("Desde", fontWeight = FontWeight.Bold) },
-                modifier = Modifier.weight(1f),
-                trailingIcon = {
-                    Icon(Icons.Default.CalendarToday, null, tint = GreenIberdrola)
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = GreenIberdrola,
-                    unfocusedIndicatorColor = Color.LightGray,
+            // Campo DESDE
+            Box(modifier = Modifier.weight(1f).clickable { showFromPicker = true }) {
+                TextField(
+                    value = state.dateFrom,
+                    onValueChange = { }, // No se usa porque es readOnly
+                    readOnly = true,
+                    enabled = false, // Evita foco y teclado, el clic lo maneja el Box
+                    label = { Text("Desde", fontWeight = FontWeight.Bold) },
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        Icon(Icons.Default.CalendarToday, null, tint = GreenIberdrola)
+                    },
+                    colors = TextFieldDefaults.colors(
+                        disabledContainerColor = Color.Transparent,
+                        disabledIndicatorColor = Color.LightGray,
+                        disabledTextColor = Color.Black,
+                        disabledLabelColor = Color.Black
+                    )
                 )
-            )
+            }
 
-            //Hasta
-            TextField(
-                value = state.dateTo,
-                onValueChange = { events.onDateToChange(it) },
-                label = { Text("Hasta", fontWeight = FontWeight.Bold) },
-                modifier = Modifier.weight(1f),
-                trailingIcon = {
-                    Icon(Icons.Default.CalendarToday, null, tint = GreenIberdrola)
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = GreenIberdrola,
-                    unfocusedIndicatorColor = Color.LightGray,
+            // Campo HASTA
+            Box(modifier = Modifier.weight(1f).clickable { showToPicker = true }) {
+                TextField(
+                    value = state.dateTo,
+                    onValueChange = { },
+                    readOnly = true,
+                    enabled = false,
+                    label = { Text("Hasta", fontWeight = FontWeight.Bold) },
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        Icon(Icons.Default.CalendarToday, null, tint = GreenIberdrola)
+                    },
+                    colors = TextFieldDefaults.colors(
+                        disabledContainerColor = Color.Transparent,
+                        disabledIndicatorColor = Color.LightGray,
+                        disabledTextColor = Color.Black,
+                        disabledLabelColor = Color.Black
+                    )
                 )
-            )
+            }
         }
-
         Spacer(modifier = Modifier.height(40.dp))
 
         //Importe
@@ -338,6 +371,68 @@ fun FilterContent(
         )
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MyDatePickerDialog(
+    minDateStr: String? = null,
+    onDateSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    //Convierto la fecha "Desde" a milisegundos
+    val minDateMillis = remember(minDateStr) {
+        if (!minDateStr.isNullOrEmpty()) {
+            try {
+                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(minDateStr)?.time
+            } catch (e: Exception) { null }
+        } else null
+    }
+
+    //Configuro el estado con la restricción
+    val datePickerState = rememberDatePickerState(
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                //Si minDateMillis es null, todo es seleccionable.
+                //Si no, solo lo que sea mayor o igual
+                return minDateMillis == null || utcTimeMillis >= minDateMillis
+            }
+        }
+    )
+
+    val selectedDate = datePickerState.selectedDateMillis?.let {
+        val date = java.util.Date(it)
+        val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        format.format(date)
+    } ?: ""
+
+    DatePickerDialog(
+        onDismissRequest = { onDismiss() },
+        confirmButton = {
+            TextButton(onClick = {
+                if (selectedDate.isNotEmpty()) onDateSelected(selectedDate)
+                onDismiss()
+            }) {
+                Text("OK", color = GreenIberdrola, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("Cancelar", color = GreenIberdrola)
+            }
+        }
+    ) {
+        DatePicker(
+            state = datePickerState,
+            colors = DatePickerDefaults.colors(
+                todayContentColor = GreenIberdrola,
+                todayDateBorderColor = GreenIberdrola,
+                selectedDayContainerColor = GreenIberdrola,
+                selectedDayContentColor = Color.White
+            )
+        )
+    }
+}
+
 @Preview(
     showBackground = true,
 )
