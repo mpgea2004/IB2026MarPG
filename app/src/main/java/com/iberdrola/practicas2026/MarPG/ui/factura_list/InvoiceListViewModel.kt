@@ -12,6 +12,7 @@ import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.use_case.CheckFeedbackUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.GetInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
+import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -45,6 +46,10 @@ class InvoiceListViewModel @Inject constructor(
 
     //Estado para el mensaje de error
     var errorMessage by mutableStateOf<String?>(null)
+        private set
+
+    //Estado para el filtro
+    var currentFilterState by mutableStateOf(FilterState())
         private set
 
     init {
@@ -87,31 +92,51 @@ class InvoiceListViewModel @Inject constructor(
             }
         }
     }
-    /** Filtra por contrato y agrupa por año de emisión */
+    /** Filtra por contrato, importe, estado, fecha y agrupa por año de emisión */
     private fun updateFilteredInvoices() {
-        //si no hay facturas tras la carga, estado ponemos el estado a NODATA directamente
+        //Si no hay facturas cargadas, mueetro NODATA directamente
         if (allInvoices.isEmpty()) {
             state = InvoiceListState.NODATA
             return
         }
 
-        val type = if (selectedTab == 0) ContractType.LUZ else ContractType.GAS
+        //Escojo el tipo de contrato según la pestaña activa
+        val contractTypeFilter = if (selectedTab == 0) ContractType.LUZ else ContractType.GAS
 
-        //Filtro por tipo
-        val filteredInvoices = allInvoices.filter { it.contractType == type }
+        //Aplico todos los filtros del currentFilterState
+        val filteredInvoices = allInvoices.filter { invoice ->
+            //Filtro por Pestaña(Luz/Gas)
+            val matchesType = invoice.contractType == contractTypeFilter
 
+            //Filtro por Importe(Slider)
+            val matchesPrice = invoice.amount >= currentFilterState.minPrice &&
+                    invoice.amount <= currentFilterState.maxPrice
+
+            //Filtro por Estado(Checkboxes)
+            //Si no hay ninguno seleccionado, permitimos todos(true)
+            val matchesStatus = currentFilterState.selectedStatuses.isEmpty() ||
+                    currentFilterState.selectedStatuses.contains(invoice.status.description)
+
+            //Filtro por Fecha (Calendarios)
+            val matchesDate = checkDateRange(invoice.issueDate)
+
+            //La factura debe cumplir todas las condiciones
+            matchesType && matchesPrice && matchesStatus && matchesDate
+        }
+
+        // Actualizo el estado de la UI según el resultado
         state = if (filteredInvoices.isEmpty()) {
             InvoiceListState.NODATA
         } else {
-            //Agrupo por año de emisión
-            val grouped = filteredInvoices.groupBy { invoice ->
+            //Agrupo por año usando el DateMapper
+            val groupedByYear = filteredInvoices.groupBy { invoice ->
                 try {
                     DateMapper.toLocalDate(invoice.issueDate).year.toString()
                 } catch (e: Exception) {
-                    "Desconocido" //Por si alguna fecha viene con formato raro
+                    "Sin fecha" //Evito que la app pete si una fecha viene mal
                 }
             }
-            InvoiceListState.SUCCESS(grouped)
+            InvoiceListState.SUCCESS(groupedByYear)
         }
     }
 
@@ -147,4 +172,51 @@ class InvoiceListViewModel @Inject constructor(
             }
         }
     }
+
+    //-----------Tarea 2
+
+    /**
+     * Se llama desde la FilterScreen al pulsar "Aplicar", y aplica los filtros
+     * Recibe el estado final del FilterViewModel
+     */
+    fun applyFilters(newFilters: FilterState) {
+        currentFilterState = newFilters
+        updateFilteredInvoices()
+    }
+
+    /**
+     * Comprueba si la fecha de la factura entra en el rango seleccionado
+     */
+    private fun checkDateRange(invoiceDateStr: String): Boolean {
+        //Si no hay fechas seleccionadas, pasa el filtro
+        if (currentFilterState.dateFrom.isEmpty() && currentFilterState.dateTo.isEmpty()) {
+            return true
+        }
+
+        return try {
+            //Convierto la fecha de la factura
+            val invoiceDate = DateMapper.toLocalDate(invoiceDateStr)
+
+            //Comprubo el límite inferior(Desde)
+            val matchesFrom = if (currentFilterState.dateFrom.isNotEmpty()) {
+                val fromDate = DateMapper.toLocalDate(currentFilterState.dateFrom)
+                !invoiceDate.isBefore(fromDate)
+            } else true
+
+            //Compruebo el límite superior (Hasta)
+            val matchesTo = if (currentFilterState.dateTo.isNotEmpty()) {
+                val toDate = DateMapper.toLocalDate(currentFilterState.dateTo)
+                !invoiceDate.isAfter(toDate)
+            } else true
+
+            matchesFrom && matchesTo
+        } catch (e: Exception) {
+            //Si el usuario escribió una fecha incompleta o mal formateada,
+            //no descarto la factura para no dar sensación de lista vacía por error.
+            true
+        }
+    }
+
+
+
 }

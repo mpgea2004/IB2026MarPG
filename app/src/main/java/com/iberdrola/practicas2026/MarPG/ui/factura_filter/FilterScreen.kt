@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,20 +48,39 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 
 @Composable
 fun FilterScreen(
-    onBack: () -> Unit,
-    onApply: (FilterState) -> Unit,
-    initialState: FilterState = FilterState()
+    listViewModel: InvoiceListViewModel, //Viene de la pantalla anterior
+    filterViewModel: FilterViewModel = hiltViewModel(),
+    onBack: () -> Unit
 ) {
 
-    var currentState by remember { mutableStateOf(initialState) }
+    //Sincronizo el estado inicial al entrar
+    LaunchedEffect(Unit) {
+        filterViewModel.setInitialState(listViewModel.currentFilterState)
+    }
+
+    val events = FilterEvents(
+        onDateFromChange = { filterViewModel.onDateFromChange(it) },
+        onDateToChange = { filterViewModel.onDateToChange(it) },
+        onPriceRangeChange = { min, max -> filterViewModel.onPriceRangeChange(min, max) },
+        onStatusToggle = { filterViewModel.onStatusToggle(it) },
+        onClear = { filterViewModel.clearFilters() },
+        onApply = {
+            //Paso el paquete de datos final al ViewModel de la lista
+            listViewModel.applyFilters(filterViewModel.state)
+            onBack()
+        }
+    )
 
     Scaffold(
         containerColor = WhiteApp,
@@ -70,11 +90,9 @@ fun FilterScreen(
     ) { padding ->
 
         FilterContent(
-            modifier = Modifier.padding(padding).fillMaxSize(),
-            state = currentState,
-            onStateChange = { currentState = it },
-            onApply = { onApply(currentState) },
-            onClear = { currentState = FilterState() }
+            modifier = Modifier.padding(padding),
+            state = filterViewModel.state,
+            events = events,
         )
     }
 }
@@ -85,7 +103,8 @@ fun FilterTopBar(onBack: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp, start = 8.dp),
+            .padding(top = 16.dp, start = 8.dp)
+            .clickable { onBack() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola)
@@ -98,11 +117,8 @@ fun FilterTopBar(onBack: () -> Unit) {
 fun FilterContent(
     modifier: Modifier = Modifier,
     state: FilterState,
-    onStateChange: (FilterState) -> Unit,
-    onApply: () -> Unit,
-    onClear: () -> Unit
+    events: FilterEvents,
 ) {
-    var priceRange by remember { mutableStateOf(0f..200f) }
 
     val statusOptions = listOf(
         "Pagadas",
@@ -141,7 +157,7 @@ fun FilterContent(
             //Desde
             TextField(
                 value = state.dateFrom,
-                onValueChange = { onStateChange(state.copy(dateFrom = it)) },
+                onValueChange = { events.onDateFromChange(it) },
                 label = { Text("Desde", fontWeight = FontWeight.Bold) },
                 modifier = Modifier.weight(1f),
                 trailingIcon = {
@@ -159,7 +175,7 @@ fun FilterContent(
             //Hasta
             TextField(
                 value = state.dateTo,
-                onValueChange = { onStateChange(state.copy(dateTo = it)) },
+                onValueChange = { events.onDateToChange(it) },
                 label = { Text("Hasta", fontWeight = FontWeight.Bold) },
                 modifier = Modifier.weight(1f),
                 trailingIcon = {
@@ -189,15 +205,17 @@ fun FilterContent(
                 .padding(horizontal = 12.dp, vertical = 3.dp)
         ) {
             Text(
-                text = "${priceRange.start.toInt()}€ - ${priceRange.endInclusive.toInt()}€",
+                text = "${state.minPrice.toInt()}€ - ${state.maxPrice.toInt()}€",
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
             )
         }
 
         RangeSlider(
-            value = priceRange,
-            onValueChange = { priceRange = it },
+            value = state.minPrice..state.maxPrice,
+            onValueChange = { range ->
+                events.onPriceRangeChange(range.start, range.endInclusive)
+            },
             valueRange = 0f..200f,
             modifier = Modifier.fillMaxWidth(),
             startThumb = {
@@ -252,8 +270,8 @@ fun FilterContent(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("${priceRange.start.toInt()} €", color = Color.Gray, fontSize = 14.sp)
-            Text("${priceRange.endInclusive.toInt()} €", color = Color.Gray, fontSize = 14.sp)
+            Text("${state.minPrice.toInt()} €", color = Color.Gray, fontSize = 14.sp)
+            Text("${state.maxPrice.toInt()} €", color = Color.Gray, fontSize = 14.sp)
         }
 
         Spacer(modifier = Modifier.height(40.dp))
@@ -271,15 +289,7 @@ fun FilterContent(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            val newSet =
-                                if (state.selectedStatuses.contains(status))
-                                    state.selectedStatuses - status
-                                else
-                                    state.selectedStatuses + status
-
-                            onStateChange(state.copy(selectedStatuses = newSet))
-                        }
+                        .clickable { events.onStatusToggle(status) }
                 ) {
 
                     Checkbox(
@@ -304,7 +314,7 @@ fun FilterContent(
 
         //Botones final
         Button(
-            onClick = onApply,
+            onClick ={ events.onApply() },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp),
@@ -323,7 +333,7 @@ fun FilterContent(
             fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .clickable { onClear() }
+                .clickable { events.onClear() }
                 .padding(bottom = 32.dp)
         )
     }
@@ -334,19 +344,17 @@ fun FilterContent(
 @Composable
 fun FilterScreenFilledPreview() {
 
-    com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme {
+    IB2026MarPGTheme {
 
-        FilterScreen(
-            onBack = {},
-            onApply = {},
-            initialState = FilterState(
-                dateFrom = "01/01/2024",
-                dateTo = "01/12/2024",
-                selectedStatuses = setOf(
-                    "Pagadas",
-                    "Pendientes de Pago"
-                )
-            )
+        FilterContent(
+            state = FilterState(
+                dateFrom = "01/01/2026",
+                dateTo = "31/01/2026",
+                minPrice = 20f,
+                maxPrice = 150f,
+                selectedStatuses = setOf("Pagadas")
+            ),
+            events = FilterEvents(), // Eventos vacíos para la preview
         )
     }
 }

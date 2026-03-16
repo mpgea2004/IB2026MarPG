@@ -83,7 +83,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 fun InvoiceListScreen(
     viewModel: InvoiceListViewModel,
     onBack: () -> Unit,
-    onNavigateToDetail: (Invoice) -> Unit
+    onNavigateToFilters:() -> Unit
 ) {
     val currentState = viewModel.state
     val selectedTab = viewModel.selectedTab
@@ -190,8 +190,7 @@ fun InvoiceListScreen(
                     InvoiceListContent(
                         groupedInvoices = currentState.groupedInvoices,
                         events = InvoiceListEvents(
-                            onDetail = { showNotAvailableDialog = true },
-                            onFilter = { /* Abrir filtro */ }
+                            onFilter = { onNavigateToFilters() }
                         )
                     )
                 }
@@ -369,14 +368,23 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
 /** Etiqueta de estado: Pagada (verde) o Pendiente (rojo) */
 @Composable
 fun StatusBadge(status: InvoiceStatus) {
-    val isPaid = status == InvoiceStatus.PAID
+    // Defino los colores según el estado real
+    val (backgroundColor, contentColor) = when (status) {
+        InvoiceStatus.PAGADAS -> LightGreenIberdrola to GreenIberdrola
+        InvoiceStatus.PENDIENTES_PAGO -> LightRedIberdrola to Color(0xFFD32F2F)
+        //Para estados como "En trámite" o "Cuota Fija" uso grises
+        else -> {
+            Color(0xFFF5F5F5) to Color(0xFF616161)
+        }
+    }
+
     Surface(
-        color = if (isPaid) LightGreenIberdrola else LightRedIberdrola,
+        color = backgroundColor,
         shape = RoundedCornerShape(12.dp)
     ) {
         Text(
             text = status.description,
-            color = if (isPaid) GreenIberdrola else Color(0xFFD32F2F),
+            color = contentColor,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold
@@ -472,9 +480,9 @@ fun InvoiceListLoadingPreview() {
 fun InvoiceListScreenPreview() {
     //Datos de prueba
     val mockFacturas = listOf(
-        Invoice("A01", ContractType.LUZ, 20.00, "01/02/2024", "04/03/2024", "04/03/2024", InvoiceStatus.PAID),
-        Invoice("A02", ContractType.GAS, 20.10, "01/01/2024", "31/01/2024", "06/02/2024", InvoiceStatus.PENDING),
-        Invoice("A03", ContractType.LUZ, 150.43, "01/10/2023", "31/10/2023", "06/11/2023", InvoiceStatus.PAID)
+        Invoice("A01", ContractType.LUZ, 20.00, "01/02/2024", "04/03/2024", "04/03/2024", InvoiceStatus.PAGADAS),
+        Invoice("A02", ContractType.GAS, 20.10, "01/01/2024", "31/01/2024", "06/02/2024", InvoiceStatus.PENDIENTES_PAGO),
+        Invoice("A03", ContractType.LUZ, 150.43, "01/10/2023", "31/10/2023", "06/11/2023", InvoiceStatus.PAGADAS)
     )
 
     //Agrupo usando el DateMapper

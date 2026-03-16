@@ -23,8 +23,8 @@ fun InvoiceEntity.toDomain(): Invoice {
         startDate = this.startDate,
         endDate = this.endDate,
         issueDate = this.issueDate,
-        //Convierto a la enum, paid o pending
-        status = if (this.status.uppercase() == "PAID") InvoiceStatus.PAID else InvoiceStatus.PENDING
+        //Convierto a la enum de estados
+        status = this.status.toInvoiceStatus()
     )
 }
 /**
@@ -42,7 +42,7 @@ fun InvoiceDto.toDomain(): Invoice{
         startDate = this.startDate,
         endDate = this.endDate,
         issueDate = this.issueDate,
-        status = if (this.status.uppercase() == "PAID") InvoiceStatus.PAID else InvoiceStatus.PENDING
+        status = this.status.toInvoiceStatus()
     )
 }
 
@@ -58,10 +58,24 @@ fun InvoiceDto.toEntity(): InvoiceEntity {
         startDate = this.startDate,
         endDate = this.endDate,
         issueDate = this.issueDate,
-        status = this.status.uppercase()
+        status = this.status
     )
 }
 /**
  * Convierte una lista de DTOs a una lista de entidades para Room
  */
 fun List<InvoiceDto>.toEntityList() = this.map { it.toEntity() }
+
+/**
+ * Convierte los strings del JSON/DB al Enum de Dominio
+ */
+private fun String.toInvoiceStatus(): InvoiceStatus {
+    return when (this) {
+        "Pagadas" -> InvoiceStatus.PAGADAS
+        "Pendientes de Pago" -> InvoiceStatus.PENDIENTES_PAGO
+        "En trámite de cobro" -> InvoiceStatus.EN_TRAMITE
+        "Anuladas" -> InvoiceStatus.ANULADAS
+        "Cuota Fija" -> InvoiceStatus.CUOTA_FIJA
+        else -> InvoiceStatus.UNKNOWN
+    }
+}
