@@ -24,46 +24,39 @@ fun StatusFilterSection(
     statusOptions: List<String>,
     selectedStatuses: Set<String>,
     onStatusToggle: (String) -> Unit
-){
-    @Composable
-    fun StatusFilterSection(
-        statusOptions: List<String>,
-        selectedStatuses: Set<String>,
-        onStatusToggle: (String) -> Unit
-    ) {
-        Column {
-            Text(
-                text = "Por estado",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(12.dp))
+) {
+    Column {
+        Text(
+            text = "Por estado",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(12.dp))
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(18.dp)
-            ) {
-                statusOptions.forEach { status ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onStatusToggle(status) }
-                    ) {
-                        Checkbox(
-                            checked = selectedStatuses.contains(status),
-                            onCheckedChange = null, // null porque el click lo maneja la Row
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = GreenIberdrola,
-                                uncheckedColor = GreenIberdrola
-                            )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            statusOptions.forEach { status ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onStatusToggle(status) }
+                ) {
+                    Checkbox(
+                        checked = selectedStatuses.contains(status),
+                        onCheckedChange = null, // null porque el click lo maneja la Row
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = GreenIberdrola,
+                            uncheckedColor = GreenIberdrola
                         )
+                    )
 
-                        Text(
-                            text = status,
-                            modifier = Modifier.padding(start = 8.dp),
-                            fontSize = 16.sp
-                        )
-                    }
+                    Text(
+                        text = status,
+                        modifier = Modifier.padding(start = 8.dp),
+                        fontSize = 16.sp
+                    )
                 }
             }
         }

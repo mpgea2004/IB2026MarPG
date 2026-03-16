@@ -150,7 +150,7 @@ fun FilterContent(
 
     if (showToPicker) {
         MyDatePickerDialog(
-            minDateStr = state.dateFrom, // <--- AQUÍ RESTRINGIMOS
+            minDateStr = state.dateFrom,
             onDateSelected = { events.onDateToChange(it) },
             onDismiss = { showToPicker = false }
         )
@@ -196,7 +196,6 @@ fun FilterContent(
             maxPrice = state.maxPrice,
             onRangeChange = { min, max -> events.onPriceRangeChange(min, max) }
         )
-
 
         Spacer(modifier = Modifier.height(40.dp))
 
