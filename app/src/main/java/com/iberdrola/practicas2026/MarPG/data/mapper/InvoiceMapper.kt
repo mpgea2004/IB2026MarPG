@@ -76,6 +76,6 @@ private fun String.toInvoiceStatus(): InvoiceStatus {
         "En trámite de cobro" -> InvoiceStatus.EN_TRAMITE
         "Anuladas" -> InvoiceStatus.ANULADAS
         "Cuota Fija" -> InvoiceStatus.CUOTA_FIJA
-        else -> InvoiceStatus.UNKNOWN
+        else -> InvoiceStatus.ANULADAS
     }
 }

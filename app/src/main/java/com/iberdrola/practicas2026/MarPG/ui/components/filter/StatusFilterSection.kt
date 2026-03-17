@@ -40,7 +40,7 @@ fun StatusFilterSection(
         Spacer(modifier = Modifier.height(12.dp))
 
         Column(
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+            verticalArrangement = Arrangement.spacedBy(28.dp)
         ) {
             statusOptions.forEach { status ->
                 Row(
@@ -61,7 +61,7 @@ fun StatusFilterSection(
                     Text(
                         text = status,
                         modifier = Modifier.padding(start = 8.dp),
-                        fontSize = 16.sp
+                        fontSize = 14.sp
                     )
                 }
             }

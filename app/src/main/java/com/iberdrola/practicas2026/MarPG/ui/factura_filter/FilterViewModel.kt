@@ -36,11 +36,7 @@ class FilterViewModel @Inject constructor() : ViewModel() {
      * y notificamos a la UI del cambio.
      */
     fun onPriceRangeChange(min: Float, max: Float) {
-        //Uso ceil para que el rango siempre cubra los decimales hacia arriba
-        val roundedMin = ceil(min)
-        val roundedMax = ceil(max)
-
-        state = state.copy(minPrice = roundedMin, maxPrice = roundedMax)
+        state = state.copy(minPrice = min, maxPrice = max)
     }
 
     /**

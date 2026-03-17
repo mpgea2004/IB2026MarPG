@@ -17,8 +17,7 @@ enum class InvoiceStatus(val description: String) {
     PENDIENTES_PAGO("Pendientes de Pago"),
     EN_TRAMITE("En trámite de cobro"),
     ANULADAS("Anuladas"),
-    CUOTA_FIJA("Cuota Fija"),
-    UNKNOWN("Desconocido");
+    CUOTA_FIJA("Cuota Fija");
 
     //Método para obtener todas las descripciones de golpe para los filtros
     companion object {

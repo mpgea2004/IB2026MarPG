@@ -64,9 +64,13 @@ fun PriceRangeSection(
         RangeSlider(
             value = minPrice..maxPrice,
             onValueChange = { range ->
-                onRangeChange(range.start, range.endInclusive)
+                // Si el valor está muy cerca del límite real, lo fuerzo para evitar el salto visual
+                val startValue = if (range.start < minLimit + 0.1f) minLimit else range.start
+                val endValue = if (range.endInclusive > maxLimit - 0.1f) maxLimit else range.endInclusive
+                onRangeChange(startValue, endValue)
             },
             valueRange = minLimit..maxLimit,
+            steps = 0,
             modifier = Modifier.fillMaxWidth(),
             startThumb = {
                 Box(

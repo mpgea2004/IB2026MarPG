@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -17,9 +18,11 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 
 /** * Sección de filtros por rango de fechas.
@@ -33,20 +36,20 @@ fun DateRangeSection(
     onToClick: () -> Unit
 ) {
     Column {
-        Text("Por fecha", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(text = stringResource(R.string.filter_date_section_title), fontSize = 14.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             DateField(
-                label = "Desde",
+                label = stringResource(R.string.filter_date_from_label),
                 value = dateFrom,
                 modifier = Modifier.weight(1f),
-                onClick = onFromClick
+                onClick = onFromClick,
             )
             DateField(
-                label = "Hasta",
+                label = stringResource(R.string.filter_date_to_label),
                 value = dateTo,
                 modifier = Modifier.weight(1f),
                 onClick = onToClick
@@ -71,16 +74,16 @@ private fun DateField(
             onValueChange = { },
             readOnly = true,
             enabled = false,
-            label = { Text(label, fontWeight = FontWeight.Bold) },
+            label = { Text(label, fontSize = 14.sp) },
             modifier = Modifier.fillMaxWidth(),
             trailingIcon = {
-                Icon(Icons.Default.CalendarToday, null, tint = GreenIberdrola)
+                Icon(Icons.Outlined.CalendarToday, null, tint = Color.DarkGray)
             },
             colors = TextFieldDefaults.colors(
                 disabledContainerColor = Color.Transparent,
-                disabledIndicatorColor = Color.LightGray,
+                disabledIndicatorColor = Color.Black,
                 disabledTextColor = Color.Black,
-                disabledLabelColor = Color.Black
+                disabledLabelColor = Color.Gray
             )
         )
     }

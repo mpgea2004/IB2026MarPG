@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -123,15 +124,35 @@ fun FilterScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterTopBar(onBack: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp, start = 8.dp)
-            .clickable { onBack() },
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        color = WhiteApp,
+        shadowElevation = 0.dp
     ) {
-        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola)
-        Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(top = 24.dp, bottom = 0.dp)
+                    .clickable { onBack() }
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = null,
+                    tint = GreenIberdrola,
+                    modifier = Modifier.size(32.dp)
+                )
+                Text(
+                    text = stringResource(R.string.invoice_list_back),
+                    color = GreenIberdrola,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = TextDecoration.Underline
+                )
+            }
+        }
     }
 }
 
@@ -141,11 +162,9 @@ fun FilterContent(
     modifier: Modifier = Modifier,
     state: FilterState,
     events: FilterEvents,
-    minLimit: Float = 0f, // Añadido: límite dinámico
-    maxLimit: Float = 500f // Añadido: límite dinámico
+    minLimit: Float = 0f,
+    maxLimit: Float = 500f
 ) {
-
-
     //Estados del datepicker
     var showFromPicker by remember { mutableStateOf(false) }
     var showToPicker by remember { mutableStateOf(false) }
@@ -168,63 +187,71 @@ fun FilterContent(
 
     val statusOptions = InvoiceStatus.getAllDescriptions()
 
+    // COLUMNA PRINCIPAL: Ocupa toda la pantalla
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)
-            .padding(horizontal = 24.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
+            .background(WhiteApp)
+    ){
+        //PARTE SUPERIOR: Formulario con Scroll
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
 
-        // Título principal
-        Text(
-            text = stringResource(R.string.invoice_filter_title),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color.Black
-        )
+            // Título principal
+            Text(
+                text = stringResource(R.string.invoice_filter_title),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.Black,
+                modifier = Modifier.padding(top = 16.dp)
+            )
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-        // Sección fecha
-        DateRangeSection(
-            dateFrom = state.dateFrom,
-            dateTo = state.dateTo,
-            onFromClick = { showFromPicker = true },
-            onToClick = { showToPicker = true }
-        )
-        Spacer(modifier = Modifier.height(40.dp))
+            // Sección fecha
+            DateRangeSection(
+                dateFrom = state.dateFrom,
+                dateTo = state.dateTo,
+                onFromClick = { showFromPicker = true },
+                onToClick = { showToPicker = true }
+            )
+            Spacer(modifier = Modifier.height(40.dp))
 
-        //Importe
-        Text(stringResource(R.string.invoice_filter_price), fontSize = 14.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(16.dp))
+            //Importe
+            Text(stringResource(R.string.invoice_filter_price), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(16.dp))
 
-        //Etiqueta precio
-        PriceRangeSection(
-            minPrice = state.minPrice,
-            maxPrice = state.maxPrice,
-            minLimit = minLimit, // Usamos el mínimo real
-            maxLimit = maxLimit, // Usamos el máximo real
-            onRangeChange = { min, max -> events.onPriceRangeChange(min, max) }
-        )
+            //Etiqueta precio
+            PriceRangeSection(
+                minPrice = state.minPrice,
+                maxPrice = state.maxPrice,
+                minLimit = minLimit, // Uso el mínimo real
+                maxLimit = maxLimit, // Uso el máximo real
+                onRangeChange = { min, max -> events.onPriceRangeChange(min, max) }
+            )
 
-        Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-        //Estado
-        StatusFilterSection(
-            statusOptions = statusOptions,
-            selectedStatuses = state.selectedStatuses,
-            onStatusToggle = { events.onStatusToggle(it) }
-        )
+            //Estado
+            StatusFilterSection(
+                statusOptions = statusOptions,
+                selectedStatuses = state.selectedStatuses,
+                onStatusToggle = { events.onStatusToggle(it) }
+            )
 
-        Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
-        //Botones final
-        FilterActionButtons(
-            onApply = { events.onApply() },
-            onClear = { events.onClear() }
-        )
+            //Botones final
+            FilterActionButtons(
+                onApply = { events.onApply() },
+                onClear = { events.onClear() }
+            )
+        }
     }
 }
 

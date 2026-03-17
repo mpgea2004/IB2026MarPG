@@ -202,7 +202,7 @@ fun InvoiceListHeader(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 8.dp).clickable { onBack() }
             ) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola)
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola,                    modifier = Modifier.size(32.dp))
                 Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -301,7 +301,7 @@ fun InvoiceListContent(
     }
 }
 
-/** Tarjeta destacada para la factura más reciente */
+/** Tarjeta destacada para la factura más reciente, esta también se ve afectada por el filtrado */
 @Composable
 fun LastInvoiceItem(invoice: Invoice) {
     Card(
