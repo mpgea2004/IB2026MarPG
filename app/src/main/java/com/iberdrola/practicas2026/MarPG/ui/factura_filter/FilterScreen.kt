@@ -72,7 +72,11 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-
+/**
+ * Pantalla principal de filtrado de facturas
+ * Se encarga de coordinar la sincronización entre el ViewModel de la lista y el de filtros,
+ * además de gestionar la navegación de retorno
+ */
 @Composable
 fun FilterScreen(
     listViewModel: InvoiceListViewModel, //Viene de la pantalla anterior
@@ -122,7 +126,10 @@ fun FilterScreen(
         )
     }
 }
-
+/**
+ * Barra superior personalizada para la pantalla de filtros
+ * Incluye el botón de volver atrás
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterTopBar(onBack: () -> Unit) {
@@ -158,6 +165,11 @@ fun FilterTopBar(onBack: () -> Unit) {
     }
 }
 
+/**
+ * Contenedor del formulario de filtrado
+ * Organiza las secciones de Fecha, Importe y Estado, además de gestionar
+ * la visibilidad de los diálogos de selección de fecha
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterContent(
@@ -271,6 +283,10 @@ fun FilterContent(
     }
 }
 
+/**
+ * Diálogo personalizado para la selección de fechas
+ * Permite configurar una fecha mínima seleccionable para validar rangos coherentes
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDatePickerDialog(
@@ -332,6 +348,9 @@ fun MyDatePickerDialog(
     }
 }
 
+/**
+ * Vista previa de la pantalla de filtros con datos de ejemplo cargados
+ */
 @Preview(
     showBackground = true,
 )

@@ -5,10 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Locale
 import javax.inject.Inject
-import kotlin.math.ceil
 
+/**
+ * Pantalla principal de filtrado de facturas
+ * Se encarga de coordinar la sincronización entre el ViewModel de la lista y el de filtros,
+ * además de gestionar la navegación de retorno
+ */
 @HiltViewModel
 class FilterViewModel @Inject constructor() : ViewModel() {
 
