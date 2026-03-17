@@ -134,6 +134,12 @@ class InvoiceListViewModel @Inject constructor(
             return
         }
 
+        //Si la base de datos está realmente vacía (sin filtros), entonces sí es NODATA total
+        if (allInvoices.isEmpty()) {
+            state = InvoiceListState.NODATA
+            return
+        }
+
         //Escojo el tipo de contrato según la pestaña activa
         val contractTypeFilter = if (selectedTab == 0) ContractType.LUZ else ContractType.GAS
 
@@ -167,11 +173,8 @@ class InvoiceListViewModel @Inject constructor(
             }
         }
 
-        if (filteredInvoices.isEmpty()) {
-            state = InvoiceListState.NODATA
-        } else {
-            state = InvoiceListState.SUCCESS(groupedByYear)
-        }
+        state = InvoiceListState.SUCCESS(groupedByYear)
+
     }
 
     /** Registra navegación de retorno para el conteo de feedback */
