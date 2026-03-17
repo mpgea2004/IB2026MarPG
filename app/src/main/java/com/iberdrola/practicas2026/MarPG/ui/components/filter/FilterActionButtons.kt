@@ -14,13 +14,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
+/** * Botones de acción para la pantalla de filtros
+ * Incluye el botón principal de confirmación y el enlace para resetear los valores
+ */
 @Composable
 fun FilterActionButtons(
     onApply: () -> Unit,
@@ -35,13 +40,13 @@ fun FilterActionButtons(
             shape = RoundedCornerShape(27.dp),
             colors = ButtonDefaults.buttonColors(containerColor = GreenIberdrola)
         ) {
-            Text("Aplicar filtros", color = WhiteApp, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.invoice_filter_button_apply), color = WhiteApp, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Borrar filtros",
+            text = stringResource(R.string.invoice_filter_button_clear),
             textDecoration = TextDecoration.Underline,
             color = GreenIberdrola,
             fontWeight = FontWeight.Bold,

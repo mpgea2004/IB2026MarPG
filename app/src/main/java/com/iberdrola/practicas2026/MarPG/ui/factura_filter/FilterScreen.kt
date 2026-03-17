@@ -77,8 +77,11 @@ fun FilterScreen(
     onBack: () -> Unit
 ) {
 
-    //Sincronizo el estado inicial al entrar
+    /**
+     * Sincroniza lo qu etenga en el viewmodel con el estado del filtro
+     */
     LaunchedEffect(Unit) {
+
         filterViewModel.setInitialState(listViewModel.currentFilterState)
     }
 
@@ -87,7 +90,12 @@ fun FilterScreen(
         onDateToChange = { filterViewModel.onDateToChange(it) },
         onPriceRangeChange = { min, max -> filterViewModel.onPriceRangeChange(min, max) },
         onStatusToggle = { filterViewModel.onStatusToggle(it) },
-        onClear = { filterViewModel.clearFilters() },
+        onClear = {
+            filterViewModel.clearFilters(
+                minLimit = listViewModel.minInvoiceAmount,
+                maxLimit = listViewModel.maxInvoiceAmount
+            )
+        },
         onApply = {
             //Paso el paquete de datos final al ViewModel de la lista
             listViewModel.applyFilters(filterViewModel.state)
@@ -106,6 +114,8 @@ fun FilterScreen(
             modifier = Modifier.padding(padding),
             state = filterViewModel.state,
             events = events,
+            minLimit = listViewModel.minInvoiceAmount,
+            maxLimit = listViewModel.maxInvoiceAmount
         )
     }
 }
@@ -131,10 +141,10 @@ fun FilterContent(
     modifier: Modifier = Modifier,
     state: FilterState,
     events: FilterEvents,
+    minLimit: Float = 0f, // Añadido: límite dinámico
+    maxLimit: Float = 500f // Añadido: límite dinámico
 ) {
 
-    val max = 500f
-    val min = 0f
 
     //Estados del datepicker
     var showFromPicker by remember { mutableStateOf(false) }
@@ -169,7 +179,7 @@ fun FilterContent(
 
         // Título principal
         Text(
-            text = "Filtrar",
+            text = stringResource(R.string.invoice_filter_title),
             fontSize = 18.sp,
             fontWeight = FontWeight.ExtraBold,
             color = Color.Black
@@ -187,13 +197,15 @@ fun FilterContent(
         Spacer(modifier = Modifier.height(40.dp))
 
         //Importe
-        Text("Por un importe", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.invoice_filter_price), fontSize = 14.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
 
         //Etiqueta precio
         PriceRangeSection(
             minPrice = state.minPrice,
             maxPrice = state.maxPrice,
+            minLimit = minLimit, // Usamos el mínimo real
+            maxLimit = maxLimit, // Usamos el máximo real
             onRangeChange = { min, max -> events.onPriceRangeChange(min, max) }
         )
 

@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 
+/** * Sección de filtros por rango de fechas.
+ * Permite al usuario abrir selectores de fecha para los límites "Desde" y "Hasta".
+ */
 @Composable
 fun DateRangeSection(
     dateFrom: String,
@@ -52,6 +55,9 @@ fun DateRangeSection(
     }
 }
 
+/** * Campo de texto personalizado que actúa como botón para abrir el DatePicker
+ * Se marca como 'disabled' y 'readOnly' para evitar la escritura manual y usar el estilo visual deseado
+ */
 @Composable
 private fun DateField(
     label: String,

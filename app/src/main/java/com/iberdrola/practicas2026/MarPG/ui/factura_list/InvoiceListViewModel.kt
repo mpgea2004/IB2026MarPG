@@ -19,6 +19,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.ceil
 
 
 /** Lógica de carga, filtrado y agrupación de facturas por tipo y año */
@@ -54,8 +55,20 @@ class InvoiceListViewModel @Inject constructor(
     var currentFilterState by mutableStateOf(FilterState())
         private set
 
+    /** Indica si se está realizando una operación de refresco manual (Pull-to-refresh) */
     var isRefreshing by mutableStateOf(false)
         private set
+
+    /** Límite inferior real basado en la factura más barata */
+    val minInvoiceAmount: Float
+        get() = allInvoices.minOfOrNull { it.amount.toFloat() } ?: 0f
+
+    /** Límite superior real basado en la factura más cara
+     * Aplico ceil() para que si la factura es 185.5, el límite sea 186
+     * Esto garantiza que las facturas con decimales no queden excluidas por el redondeo del slider
+     */
+    val maxInvoiceAmount: Float
+        get() = allInvoices.maxOfOrNull { it.amount.toFloat() }?.let { ceil(it) } ?: 500f
 
     init {
         loadInvoices()
@@ -65,31 +78,56 @@ class InvoiceListViewModel @Inject constructor(
     /** Carga facturas desde el caso de uso y gestiona errores de flujo */
     private fun loadInvoices() {
         viewModelScope.launch {
-            //Inicializo en LOADING para mostrar el esqueleto si no hay datos
-            if (allInvoices.isEmpty()) {
-                state = InvoiceListState.LOADING
-            }
-            errorMessage = null//Lo limpio
+            prepareLoadingState()
 
-            getInvoicesUseCase(isCloud).catch { e ->
-                errorMessage = if (e is InvoiceException) e.message else InvoiceException.Unknown.message
+            getInvoicesUseCase(isCloud)
+                .catch { handleLoadError(it) }
+                .collect { invoices ->
+                    allInvoices = invoices
 
-                if (allInvoices.isEmpty()) {
-                    state = InvoiceListState.NODATA
+                    // Extraemos la lógica del filtro a su propia función
+                    setupInitialFilterPrices(invoices)
+
+                    if (invoices.isNotEmpty()) {
+                        errorMessage = null
+                    }
+
+                    updateFilteredInvoices()
                 }
-            }.collect { invoices ->
-                //recibo la lista(ya sea de red o de la caché de Room)
-                allInvoices = invoices
-                // Si la lista está vacía de verdad (ni caché ni red)
-                if (invoices.isNotEmpty())
-                    errorMessage = null
-
-                updateFilteredInvoices()
-
-            }
         }
     }
-    /** Filtra por contrato, importe, estado, fecha y agrupa por año de emisión */
+
+    /** Configura el estado inicial antes de la carga */
+    private fun prepareLoadingState() {
+        if (allInvoices.isEmpty()) {
+            state = InvoiceListState.LOADING
+        }
+        errorMessage = null
+    }
+
+    /** Gestiona los errores ocurridos durante el flujo de datos */
+    private fun handleLoadError(e: Throwable) {
+        errorMessage = if (e is InvoiceException) e.message else InvoiceException.Unknown.message
+        if (allInvoices.isEmpty()) {
+            state = InvoiceListState.NODATA
+        }
+    }
+
+    /** * Ajusta los límites del filtro solo la primera vez que recibimos datos reales
+     */
+    private fun setupInitialFilterPrices(invoices: List<Invoice>) {
+        val isFilterDefault = currentFilterState.minPrice == 0f && currentFilterState.maxPrice == 500f
+
+        if (invoices.isNotEmpty() && isFilterDefault) {
+            currentFilterState = currentFilterState.copy(
+                minPrice = minInvoiceAmount,
+                maxPrice = maxInvoiceAmount
+            )
+        }
+    }
+    /** Filtra por contrato, importe, estado, fecha y agrupa por año de emisión
+     * No he hecho otro dao filtrado, porque para una aplicación como la que estoy haciendo(de maximo 100 facturas, ya que es de prueba) no vale la pena estar haciendo peticiones a la bd, mejor hago una y esa la filtro
+     */
     private fun updateFilteredInvoices() {
         //Si no hay facturas cargadas, mueetro NODATA directamente
         if (allInvoices.isEmpty() && state is InvoiceListState.LOADING) {
@@ -163,7 +201,7 @@ class InvoiceListViewModel @Inject constructor(
         }
     }
 
-    // Para observar si mostramos el diálogo
+    /** Observa el flujo de feedback para determinar cuándo se debe mostrar el diálogo de valoración al usuario */
     private fun observeFeedback() {
         viewModelScope.launch {
             // Uso la función del UseCase que mira si el contador llegó a 0
@@ -217,7 +255,4 @@ class InvoiceListViewModel @Inject constructor(
             true
         }
     }
-
-
-
 }

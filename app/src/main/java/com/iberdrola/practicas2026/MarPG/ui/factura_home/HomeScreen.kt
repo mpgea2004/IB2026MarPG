@@ -60,6 +60,7 @@ fun HomeScreen(
     isCloudEnabled: Boolean,
     onToggleCloud: (Boolean) -> Unit
 ) {
+    /** Estado que controla la animación y visibilidad del ModalBottomSheet */
     val sheetState = rememberModalBottomSheetState()
 
 // Si el VM dice que ya no debe verse, cerramos con animación
@@ -80,6 +81,9 @@ fun HomeScreen(
     )
 }
 
+/** * Contenedor visual de la Home.
+ * Separa la lógica de Scaffold y la estructura de la pantalla para facilitar Previews.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
@@ -104,10 +108,12 @@ fun HomeContent(
 
             Spacer(modifier = Modifier.height(48.dp))
 
+            // Tarjeta principal para navegar a la sección de facturas
             InvoiceNavigationCard(onClick = onNavigateToInvoices)
 
             Spacer(modifier = Modifier.weight(1f))
 
+            // Sección inferior para configurar si los datos vienen de API o de Mock
             DataSourceConfigSection(
                 isCloudEnabled = isCloudEnabled,
                 onToggleCloud = onToggleCloud
@@ -115,7 +121,7 @@ fun HomeContent(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
-
+        // Muestra el diálogo de feedback solo cuando el estado lo requiere
         if (isSheetVisible) {
             FeedbackBottomSheet(
                 sheetState = sheetState,

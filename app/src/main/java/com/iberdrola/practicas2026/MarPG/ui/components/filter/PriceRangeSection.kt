@@ -21,12 +21,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 
+/**
+ * Sección de filtro por importe que utiliza un RangeSlider personalizado
+ * Permite seleccionar un rango de precios entre un límite mínimo y máximo
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PriceRangeSection(
@@ -45,7 +51,11 @@ fun PriceRangeSection(
                 .padding(horizontal = 12.dp, vertical = 3.dp)
         ) {
             Text(
-                text = "${minPrice.toInt()}€ - ${maxPrice.toInt()}€",
+                text = stringResource(
+                    id = R.string.filter_price_range,
+                    minPrice.toInt(),
+                    maxPrice.toInt()
+                ),
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
             )
@@ -111,8 +121,8 @@ fun PriceRangeSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("${minLimit.toInt()} €", color = Color.Gray, fontSize = 14.sp)
-            Text("${maxLimit.toInt()} €", color = Color.Gray, fontSize = 14.sp)
+            Text(text = stringResource(id = R.string.filter_price_limit, minLimit.toInt()), color = Color.Gray, fontSize = 14.sp)
+            Text(stringResource(id = R.string.filter_price_limit, maxLimit.toInt()), color = Color.Gray, fontSize = 14.sp)
         }
     }
 }

@@ -48,5 +48,13 @@
     <string name="filter_close_content_description">Cerrar pantalla de filtros</string>
 
     <string name="filter_no_results">No hay facturas que coincidan con los filtros seleccionados.</string>
+    <string name="invoice_filter_price">Por un importe</string>
+    <string name="invoice_filter_title">Filtrar</string>
+    <string name="invoice_filter_button_apply">Aplicar filtros</string>
+    <string name="invoice_filter_button_clear">Borrar filtros</string>
+
+    <string name="filter_price_limit">%1$d €</string>
+    <string name="invoice_filter_state">Por estado</string>
+    <string name="filter_price_range">%1$d€ - %2$d€</string>
 
 </resources>

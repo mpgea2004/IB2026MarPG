@@ -85,7 +85,7 @@ fun InvoiceListScreen(
     val selectedTab = viewModel.selectedTab
     val errorMessage = viewModel.errorMessage //recupero el error del VM
 
-    // Necesitamos esto para manejar el Snackbar
+    /** Manejador del estado para mostrar avisos temporales (Snackbars) */
     val snackbarHostState = remember { SnackbarHostState() }
 
     //cada vez que errorMessage cambie y no sea nulo, lanzamos el aviso
@@ -152,10 +152,12 @@ fun InvoiceListScreen(
             ) { page ->
                 when (currentState) {
                     InvoiceListState.LOADING -> {
+                        /** Estado de carga inicial: muestra el esqueleto (shimmer) */
                         ShimmerInvoiceList(brush = shimmerBrush())
                     }
 
                     InvoiceListState.NODATA -> {
+                        /** Estado sin datos: se muestra cuando no hay facturas tras filtrar o por error de red */
                         InvoiceEmptyState(message = errorMessage)
                     }
 
@@ -177,6 +179,7 @@ fun InvoiceListScreen(
     }
 }
 
+/** Componente de cabecera que contiene el botón de atrás, títulos y pestañas de selección */
 @Composable
 fun InvoiceListHeader(
     selectedTab: Int,
