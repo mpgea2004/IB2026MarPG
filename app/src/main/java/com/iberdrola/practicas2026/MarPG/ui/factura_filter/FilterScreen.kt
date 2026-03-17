@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_filter
 
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -165,6 +167,8 @@ fun FilterContent(
     minLimit: Float = 0f,
     maxLimit: Float = 500f
 ) {
+    val context = LocalContext.current
+
     //Estados del datepicker
     var showFromPicker by remember { mutableStateOf(false) }
     var showToPicker by remember { mutableStateOf(false) }
@@ -218,7 +222,19 @@ fun FilterContent(
                 dateFrom = state.dateFrom,
                 dateTo = state.dateTo,
                 onFromClick = { showFromPicker = true },
-                onToClick = { showToPicker = true }
+                onToClick = {
+                    //Solo dejo que escoja el hasta si el desde ya está
+                    if (state.dateFrom.isNotEmpty()) {
+                        showToPicker = true
+                    } else {
+                        // Si el usuario pulsa y está vacío, aviso
+                        Toast.makeText(
+                            context,
+                            "Selecciona primero una fecha de inicio",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             )
             Spacer(modifier = Modifier.height(40.dp))
 

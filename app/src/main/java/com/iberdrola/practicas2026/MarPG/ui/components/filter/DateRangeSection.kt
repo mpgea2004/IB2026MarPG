@@ -52,7 +52,7 @@ fun DateRangeSection(
                 label = stringResource(R.string.filter_date_to_label),
                 value = dateTo,
                 modifier = Modifier.weight(1f),
-                onClick = onToClick
+                onClick = onToClick,
             )
         }
     }
