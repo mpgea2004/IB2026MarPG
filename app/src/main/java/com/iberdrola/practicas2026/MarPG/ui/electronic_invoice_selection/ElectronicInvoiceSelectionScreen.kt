@@ -1,4 +1,4 @@
-package com.iberdrola.practicas2026.MarPG.ui.contrato_selection
+package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_selection
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

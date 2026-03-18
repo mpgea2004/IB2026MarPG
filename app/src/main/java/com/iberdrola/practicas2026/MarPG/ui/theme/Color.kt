@@ -12,6 +12,8 @@ val Pink40 = Color(0xFF7D5260)
 
 
 val GreenIberdrola = Color(0xFF008244)
+
+val GreenDarkIberdrola = Color(0xFF2D5C4C)
 val LightGreenIberdrola = Color(0xFFE8F5E9)
 val LightRedIberdrola = Color(0xFFFDECEA)
 val TextGrey = Color(0xFF666666)

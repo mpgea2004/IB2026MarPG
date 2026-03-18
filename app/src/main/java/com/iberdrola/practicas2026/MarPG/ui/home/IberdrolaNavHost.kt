@@ -11,7 +11,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.iberdrola.practicas2026.MarPG.ui.contrato_selection.ElectronicInvoiceSelectionScreen
+import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_selection.ElectronicInvoiceSelectionScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_home.HomeScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListScreen
