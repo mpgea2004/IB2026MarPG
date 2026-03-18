@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.di
 
+import com.iberdrola.practicas2026.MarPG.data.network.ElectronicInvoiceApiService
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceApiServer
 import dagger.Module
 import dagger.Provides
@@ -35,5 +36,11 @@ object NetworkModule {
     @Singleton
     fun provideInvoiceApi(retrofit: Retrofit): InvoiceApiServer {
         return retrofit.create(InvoiceApiServer::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideElectronicInvoiceApiService(retrofit: Retrofit): ElectronicInvoiceApiService {
+        return retrofit.create(ElectronicInvoiceApiService::class.java)
     }
 }

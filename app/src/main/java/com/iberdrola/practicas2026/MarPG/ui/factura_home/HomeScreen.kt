@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.home.DataSourceConfigSection
+import com.iberdrola.practicas2026.MarPG.ui.components.home.ElectronicInvoiceCard
 import com.iberdrola.practicas2026.MarPG.ui.components.home.FeedbackBottomSheet
 import com.iberdrola.practicas2026.MarPG.ui.components.home.InvoiceNavigationCard
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
@@ -33,6 +34,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onNavigateToInvoices: () -> Unit,
+    onNavigateToElectronicInvoice: () -> Unit,
     isCloudEnabled: Boolean,
     onToggleCloud: (Boolean) -> Unit
 ) {
@@ -51,6 +53,7 @@ fun HomeScreen(
         isSheetVisible = viewModel.isSheetVisible,
         sheetState = sheetState,
         onNavigateToInvoices = onNavigateToInvoices,
+        onNavigateToElectronicInvoice = onNavigateToElectronicInvoice,
         onToggleCloud = onToggleCloud,
         onSheetDismiss = { viewModel.onOptionSelected(1) },
         onSheetOptionSelected = { tregua -> viewModel.onOptionSelected(tregua) }
@@ -67,6 +70,7 @@ fun HomeContent(
     isSheetVisible: Boolean,
     sheetState: SheetState,
     onNavigateToInvoices: () -> Unit,
+    onNavigateToElectronicInvoice: () -> Unit,
     onToggleCloud: (Boolean) -> Unit,
     onSheetDismiss: () -> Unit,
     onSheetOptionSelected: (Int) -> Unit
@@ -86,6 +90,11 @@ fun HomeContent(
 
             // Tarjeta principal para navegar a la sección de facturas
             InvoiceNavigationCard(onClick = onNavigateToInvoices)
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            //Tarjeta para navegar a la sección de facturas electrónicas
+            ElectronicInvoiceCard(onClick = onNavigateToElectronicInvoice)
 
             Spacer(modifier = Modifier.weight(1f))
 

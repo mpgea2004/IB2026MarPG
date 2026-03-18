@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.iberdrola.practicas2026.MarPG.data.local.entities.ElectronicInvoiceEntity
 import com.iberdrola.practicas2026.MarPG.data.local.entities.InvoiceEntity
 
 /**
@@ -12,7 +13,7 @@ import com.iberdrola.practicas2026.MarPG.data.local.entities.InvoiceEntity
  */
 @Database(
     version = 1,
-    entities = [InvoiceEntity::class],
+    entities = [InvoiceEntity::class, ElectronicInvoiceEntity::class],
     exportSchema = false
 )
 abstract class InvoiceDatabase : RoomDatabase() {
@@ -21,6 +22,10 @@ abstract class InvoiceDatabase : RoomDatabase() {
      * Provee el DAO para realizar operaciones sobre la tabla de facturas
      */
     abstract fun invoiceDao(): InvoiceDao
+    /**
+     * Provee el DAO para realizar operaciones sobre la tabla de contratos
+     */
+    abstract fun electronicInvoiceDao(): ElectronicInvoiceDao
 
     companion object {
         @Volatile

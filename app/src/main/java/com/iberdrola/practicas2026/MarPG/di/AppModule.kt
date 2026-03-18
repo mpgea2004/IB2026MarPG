@@ -2,10 +2,14 @@ package com.iberdrola.practicas2026.MarPG.di
 
 import android.content.Context
 import com.google.gson.Gson
+import com.iberdrola.practicas2026.MarPG.data.local.dao.ElectronicInvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDatabase
+import com.iberdrola.practicas2026.MarPG.data.network.ElectronicInvoiceApiService
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceApiServer
+import com.iberdrola.practicas2026.MarPG.data.repository.ElectronicInvoiceRepositoryImpl
 import com.iberdrola.practicas2026.MarPG.data.repository.InvoiceRepositoryImpl
+import com.iberdrola.practicas2026.MarPG.domain.repository.ElectronicInvoiceRepository
 import com.iberdrola.practicas2026.MarPG.domain.resository.InvoiceRepository
 import dagger.Module
 import dagger.Provides
@@ -36,6 +40,11 @@ object AppModule {
         return database.invoiceDao()
     }
 
+    /** Provee el DAO para el acceso a las tablas de fact elec */
+    @Provides
+    @Singleton
+    fun provideContractDao(db: InvoiceDatabase): ElectronicInvoiceDao = db.electronicInvoiceDao()
+
     /** Provee el motor de serialización GSON */
     @Provides
     @Singleton
@@ -60,6 +69,18 @@ object AppModule {
             gson = gson,
             context = context
         )
+    }
+
+    /**
+     * Provee la implementación del repositorio de factura electrónica
+     */
+    @Provides
+    @Singleton
+    fun provideElectronicInvoiceRepository(
+        api: ElectronicInvoiceApiService,
+        dao: ElectronicInvoiceDao
+    ): ElectronicInvoiceRepository {
+        return ElectronicInvoiceRepositoryImpl(api, dao)
     }
 
 }

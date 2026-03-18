@@ -2,7 +2,6 @@ package com.iberdrola.practicas2026.MarPG.ui.home
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -12,6 +11,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.iberdrola.practicas2026.MarPG.ui.contrato_selection.ElectronicInvoiceSelectionScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_home.HomeScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListScreen
@@ -23,6 +23,7 @@ object Routes {
     /** Ruta del listado con argumento booleano para origen de datos */
     const val INVOICE_LIST = "invoice_list/{isCloud}"
     const val FILTER = "filter"
+    const val ELECTRONIC_INVOICE = "electronic_invoice"
 }
 
 /** Grafo de navegación principal que gestiona el estado del origen de datos (Nube/Local) */
@@ -40,6 +41,7 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 onNavigateToInvoices = { navController.navigate("invoice_list/$isCloudEnabled") },
                 isCloudEnabled = isCloudEnabled,
                 onToggleCloud = { isCloudEnabled = it },
+                onNavigateToElectronicInvoice = { navController.navigate(Routes.ELECTRONIC_INVOICE) }
             )
         }
 
@@ -72,6 +74,15 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 listViewModel = invoiceListViewModel,
                 filterViewModel = hiltViewModel(),
                 onBack = { navController.popBackStack() }
+            )
+        }
+
+        /** * Pantalla de Factura Electrónica (Selección de Contrato)*/
+        composable(Routes.ELECTRONIC_INVOICE) {
+            ElectronicInvoiceSelectionScreen(
+                viewModel = hiltViewModel(),
+                onBack = { navController.popBackStack() },
+                onNavigate = { }
             )
         }
     }

@@ -10,8 +10,8 @@ import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceException
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
-import com.iberdrola.practicas2026.MarPG.domain.use_case.CheckFeedbackUseCase
-import com.iberdrola.practicas2026.MarPG.domain.use_case.GetInvoiceUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.feedback.CheckFeedbackUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.invoice.GetInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterState
 import dagger.hilt.android.lifecycle.HiltViewModel
