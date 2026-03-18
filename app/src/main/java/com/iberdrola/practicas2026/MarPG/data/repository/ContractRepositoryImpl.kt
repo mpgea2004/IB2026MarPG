@@ -1,5 +1,9 @@
 package com.iberdrola.practicas2026.MarPG.data.repository
 
+import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.iberdrola.practicas2026.MarPG.data.dto.ElectronicInvoiceDto
 import com.iberdrola.practicas2026.MarPG.data.local.dao.ElectronicInvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.mapper.toDomain
 import com.iberdrola.practicas2026.MarPG.data.mapper.toEntity
@@ -7,6 +11,7 @@ import com.iberdrola.practicas2026.MarPG.data.network.ElectronicInvoiceApiServic
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceException
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.domain.repository.ElectronicInvoiceRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -24,7 +29,9 @@ import javax.inject.Inject
  */
 class ElectronicInvoiceRepositoryImpl @Inject constructor(
     private val api: ElectronicInvoiceApiService,
-    private val dao: ElectronicInvoiceDao
+    private val dao: ElectronicInvoiceDao,
+    private val gson: Gson,
+    @ApplicationContext private val context: Context
 ) : ElectronicInvoiceRepository {
 
     override fun getAllElectronicInvoice(isCloud: Boolean): Flow<List<ElectronicInvoice>> = flow {
@@ -60,9 +67,25 @@ class ElectronicInvoiceRepositoryImpl @Inject constructor(
             emitAll(databaseFlow)
 
         } else {
-            // Si en el futuro necesitas leer contratos de un JSON local (Assets),
-            // la lógica iría aquí, similar a InvoiceRepositoryImpl.
-            emitAll(getElectronicInvoiceFromDatabase())
+            // MODO LOCAL (Assets) - Igual que tu InvoiceRepository
+            try {
+                // Leemos el archivo local (asegúrate de crearlo en assets/electronic_invoices.json)
+                val jsonText =
+                    context.assets.open("electronic_invoices.json").bufferedReader().use {
+                        it.readText()
+                    }
+
+                // Parseo con Gson
+                val listType = object : TypeToken<List<ElectronicInvoiceDto>>() {}.type
+                val localDtos: List<ElectronicInvoiceDto> = gson.fromJson(jsonText, listType)
+
+                // Emito los datos convertidos a dominio
+                emit(localDtos.map { it.toEntity().toDomain() })
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                throw InvoiceException.LocalDataError
+            }
         }
     }
 

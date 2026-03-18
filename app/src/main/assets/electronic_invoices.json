@@ -1,0 +1,14 @@
+[
+  {
+    "id": "1",
+    "type": "Luz",
+    "isEnabled": false,
+    "email": ""
+  },
+  {
+    "id": "2",
+    "type": "Gas",
+    "isEnabled": true,
+    "email": "usuario@ejemplo.com"
+  }
+]

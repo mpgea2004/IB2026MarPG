@@ -78,9 +78,11 @@ object AppModule {
     @Singleton
     fun provideElectronicInvoiceRepository(
         api: ElectronicInvoiceApiService,
-        dao: ElectronicInvoiceDao
+        dao: ElectronicInvoiceDao,
+        gson: Gson,
+        @ApplicationContext context: Context
     ): ElectronicInvoiceRepository {
-        return ElectronicInvoiceRepositoryImpl(api, dao)
+        return ElectronicInvoiceRepositoryImpl(api, dao, gson, context)
     }
 
 }
