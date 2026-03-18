@@ -1,28 +1,17 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
-import android.R.attr.top
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -43,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
+import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
@@ -83,40 +73,11 @@ fun ElectronicInvoiceDetailFormContent(
             )
         },
         bottomBar = {
-            Column(modifier = Modifier.fillMaxWidth().background(WhiteApp).padding(bottom = 42.dp)) {
-                HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Botón Anterior
-                    OutlinedButton(
-                        onClick = onBack,
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        border = BorderStroke(1.dp, GreenDarkIberdrola),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = GreenDarkIberdrola)
-                    ) {
-                        Text("Anterior", fontWeight = FontWeight.Bold)
-                    }
-
-                    // Botón Siguiente
-                    Button(
-                        onClick = onNext,
-                        enabled = isButtonEnabled,
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2D5C4C),
-                            disabledContainerColor = Color(0xFFE0E0E0)
-                        )
-                    ) {
-                        Text("Siguiente", fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
+            ElectronicInvoiceBottomBar(
+                onBack = onBack,
+                onNext = onNext,
+                isNextEnabled = isButtonEnabled
+            )
         }
     ) { padding ->
         Column(

@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
@@ -66,39 +67,11 @@ fun ElectronicInvoiceEditEmailContent(
             )
         },
         bottomBar = {
-            Column(modifier = Modifier.fillMaxWidth().background(WhiteApp).padding(bottom = 42.dp)) {
-                HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = onBack,
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        border = BorderStroke(1.dp, GreenDarkIberdrola),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = GreenDarkIberdrola)
-                    ) {
-                        Text("Anterior", fontWeight = FontWeight.Bold)
-                    }
-
-                    Button(
-                        onClick = onNext,
-                        enabled = isButtonEnabled,
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = GreenDarkIberdrola,
-                            disabledContainerColor = Color(0xFFE0E0E0),
-                            disabledContentColor = Color.LightGray
-                        )
-                    ) {
-                        Text("Siguiente", fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
+            ElectronicInvoiceBottomBar(
+                onBack = onBack,
+                onNext = onNext,
+                isNextEnabled = isButtonEnabled
+            )
         }
     ) { padding ->
         Column(

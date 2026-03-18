@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateElectronicInvoiceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,33 +19,36 @@ class ElectronicInvoiceViewModel @Inject constructor(
     var state by mutableStateOf(ElectronicInvoiceState())
         private set
 
-    val events = ElectronicInvoiceEvents(
-        onSelectContract = { contract ->
-            state = state.copy(
-                selectedContract = contract,
-                emailInput = contract.email ?: ""
-            )
-        },
-        onEmailChange = { newEmail ->
-            state = state.copy(emailInput = newEmail)
-        },
-        onLegalCheckChange = { accepted ->
-            state = state.copy(isLegalAccepted = accepted)
-        },
-        onConfirmUpdate = {
-            performUpdate()
-        },
-        onExitFlow = {
-            state = ElectronicInvoiceState() // Resetear todo al terminar
-        }
-    )
 
-    private fun performUpdate() {
+    // --- Funciones de actualización de State ---
+
+    fun onEmailChanged(nuevoEmail: String) {
+        state = state.copy(emailInput = nuevoEmail)
+    }
+
+    fun onOtpChanged(nuevoOtp: String) {
+        // Limitamos a 6 caracteres para el código SMS
+        if (nuevoOtp.length <= 6) {
+            state = state.copy(otpInput = nuevoOtp)
+        }
+    }
+
+    fun onLegalAccepted(accepted: Boolean) {
+        state = state.copy(isLegalAccepted = accepted)
+    }
+
+    fun closeResendBanner() {
+        state = state.copy(showResendSuccess = false)
+    }
+
+    // --- Lógica de Negocio ---
+
+     fun performUpdate() {
         val contract = state.selectedContract ?: return
         viewModelScope.launch {
             state = state.copy(isLoading = true)
             try {
-                // Llamada al caso de uso (Repository -> Room/API)
+                // Llamada al caso de uso
                 updateUseCase(contract, state.emailInput)
                 state = state.copy(isLoading = false, isSuccess = true)
             } catch (e: Exception) {
@@ -53,15 +57,28 @@ class ElectronicInvoiceViewModel @Inject constructor(
         }
     }
 
+    // --- Validaciones ---
     // Validación del botón según el estado del contrato
     fun canContinue(): Boolean {
         val isEmailValid = state.emailInput.contains("@") && state.emailInput.contains(".")
         val isEnabled = state.selectedContract?.isEnabled ?: false
 
-        return if (isEnabled) {
-            isEmailValid // Flujo Modificar
-        } else {
-            isEmailValid && state.isLegalAccepted // Flujo Activar
+            return if (!isEnabled) {
+                isEmailValid && state.isLegalAccepted
+            } else {
+                isEmailValid
+            }
+    }
+    fun onResendOtp() {
+        viewModelScope.launch {
+            //Pongo cargando y oculto el banner si ya estaba
+            state = state.copy(isLoading = true, showResendSuccess = false)
+
+            //Simul la espera de red
+            delay(1500)
+
+            //Quito carga y muestro el éxito
+            state = state.copy(isLoading = false, showResendSuccess = true)
         }
     }
 }

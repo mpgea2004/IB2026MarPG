@@ -6,6 +6,7 @@ data class ElectronicInvoiceState(
     // Datos del contrato
     val selectedContract: ElectronicInvoice? = null,
     val emailInput: String = "",
+    val otpInput: String = "",
     val isLegalAccepted: Boolean = false,
 
     // Control de UI
@@ -14,7 +15,10 @@ data class ElectronicInvoiceState(
     val error: String? = null,
 
     // Paso actual (opcional, por si quieres controlar la lógica de pantallas aquí)
-    val currentStep: ElectronicInvoiceStep = ElectronicInvoiceStep.SELECTION
+    val currentStep: ElectronicInvoiceStep = ElectronicInvoiceStep.SELECTION,
+
+    //mostrar el snackbar
+    val showResendSuccess: Boolean = false
 )
 
 enum class ElectronicInvoiceStep {
