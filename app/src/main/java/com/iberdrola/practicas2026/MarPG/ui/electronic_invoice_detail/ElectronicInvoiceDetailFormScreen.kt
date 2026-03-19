@@ -11,15 +11,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -39,6 +47,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ElectronicInvoiceDetailFormScreen(
     viewModel: ElectronicInvoiceViewModel,
@@ -47,28 +56,34 @@ fun ElectronicInvoiceDetailFormScreen(
 ) {
     val state = viewModel.state
 
-    // Eliminamos el remember para que se evalúe en cada recomposición
     val isButtonEnabled = viewModel.canContinue()
+
+    val sheetState = rememberModalBottomSheetState()
 
     val events = ElectronicInvoiceEvents(
         onEmailChange = { viewModel.onEmailChanged(it) },
         onLegalCheckChange = { viewModel.onLegalAccepted(it) },
         onBack = onBack,
-        onNext = onNext
+        onNext = onNext,
+        onShowLegal = { title, content -> viewModel.onShowLegalDetail(title, content) },
+        onDismissLegal = { viewModel.onDismissLegalSheet() }
     )
 
     ElectronicInvoiceDetailFormContent(
         state = state,
         events = events,
-        isButtonEnabled = isButtonEnabled
+        isButtonEnabled = isButtonEnabled,
+        sheetState = sheetState
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ElectronicInvoiceDetailFormContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
-    isButtonEnabled: Boolean
+    isButtonEnabled: Boolean,
+    sheetState: SheetState
 ) {
     val emailActualOfuscado = state.selectedContract?.email?.let {
         if (it.isNotEmpty()) EmailUtils.obfuscateEmail(it) else "Sin email asignado"
@@ -130,11 +145,28 @@ fun ElectronicInvoiceDetailFormContent(
 
             val proteccionDatosText = buildAnnotatedString {
                 append("Responsable: Iberdrola Clientes S.A.U. ")
-                withStyle(SpanStyle(color = GreenDarkIberdrola, textDecoration = TextDecoration.Underline)) { append("Más info") }
+                appendLink("Más info") {
+                    events.onShowLegal(
+                        "Responsable del tratamiento",
+                        "Iberdrola Clientes S.A.U., con domicilio social en Plaza Euskadi número 5, 48009 Bilbao, tratará sus datos en calidad de responsable para gestionar su relación contractual y la activación de servicios digitales."
+                    )
+                }
+
                 append("\n\nFinalidad: Gestión de la factura electrónica. ")
-                withStyle(SpanStyle(color = GreenDarkIberdrola, textDecoration = TextDecoration.Underline)) { append("Más info") }
-                append("\n\nDerechos: Acceso, rectificación, supresión y otros derechos. ")
-                withStyle(SpanStyle(color = GreenDarkIberdrola, textDecoration = TextDecoration.Underline)) { append("Más info") }
+                appendLink("Más info") {
+                    events.onShowLegal(
+                        "Finalidad del tratamiento",
+                        "Sus datos serán tratados para la prestación del servicio de facturación electrónica, envío de avisos de disponibilidad de factura en su email y gestión del área de cliente, además del cumplimiento de obligaciones legales."
+                    )
+                }
+
+                append("\n\nDerechos: Acceso, rectificación, supresión, limiteción del tratamineto, portabilidad de datos u oposición, incluida la oposición a decisiones individuales automatizadas.")
+                appendLink("Más info") {
+                    events.onShowLegal(
+                        "Tus Derechos",
+                        "Usted puede ejercer sus derechos de acceso, rectificación, supresión, limitación, portabilidad y oposición contactando con nuestro delegado de protección de datos a través del correo protecciondedatos@iberdrola.es."
+                    )
+                }
             }
 
             Text(
@@ -149,10 +181,22 @@ fun ElectronicInvoiceDetailFormContent(
 
             val checkboxText = buildAnnotatedString {
                 append("He leído y acepto la Política de privacidad, acepto las ")
-                withStyle(SpanStyle(color = GreenDarkIberdrola, textDecoration = TextDecoration.Underline)) {
-                    append("Condiciones Generales")
+
+                appendLink("Condiciones Generales") {
+                    events.onShowLegal(
+                        "Condiciones Generales",
+                        "Al activar el servicio de Factura Electrónica, usted acepta dejar de recibir facturas en papel. Las facturas tendrán plena validez legal y podrá volver al sistema de papel en cualquier momento desde su área privada."
+                    )
                 }
-                append(" y Particulares de la oferta y la suscripción a Factura Electrónica.")
+
+                appendLink(" y Particulares") {
+                    events.onShowLegal(
+                        "Condiciones Particulares",
+                        "Estas condiciones regulan las ofertas específicas asociadas a su contrato. El mantenimiento de ciertos descuentos puede estar vinculado a la permanencia en facturación electrónica."
+                    )
+                }
+
+                append(" de la oferta y la suscripción a Factura Electrónica.")
             }
 
             Row(
@@ -174,6 +218,51 @@ fun ElectronicInvoiceDetailFormContent(
                     modifier = Modifier.padding(start = 4.dp, top = 10.dp)
                 )
             }
+            if (state.showLegalSheet) {
+                androidx.compose.material3.ModalBottomSheet(
+                    onDismissRequest = { events.onDismissLegal() },
+                    sheetState = sheetState,
+                    containerColor = Color.White
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                            .padding(bottom = 48.dp)
+                    ) {
+                        Text(
+                            text = state.selectedLegalTitle ?: "",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = GreenDarkIberdrola,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = state.selectedLegalContent ?: "",
+                            style = MaterialTheme.typography.bodyMedium,
+                            lineHeight = 22.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+fun AnnotatedString.Builder.appendLink(
+    text: String,
+    color: Color = GreenDarkIberdrola,
+    onClick: () -> Unit
+) {
+    withLink(LinkAnnotation.Clickable(text) { onClick() }) {
+        withStyle(
+            SpanStyle(
+                color = color,
+                textDecoration = TextDecoration.Underline,
+                fontWeight = FontWeight.Bold
+            )
+        ) {
+            append(text)
         }
     }
 }

@@ -10,7 +10,7 @@ fun ElectronicInvoiceEntity.toDomain() = ElectronicInvoice(
     type = try {
         ContractType.valueOf(type.uppercase())
     } catch (e: Exception) {
-        ContractType.LUZ // Valor por defecto si el texto no coincide
+        ContractType.LUZ
     },
     isEnabled = isEnabled,
     email = email

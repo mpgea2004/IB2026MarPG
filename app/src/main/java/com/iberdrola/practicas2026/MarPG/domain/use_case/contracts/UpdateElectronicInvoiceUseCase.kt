@@ -7,11 +7,7 @@ import javax.inject.Inject
 class UpdateElectronicInvoiceUseCase @Inject constructor(
     private val repository: ElectronicInvoiceRepository
 ) {
-    suspend operator fun invoke(electronicInvoice: ElectronicInvoice, newEmail: String) {
-        val updatedElectronicInvoice = electronicInvoice.copy(
-            email = newEmail,
-            isEnabled = true
-        )
-        repository.updateElectronicInvoice(updatedElectronicInvoice)
+    suspend operator fun invoke(electronicInvoice: ElectronicInvoice) {
+        repository.updateElectronicInvoice(electronicInvoice)
     }
 }

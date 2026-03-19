@@ -11,13 +11,13 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ElectronicInvoiceDao {
-    @Query("SELECT * FROM contracts")
+    @Query("SELECT * FROM electronic_invoices")
     fun getAllElectronicInvoice(): Flow<List<ElectronicInvoiceEntity>>
 
     /**
      * Devuelve todas las fact elect una sola vez, sin flujo (para el fallback cuando falla la red)
      */
-    @Query("SELECT * FROM contracts")
+    @Query("SELECT * FROM electronic_invoices")
     suspend fun getAllElectronicInvoiceOnce(): List<ElectronicInvoiceEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

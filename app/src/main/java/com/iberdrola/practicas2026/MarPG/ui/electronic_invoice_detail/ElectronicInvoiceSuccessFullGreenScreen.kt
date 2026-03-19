@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -43,25 +44,41 @@ fun ElectronicInvoiceSuccessFullGreenScreen(
 
     val showEmail = EmailUtils.obfuscateEmail(state.emailInput)
 
-    val isModification = state.currentStep == ElectronicInvoiceStep.SUCCESS
+    val isModification = state.isEditingEmail
+
+    val isDeactivation = state.isDeactivation
 
     ElectronicInvoiceSuccessFullGreenContent(
         isModification = isModification,
         email = showEmail,
-        onAccept = onFinish
+        onAccept = onFinish,
+        isDeactivation = isDeactivation
     )
 }
 
 @Composable
 fun ElectronicInvoiceSuccessFullGreenContent(
     isModification: Boolean,
+    isDeactivation: Boolean,
     email: String,
     onAccept: () -> Unit
 ) {
-    val title = if (isModification) {
-        "¡Has modificado correctamente tu email!"
+    val title = when {
+        isDeactivation -> "¡Has desactivado tu factura electrónica!"
+        isModification -> "¡Has modificado correctamente tu email!"
+        else -> "¡Has activado correctamente tu factura electrónica!"
+    }
+
+    val subTitle = if (isDeactivation) {
+        "A partir de ahora recibirás tus facturas en formato papel en tu dirección postal."
     } else {
-        "¡Has activado correctamente tu factura electrónica!"
+        "Pronto recibirás un correo electrónico de verificación para recibir tus facturas en la dirección $email"
+    }
+
+    val iconResId = if (isDeactivation) {
+        R.drawable.ic_invoice_off
+    } else {
+        R.drawable.ic_success_thumbs_up
     }
 
     Scaffold(
@@ -86,11 +103,11 @@ fun ElectronicInvoiceSuccessFullGreenContent(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            SuccessIcon()
+            SuccessIcon(iconResId)
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            SuccessText(title = title, email = email)
+            SuccessText(title = title, subtitle = subTitle)
 
             Spacer(modifier = Modifier.weight(1.2f))
 
@@ -102,10 +119,10 @@ fun ElectronicInvoiceSuccessFullGreenContent(
 }
 
 @Composable
-fun SuccessIcon() {
+fun SuccessIcon(iconResId: Int) {
 
     Icon(
-        painter = painterResource(R.drawable.ic_success_thumbs_up),
+        painter = painterResource(iconResId),
         contentDescription = null,
         tint = Color.White,
         modifier = Modifier.size(160.dp)
@@ -113,7 +130,7 @@ fun SuccessIcon() {
 }
 
 @Composable
-fun SuccessText(title: String, email: String) {
+fun SuccessText(title: String,subtitle: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = title,
@@ -126,7 +143,7 @@ fun SuccessText(title: String, email: String) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Pronto recibirás un correo electrónico de verificación para recibir tus facturas en la dirección $email",
+            text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
             color = Color.White.copy(alpha = 0.9f),
             textAlign = TextAlign.Center,
@@ -161,7 +178,8 @@ fun PreviewSuccessActivation() {
         ElectronicInvoiceSuccessFullGreenContent(
             isModification = false,
             email = "m*******a@gmail.com",
-            onAccept = {}
+            onAccept = {},
+            isDeactivation = false
         )
     }
 }
@@ -173,7 +191,21 @@ fun PreviewSuccessModification() {
         ElectronicInvoiceSuccessFullGreenContent(
             isModification = true,
             email = "b********5@imfaya.com",
-            onAccept = {}
+            onAccept = {},
+            isDeactivation = false
+        )
+    }
+}
+
+@Preview(name = "Caso Desactivacion")
+@Composable
+fun PreviewSuccessDeactivation() {
+    MaterialTheme {
+        ElectronicInvoiceSuccessFullGreenContent(
+            isModification = false,
+            email = "b********5@imfaya.com",
+            onAccept = {},
+            isDeactivation = true
         )
     }
 }

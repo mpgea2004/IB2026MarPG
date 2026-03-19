@@ -22,10 +22,10 @@ class ElectronicInvoiceViewModel @Inject constructor(
         private set
 
     fun selectContract(contract: ElectronicInvoice) {
-        Log.d("IBERDROLA_DEBUG", "Guardando contrato en el VM: ${contract.id} - ${contract.type}")
         state = state.copy(
             selectedContract = contract,
             emailInput = contract.email ?: "",
+            isEditingEmail = contract.isEnabled,
             isLegalAccepted = false,
             isSuccess = false,
             error = null
@@ -64,17 +64,44 @@ class ElectronicInvoiceViewModel @Inject constructor(
     fun performUpdate() {
         val contract = state.selectedContract ?: return
 
-        val newEnabledState = !(contract.isEnabled ?: false)
-
         viewModelScope.launch {
             state = state.copy(isLoading = true)
             try {
-                updateUseCase(contract, state.emailInput)
+                val updatedContract = contract.copy(
+                    isEnabled = true,
+                    email = state.emailInput
+                )
 
-                val updatedContract = contract.copy(isEnabled = newEnabledState)
+                updateUseCase(updatedContract)
 
                 state = state.copy(
                     selectedContract = updatedContract,
+                    isLoading = false,
+                    isSuccess = true,
+                    error = null
+                )
+            } catch (e: Exception) {
+                state = state.copy(isLoading = false, error = e.message)
+            }
+        }
+    }
+
+    fun performDeactivate() {
+        val contract = state.selectedContract ?: return
+
+        viewModelScope.launch {
+            state = state.copy(isLoading = true, isSuccess = false)
+
+            try {
+                val updatedContract = contract.copy(
+                    isEnabled = false
+                )
+
+                updateUseCase(updatedContract)
+
+                state = state.copy(
+                    selectedContract = updatedContract,
+                    isDeactivation = true,
                     isLoading = false,
                     isSuccess = true,
                     error = null
@@ -99,5 +126,17 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun closeResendBanner() {
         state = state.copy(showResendSuccess = false)
+    }
+
+    fun onShowLegalDetail(title: String, content: String) {
+        state = state.copy(
+            selectedLegalTitle = title,
+            selectedLegalContent = content,
+            showLegalSheet = true
+        )
+    }
+
+    fun onDismissLegalSheet() {
+        state = state.copy(showLegalSheet = false)
     }
 }

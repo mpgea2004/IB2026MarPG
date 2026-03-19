@@ -123,7 +123,8 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 // Ahora state.selectedContract YA NO SERÁ NULL
                 electronicInvoice = sharedViewModel.state.selectedContract,
                 onBack = { navController.popBackStack() },
-                onNavigateToEdit = { navController.navigate(Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) }
+                onNavigateToEdit = { navController.navigate(Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) },
+                onNavigateToSuccess = {navController.navigate(Routes.ELECTRONIC_INVOICE_SUCCESS)}
             )
         }
 

@@ -35,22 +35,18 @@ class ElectronicInvoiceRepositoryImpl @Inject constructor(
 ) : ElectronicInvoiceRepository {
 
     override fun getAllElectronicInvoice(isCloud: Boolean): Flow<List<ElectronicInvoice>> = flow {
+        val databaseFlow = getElectronicInvoiceFromDatabase()
+
+        val currentLocalData = getElectronicInvoiceFromDatabaseOnce()
+        emit(currentLocalData)
+
         if (isCloud) {
-            //Preparo el flujo reactivo de la DB
-            val databaseFlow = getElectronicInvoiceFromDatabase()
-
-            //Emitimo lo que haya en la DB ahora mismo para carga instantánea
-            emit(getElectronicInvoiceFromDatabaseOnce())
-
             try {
-                //Petición a la API
                 val remoteDtos = api.getElectronicInvoice()
                 val entities = remoteDtos.map { it.toEntity() }
-                // Actualizo la caché local
                 dao.insertAll(entities)
 
             } catch (e: Exception) {
-                // Manejo de excepciones idéntico al de facturas
                 val customException = when (e) {
                     is UnknownHostException,
                     is ConnectException,
@@ -62,31 +58,25 @@ class ElectronicInvoiceRepositoryImpl @Inject constructor(
                 }
                 throw customException
             }
-
-            //Me quedo escuchando cambios en la DB
-            emitAll(databaseFlow)
-
         } else {
-            // MODO LOCAL (Assets) - Igual que tu InvoiceRepository
-            try {
-                // Leemos el archivo local (asegúrate de crearlo en assets/electronic_invoices.json)
-                val jsonText =
-                    context.assets.open("electronic_invoices.json").bufferedReader().use {
-                        it.readText()
-                    }
+            if (currentLocalData.isEmpty()) {
+                try {
+                    val jsonText =
+                        context.assets.open("electronic_invoices.json").bufferedReader().use {
+                            it.readText()
+                        }
 
-                // Parseo con Gson
-                val listType = object : TypeToken<List<ElectronicInvoiceDto>>() {}.type
-                val localDtos: List<ElectronicInvoiceDto> = gson.fromJson(jsonText, listType)
+                    val listType = object : TypeToken<List<ElectronicInvoiceDto>>() {}.type
+                    val localDtos: List<ElectronicInvoiceDto> = gson.fromJson(jsonText, listType)
 
-                // Emito los datos convertidos a dominio
-                emit(localDtos.map { it.toEntity().toDomain() })
+                    dao.insertAll(localDtos.map { it.toEntity() })
 
-            } catch (e: Exception) {
-                e.printStackTrace()
-                throw InvoiceException.LocalDataError
+                } catch (e: Exception) {
+                    throw InvoiceException.LocalDataError
+                }
             }
         }
+        emitAll(databaseFlow)
     }
 
     override suspend fun updateElectronicInvoice(electronicInvoice: ElectronicInvoice) {
