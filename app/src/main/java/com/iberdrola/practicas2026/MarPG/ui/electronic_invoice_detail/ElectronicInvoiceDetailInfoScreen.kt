@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,35 +34,55 @@ import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 @Composable
 fun ElectronicInvoiceDetailInfoScreen(
     viewModel: ElectronicInvoiceViewModel,
+    electronicInvoice: ElectronicInvoice?,
     onBack: () -> Unit,
     onNavigateToEdit: () -> Unit
 ) {
+    if (electronicInvoice == null) {
+        // Opcional: Puedes poner un CircularProgressIndicator() aquí
+        return
+    }
+
     val state = viewModel.state
+
+    LaunchedEffect(electronicInvoice.id) {
+        viewModel.selectContract(electronicInvoice)
+    }
+
+    val events = ElectronicInvoiceEvents(
+        onBack = onBack,
+        onNext = {
+            viewModel.onEmailChanged(electronicInvoice.email!!)
+            onNavigateToEdit()
+        }
+    )
 
     ElectronicInvoiceDetailInfoContent(
         state = state,
-        onBack = onBack,
-        onModifyClick = onNavigateToEdit
+        events = events,
+        email = electronicInvoice.email
     )
 }
 
 @Composable
 fun ElectronicInvoiceDetailInfoContent(
     state: ElectronicInvoiceState,
-    onBack: () -> Unit,
-    onModifyClick: () -> Unit
+    events: ElectronicInvoiceEvents,
+    email: String?
+
 ) {
     val contract = state.selectedContract
 
     Scaffold(
         containerColor = WhiteApp,
         topBar = {
-            FilterTopBar(onBack = onBack)
+            FilterTopBar(onBack = events.onBack)
         },
         bottomBar = {
 
@@ -76,13 +97,13 @@ fun ElectronicInvoiceDetailInfoContent(
                 )
 
                 Button(
-                    onClick = onModifyClick,
+                    onClick = events.onNext,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D5C4C))
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola)
                 ) {
                     Icon(imageVector = Icons.Outlined.Edit, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -133,7 +154,7 @@ fun ElectronicInvoiceDetailInfoContent(
                 fontSize = 14.sp
             )
             Text(
-                text = contract?.email ?: "Sin email asignado",
+                text = email ?: "No disponible",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Gray,
                 modifier = Modifier.padding(top = 4.dp),
@@ -184,8 +205,8 @@ fun ElectronicInvoiceDetailInfoPreview() {
     MaterialTheme {
         ElectronicInvoiceDetailInfoContent(
             state = mockState,
-            onBack = {},
-            onModifyClick = {}
+            events = ElectronicInvoiceEvents(),
+            email = "pepe2@gmail.com"
         )
     }
 }

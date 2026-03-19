@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -53,12 +54,25 @@ fun ElectronicInvoiceOtpScreen(
 ) {
     val state = viewModel.state
 
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            onNext()
+        }
+    }
+
+    val events = ElectronicInvoiceEvents(
+        onOtpChange = { viewModel.onOtpChanged(it) },
+        onResendOtp = { viewModel.onResendOtp() },
+        onCloseBanner = { viewModel.closeResendBanner() },
+        onBack = onBack,
+        onNext = { if (state.otpInput.length == 6) {
+            viewModel.performUpdate()
+        } }
+    )
+
     ElectronicInvoiceOtpContent(
         state = state,
-        events = viewModel.events,
-        onBack = onBack,
-        onNext = onNext,
-        //El botón se habilita si el código tiene 6 dígitos
+        events = events,
         isButtonEnabled = state.otpInput.length >= 6
     )
 }
@@ -67,8 +81,6 @@ fun ElectronicInvoiceOtpScreen(
 fun ElectronicInvoiceOtpContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
-    onBack: () -> Unit,
-    onNext: () -> Unit,
     isButtonEnabled: Boolean
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -78,17 +90,17 @@ fun ElectronicInvoiceOtpContent(
                 ElectronicInvoiceHeader(
                     title = "Activa tu factura electrónica",
                     step = 3,
-                    onClose = onBack,
+                    onClose = events.onBack,
                     totalSteps = 4
                 )
             },
             bottomBar = {
                 ElectronicInvoiceBottomBar(
-                    onBack = onBack,
-                    onNext = onNext,
+                    onBack = events.onBack,
+                    onNext = events.onNext,
                     isNextEnabled = isButtonEnabled,
                     showBanner = state.showResendSuccess,
-                    onCloseBanner = { /* evento para poner el booleano en false */ }
+                    onCloseBanner = events.onCloseBanner
                 )
             }
         ) { padding ->
@@ -195,8 +207,6 @@ fun ElectronicInvoiceOtpPreview() {
         ElectronicInvoiceOtpContent(
             state = ElectronicInvoiceState(otpInput = ""),
             events = ElectronicInvoiceEvents(),
-            onBack = {},
-            onNext = {},
             isButtonEnabled = false
         )
     }
@@ -213,8 +223,6 @@ fun ElectronicInvoiceOtpResentPreview() {
                 showResendSuccess = true
             ),
             events = ElectronicInvoiceEvents(),
-            onBack = {},
-            onNext = {},
             isButtonEnabled = false
         )
     }
@@ -228,8 +236,6 @@ fun ElectronicInvoiceOtpLoadingPreview() {
                 isLoading = true
             ),
             events = ElectronicInvoiceEvents(),
-            onBack = {},
-            onNext = {},
             isButtonEnabled = false
         )
     }

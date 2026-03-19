@@ -3,6 +3,7 @@ package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_selection
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
@@ -14,11 +15,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ElectronicInvoiceListViewModel @Inject constructor(
-    private val getElectronicInvoiceUseCase: GetElectronicInvoiceUseCase
+    private val getElectronicInvoiceUseCase: GetElectronicInvoiceUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     var state by mutableStateOf<ElectronicInvoiceListState>(ElectronicInvoiceListState.Loading)
         private set
+
+    private val isCloud: Boolean = savedStateHandle["isCloud"] ?: false
 
     init {
         loadInvoices()
@@ -31,7 +35,7 @@ class ElectronicInvoiceListViewModel @Inject constructor(
         viewModelScope.launch {
             state = ElectronicInvoiceListState.Loading
 
-            getElectronicInvoiceUseCase(isCloud = true)
+            getElectronicInvoiceUseCase(isCloud = isCloud)
                 .catch { e ->
                     state = ElectronicInvoiceListState.Error(e.message ?: "Error desconocido")
                 }

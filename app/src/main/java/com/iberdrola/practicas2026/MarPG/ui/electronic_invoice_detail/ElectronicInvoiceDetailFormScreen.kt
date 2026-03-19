@@ -37,6 +37,7 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Electr
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
 
 @Composable
 fun ElectronicInvoiceDetailFormScreen(
@@ -46,12 +47,20 @@ fun ElectronicInvoiceDetailFormScreen(
 ) {
     val state = viewModel.state
 
+    // Eliminamos el remember para que se evalúe en cada recomposición
+    val isButtonEnabled = viewModel.canContinue()
+
+    val events = ElectronicInvoiceEvents(
+        onEmailChange = { viewModel.onEmailChanged(it) },
+        onLegalCheckChange = { viewModel.onLegalAccepted(it) },
+        onBack = onBack,
+        onNext = onNext
+    )
+
     ElectronicInvoiceDetailFormContent(
         state = state,
-        events = viewModel.events,
-        onBack = onBack,
-        onNext = onNext,
-        isButtonEnabled = viewModel.canContinue() // Usamos la validación del ViewModel
+        events = events,
+        isButtonEnabled = isButtonEnabled
     )
 }
 
@@ -59,23 +68,25 @@ fun ElectronicInvoiceDetailFormScreen(
 fun ElectronicInvoiceDetailFormContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
-    onBack: () -> Unit,
-    onNext: () -> Unit,
     isButtonEnabled: Boolean
 ) {
+    val emailActualOfuscado = state.selectedContract?.email?.let {
+        if (it.isNotEmpty()) EmailUtils.obfuscateEmail(it) else "Sin email asignado"
+    } ?: "Sin email asignado"
+
     Scaffold(
         containerColor = WhiteApp,
         topBar = {
             ElectronicInvoiceHeader(
                 title = "Activa tu factura electrónica",
                 step = 1,
-                onClose = onBack
+                onClose = events.onBack
             )
         },
         bottomBar = {
             ElectronicInvoiceBottomBar(
-                onBack = onBack,
-                onNext = onNext,
+                onBack = events.onBack,
+                onNext = events.onNext,
                 isNextEnabled = isButtonEnabled
             )
         }
@@ -87,16 +98,13 @@ fun ElectronicInvoiceDetailFormContent(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
         ) {
-
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 2. Email actual (Ofuscado)
-            Text("Email vinculado a tu cuenta:", fontSize = 12.sp, color = Color.Gray)
-            Text("a*****a@a.com", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text("Email vinculado a tu cuenta:", fontSize = 12.sp)
+            Text(emailActualOfuscado, fontWeight = FontWeight.Bold, fontSize = 14.sp)
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // 3. Formulario
             Text("¿En qué email deseas recibir tus facturas?", fontWeight = FontWeight.Bold, fontSize = 16.sp)
 
             TextField(
@@ -106,7 +114,9 @@ fun ElectronicInvoiceDetailFormContent(
                 placeholder = { Text("* Email", fontSize = 14.sp) },
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent
+                    focusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = GreenDarkIberdrola,
+                    cursorColor = GreenDarkIberdrola
                 )
             )
 
@@ -118,33 +128,13 @@ fun ElectronicInvoiceDetailFormContent(
                 fontSize = 16.sp
             )
 
-            // Bloque de Protección de Datos
             val proteccionDatosText = buildAnnotatedString {
                 append("Responsable: Iberdrola Clientes S.A.U. ")
-                withLink(LinkAnnotation.Clickable("responsable") { /* Aquí irá el Snackbar */ }) {
-                    withStyle(
-                        SpanStyle(
-                            color = GreenDarkIberdrola,
-                            textDecoration = TextDecoration.Underline
-                        )
-                    ) {
-                        append("Más info")
-                    }
-                }
-
+                withStyle(SpanStyle(color = GreenDarkIberdrola, textDecoration = TextDecoration.Underline)) { append("Más info") }
                 append("\n\nFinalidad: Gestión de la factura electrónica. ")
-                withLink(LinkAnnotation.Clickable("finalidad") { /* Aquí irá el Snackbar */ }) {
-                    withStyle(SpanStyle(color = GreenDarkIberdrola, textDecoration = TextDecoration.Underline)) {
-                        append("Más info")
-                    }
-                }
-
-                append("\n\nDerechos: Acceso, rectificación, supresión, limitación del tratamiento, portabilidad de datos u oposición, incluida la oposición a decisiones individuales automatizadas. ")
-                withLink(LinkAnnotation.Clickable("derechos") { /* Aquí irá el Snackbar */ }) {
-                    withStyle(SpanStyle(color = GreenDarkIberdrola, textDecoration = TextDecoration.Underline)) {
-                        append("Más info")
-                    }
-                }
+                withStyle(SpanStyle(color = GreenDarkIberdrola, textDecoration = TextDecoration.Underline)) { append("Más info") }
+                append("\n\nDerechos: Acceso, rectificación, supresión y otros derechos. ")
+                withStyle(SpanStyle(color = GreenDarkIberdrola, textDecoration = TextDecoration.Underline)) { append("Más info") }
             }
 
             Text(
@@ -159,30 +149,24 @@ fun ElectronicInvoiceDetailFormContent(
 
             val checkboxText = buildAnnotatedString {
                 append("He leído y acepto la Política de privacidad, acepto las ")
-
-                withLink(LinkAnnotation.Clickable("condiciones") { /* Aquí irá el Snackbar */ }) {
-                    withStyle(SpanStyle(color = GreenDarkIberdrola, textDecoration = TextDecoration.Underline)) {
-                        append("Condiciones Generales")
-                    }
+                withStyle(SpanStyle(color = GreenDarkIberdrola, textDecoration = TextDecoration.Underline)) {
+                    append("Condiciones Generales")
                 }
-
                 append(" y Particulares de la oferta y la suscripción a Factura Electrónica.")
             }
 
-            // 5. Checkbox Legal
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 verticalAlignment = Alignment.Top
             ) {
                 Checkbox(
                     checked = state.isLegalAccepted,
-                    onCheckedChange = events.onLegalCheckChange,
+                    onCheckedChange = { events.onLegalCheckChange(it) },
                     colors = CheckboxDefaults.colors(
                         checkedColor = GreenDarkIberdrola,
                         uncheckedColor = GreenDarkIberdrola,
-                        checkmarkColor = GreenIberdrola
-                    ),
-                    modifier = Modifier.padding(end = 0.dp)
+                        checkmarkColor = Color.White
+                    )
                 )
                 Text(
                     text = checkboxText,
@@ -191,59 +175,5 @@ fun ElectronicInvoiceDetailFormContent(
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true, name = "Formulario - Estado Inicial")
-@Composable
-fun ElectronicInvoiceDetailFormPreview() {
-    val mockContract = ElectronicInvoice(
-        id = "12345",
-        type = ContractType.LUZ,
-        isEnabled = false, // Caso de activación
-        email = "pepe2@gmail.com"
-    )
-
-    val mockState = ElectronicInvoiceState(
-        selectedContract = mockContract,
-        emailInput = "",
-        isLegalAccepted = false
-    )
-
-    MaterialTheme {
-        ElectronicInvoiceDetailFormContent(
-            state = mockState,
-            events = ElectronicInvoiceEvents(),
-            onBack = {},
-            onNext = {},
-            isButtonEnabled = false // Deshabilitado por defecto
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Formulario - Datos Rellenados")
-@Composable
-fun ElectronicInvoiceDetailFormFilledPreview() {
-    val mockContract = ElectronicInvoice(
-        id = "12345",
-        type = ContractType.LUZ,
-        isEnabled = false,
-        email = "pepe2@gmail.com"
-    )
-
-    val mockState = ElectronicInvoiceState(
-        selectedContract = mockContract,
-        emailInput = "nuevo_email@gmail.com",
-        isLegalAccepted = true
-    )
-
-    MaterialTheme {
-        ElectronicInvoiceDetailFormContent(
-            state = mockState,
-            events = ElectronicInvoiceEvents(),
-            onBack = {},
-            onNext = {},
-            isButtonEnabled = true // Habilitado
-        )
     }
 }

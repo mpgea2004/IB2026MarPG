@@ -9,5 +9,8 @@ data class ElectronicInvoiceEvents(
     val onLegalCheckChange: (Boolean) -> Unit = {},
     val onConfirmUpdate: () -> Unit = {},
     val onResendOtp: () -> Unit = {},
-    val onExitFlow: () -> Unit = {}
+    val onExitFlow: () -> Unit = {},
+    val onBack: () -> Unit = {},
+    val onNext: () -> Unit = {},
+    val onCloseBanner: () -> Unit = {}
 )

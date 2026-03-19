@@ -8,13 +8,10 @@ class UpdateElectronicInvoiceUseCase @Inject constructor(
     private val repository: ElectronicInvoiceRepository
 ) {
     suspend operator fun invoke(electronicInvoice: ElectronicInvoice, newEmail: String) {
-        //Creo una copia de la fact elect con los nuevos datos
         val updatedElectronicInvoice = electronicInvoice.copy(
             email = newEmail,
             isEnabled = true
         )
-
-        //Se lo paso al repositorio (la interfaz de Domain)
         repository.updateElectronicInvoice(updatedElectronicInvoice)
     }
 }

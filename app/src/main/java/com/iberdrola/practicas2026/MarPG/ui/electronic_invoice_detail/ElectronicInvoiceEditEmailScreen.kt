@@ -1,20 +1,12 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -39,12 +31,15 @@ fun ElectronicInvoiceEditEmailScreen(
 ) {
     val state = viewModel.state
 
+    val events = ElectronicInvoiceEvents(
+        onEmailChange = { viewModel.onEmailChanged(it) },
+        onBack = onBack,
+        onNext = onNext
+    )
+
     ElectronicInvoiceEditEmailContent(
         state = state,
-        events = viewModel.events,
-        onBack = onBack,
-        onNext = onNext,
-        // Aquí la lógica de validación del botón (ej: email válido y no vacío)
+        events = events,
         isButtonEnabled = state.emailInput.isNotEmpty()
     )
 }
@@ -53,8 +48,6 @@ fun ElectronicInvoiceEditEmailScreen(
 fun ElectronicInvoiceEditEmailContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
-    onBack: () -> Unit,
-    onNext: () -> Unit,
     isButtonEnabled: Boolean
 ) {
     Scaffold(
@@ -63,13 +56,13 @@ fun ElectronicInvoiceEditEmailContent(
             ElectronicInvoiceHeader(
                 title = "Modificar email",
                 step = 1,
-                onClose = onBack
+                onClose = events.onBack
             )
         },
         bottomBar = {
             ElectronicInvoiceBottomBar(
-                onBack = onBack,
-                onNext = onNext,
+                onBack = events.onBack,
+                onNext = events.onNext,
                 isNextEnabled = isButtonEnabled
             )
         }
@@ -119,8 +112,6 @@ fun ElectronicInvoiceEditEmailPreview() {
         ElectronicInvoiceEditEmailContent(
             state = ElectronicInvoiceState(emailInput = ""),
             events = ElectronicInvoiceEvents(),
-            onBack = {},
-            onNext = {},
             isButtonEnabled = false
         )
     }

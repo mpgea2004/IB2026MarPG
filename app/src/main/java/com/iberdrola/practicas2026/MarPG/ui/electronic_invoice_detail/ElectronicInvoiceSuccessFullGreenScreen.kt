@@ -31,19 +31,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
 
 @Composable
 fun ElectronicInvoiceSuccessFullGreenScreen(
     viewModel: ElectronicInvoiceViewModel,
     onFinish: () -> Unit
 ) {
-    // Aquí podrías decidir qué textos mostrar según el estado final del proceso
-    val isModification = viewModel.state.currentStep == ElectronicInvoiceStep.SUCCESS // O la lógica que prefieras
-    val email = viewModel.state.emailInput
+
+    val state = viewModel.state
+
+    val showEmail = EmailUtils.obfuscateEmail(state.emailInput)
+
+    val isModification = state.currentStep == ElectronicInvoiceStep.SUCCESS
 
     ElectronicInvoiceSuccessFullGreenContent(
         isModification = isModification,
-        email = email,
+        email = showEmail,
         onAccept = onFinish
     )
 }
