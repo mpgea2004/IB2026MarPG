@@ -21,10 +21,10 @@ data class ElectronicInvoiceState(
 
     val selectedLegalTitle: String? = null,
     val selectedLegalContent: String? = null,
-    val showLegalSheet: Boolean = false
+    val showLegalSheet: Boolean = false,
 
+    val resendAttempts: Int = 2,
 )
-
 enum class ElectronicInvoiceStep {
     SELECTION, FORM, VERIFICATION, SUCCESS
 }

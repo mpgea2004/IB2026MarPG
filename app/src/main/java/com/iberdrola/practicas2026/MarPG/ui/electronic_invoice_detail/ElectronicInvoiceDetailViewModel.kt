@@ -117,10 +117,16 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
 
     fun onResendOtp() {
-        viewModelScope.launch {
-            state = state.copy(isLoading = true, showResendSuccess = false)
-            delay(1500)
-            state = state.copy(isLoading = false, showResendSuccess = true)
+        if (state.resendAttempts > 0) {
+            viewModelScope.launch {
+                state = state.copy(
+                    resendAttempts = state.resendAttempts - 1,
+                    isLoading = true,
+                    showResendSuccess = false
+                )
+                delay(1500)
+                state = state.copy(isLoading = false, showResendSuccess = true)
+            }
         }
     }
 

@@ -78,6 +78,8 @@ fun ElectronicInvoiceOtpContent(
     events: ElectronicInvoiceEvents,
     isButtonEnabled: Boolean
 ) {
+    val hasAttempts = state.resendAttempts > 0
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Color.White,
@@ -140,7 +142,7 @@ fun ElectronicInvoiceOtpContent(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Surface(
-                    color = Color(0xFFE3F2FD),
+                    color = if (hasAttempts) Color(0xFFE3F2FD) else Color(0xFFFFEBEE),
                     shape = RoundedCornerShape(
                         topStart = 0.dp,
                         topEnd = 16.dp,
@@ -156,7 +158,7 @@ fun ElectronicInvoiceOtpContent(
                         Icon(
                             imageVector = Icons.Outlined.Info,
                             contentDescription = null,
-                            tint = Color(0xFF455A64),
+                            tint = if (hasAttempts) Color(0xFF455A64) else Color(0xFFC62828),
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -165,24 +167,29 @@ fun ElectronicInvoiceOtpContent(
                                 text = stringResource(R.string.otp_not_received_title),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
-                                color = Color(0xFF263238)
+                                color = if (hasAttempts) Color(0xFF263238) else Color(0xFFB71C1C)
                             )
                             Text(
-                                text = stringResource(R.string.otp_not_received_desc, 2),
+                                text = if (hasAttempts)
+                                    stringResource(R.string.otp_not_received_desc, state.resendAttempts)
+                                else
+                                    stringResource(R.string.otp_no_attempts_left),
                                 fontSize = 12.sp,
                                 lineHeight = 18.sp,
-                                color = Color(0xFF455A64),
+                                color = if (hasAttempts) Color(0xFF455A64) else Color(0xFFD32F2F),
                                 modifier = Modifier.padding(top = 4.dp)
                             )
-                            Text(
-                                text = stringResource(R.string.otp_resend_link),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = GreenDarkIberdrola,
-                                textDecoration = TextDecoration.Underline,
-                                modifier = Modifier
-                                    .clickable { events.onResendOtp() }
-                            )
+                            if (hasAttempts) {
+                                Text(
+                                    text = stringResource(R.string.otp_resend_link),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = GreenDarkIberdrola,
+                                    textDecoration = TextDecoration.Underline,
+                                    modifier = Modifier
+                                        .clickable { events.onResendOtp() }
+                                )
+                            }
                         }
                     }
                 }

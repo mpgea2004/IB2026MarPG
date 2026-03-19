@@ -82,6 +82,7 @@
     <string name="otp_not_received_title">¿No has recibido el código?</string>
     <string name="otp_not_received_desc">Si no lo encuentras, podemos volver a enviar el SMS. Recuerda que aún te quedan %1$d intentos.</string>
     <string name="otp_resend_link">Volver a enviar</string>
+    <string name="otp_no_attempts_left">Has agotado el número máximo de intentos. Por favor, vuelve a probar más tarde.</string>
 
     <string name="edit_email_header_title">Modificar email</string>
     <string name="edit_email_question">¿En qué email deseas recibir tus facturas?</string>
