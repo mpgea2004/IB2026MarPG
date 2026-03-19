@@ -1,6 +1,5 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
-import android.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -36,10 +35,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
@@ -92,7 +93,7 @@ fun ElectronicInvoiceDetailInfoScreen(
             },
             title = {
                 Text(
-                    text = "Desactivar Factura Electrónica",
+                    text = stringResource(R.string.invoice_detail_dialog_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
@@ -101,7 +102,7 @@ fun ElectronicInvoiceDetailInfoScreen(
             },
             text = {
                 Text(
-                    text = "No es recomendable desactivar este servicio. Recibirás tus facturas en papel y dejarás de disfrutar de las ventajas digitales. ¿Estás seguro?",
+                    text = stringResource(R.string.invoice_detail_dialog_text),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
@@ -113,14 +114,14 @@ fun ElectronicInvoiceDetailInfoScreen(
                         viewModel.performDeactivate()
                     }
                 ) {
-                    Text("Desactivar", color = Color.Red, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.invoice_detail_dialog_confirm), color = Color.Red, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showDeleteDialog = false }
                 ) {
-                    Text("Cancelar", color = GreenDarkIberdrola)
+                    Text(stringResource(R.string.invoice_detail_dialog_cancel), color = GreenDarkIberdrola)
                 }
             },
             containerColor = WhiteApp,
@@ -176,7 +177,7 @@ fun ElectronicInvoiceDetailInfoContent(
                 ) {
                     Icon(imageVector = Icons.Outlined.Delete, contentDescription = null,tint = GreenDarkIberdrola,)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Desactivar Factura Electrónica", fontSize = 15.sp, color = GreenDarkIberdrola)
+                    Text(text = stringResource(R.string.invoice_detail_btn_deactivate), fontSize = 15.sp, color = GreenDarkIberdrola)
                 }
 
                 Button(
@@ -190,7 +191,7 @@ fun ElectronicInvoiceDetailInfoContent(
                 ) {
                     Icon(imageVector = Icons.Outlined.Edit, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Modificar email", fontSize = 15.sp)
+                    Text(text = stringResource(R.string.invoice_detail_btn_edit), fontSize = 15.sp)
                 }
             }
         }
@@ -203,7 +204,7 @@ fun ElectronicInvoiceDetailInfoContent(
         ) {
             // Título del contrato
             Text(
-                text = if (contract?.type == ContractType.LUZ) "Contrato de Luz" else "Contrato de Gas",
+                text = if (contract?.type == ContractType.LUZ) stringResource(R.string.invoice_detail_type_light) else stringResource(R.string.invoice_detail_type_gas),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 16.dp)
@@ -211,7 +212,7 @@ fun ElectronicInvoiceDetailInfoContent(
 
             // Dirección
             Text(
-                text = "c/ apartado de correos 184, 5 , 1ºb -los dolores-el plan - murcia",
+                text = stringResource(R.string.invoice_detail_address),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp)
@@ -221,7 +222,7 @@ fun ElectronicInvoiceDetailInfoContent(
 
             // Subtítulo descriptivo
             Text(
-                text = "Actualmente recibes las facturas electrónicas de este contrato al:",
+                text = stringResource(R.string.invoice_detail_current_status_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.DarkGray,
                 fontSize = 11.5.sp
@@ -231,13 +232,13 @@ fun ElectronicInvoiceDetailInfoContent(
 
             // Email actual
             Text(
-                text = "Recibes tus facturas en este email",
+                text = stringResource(R.string.invoice_detail_email_label),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
             )
             Text(
-                text = email ?: "No disponible",
+                text = email ?: stringResource(R.string.invoice_detail_email_label),
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Gray,
                 modifier = Modifier.padding(top = 4.dp),
@@ -263,7 +264,7 @@ fun ElectronicInvoiceDetailInfoContent(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Recuerda que la factura electrónica es un requisito de este Plan, por lo que no es recomendable desactivarla.",
+                    text = stringResource(R.string.invoice_detail_info_box_text),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray,
                     lineHeight = 18.sp,

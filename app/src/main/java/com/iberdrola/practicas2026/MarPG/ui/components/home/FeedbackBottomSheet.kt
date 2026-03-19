@@ -21,8 +21,8 @@ fun FeedbackBottomSheet(
         containerColor = WhiteApp
     ) {
         FeedbackSheetContent(
-            onRatingClick = { onOptionSelected(10) },//Si dice carita, tregua de 10
-            onLaterClick = { onOptionSelected(3) },//Si dice más tarde, tregua de 3
+            onRatingClick = { onOptionSelected(10) },
+            onLaterClick = { onOptionSelected(3) }
         )
     }
 }

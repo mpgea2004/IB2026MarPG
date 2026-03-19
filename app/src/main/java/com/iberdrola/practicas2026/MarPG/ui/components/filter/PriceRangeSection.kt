@@ -43,7 +43,6 @@ fun PriceRangeSection(
     onRangeChange: (Float, Float) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Badge con el precio actual
         Box(
             modifier = Modifier
                 .background(LightGreenIberdrola, RoundedCornerShape(4.dp))
@@ -64,7 +63,6 @@ fun PriceRangeSection(
         RangeSlider(
             value = minPrice..maxPrice,
             onValueChange = { range ->
-                // Si el valor está muy cerca del límite real, lo fuerzo para evitar el salto visual
                 val startValue = if (range.start < minLimit + 0.1f) minLimit else range.start
                 val endValue = if (range.endInclusive > maxLimit - 0.1f) maxLimit else range.endInclusive
                 onRangeChange(startValue, endValue)
@@ -95,11 +93,9 @@ fun PriceRangeSection(
                     val trackHeight = size.height
                     val width = size.width
 
-                    // Uso los límites para calcular la posición proporcional
                     val startPos = width * ((rangeSliderState.activeRangeStart - minLimit) / (maxLimit - minLimit))
                     val endPos = width * ((rangeSliderState.activeRangeEnd - minLimit) / (maxLimit - minLimit))
 
-                    // Línea Inactiva (fondo gris)
                     drawLine(
                         color = Color(0xFFE0E0E0),
                         start = Offset(0f, trackHeight / 2),
@@ -108,7 +104,6 @@ fun PriceRangeSection(
                         cap = StrokeCap.Round
                     )
 
-                    // Línea Activa (verde Iberdrola)
                     drawLine(
                         color = GreenIberdrola,
                         start = Offset(startPos, trackHeight / 2),
@@ -120,7 +115,6 @@ fun PriceRangeSection(
             }
         )
 
-        // Etiquetas de los extremos
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween

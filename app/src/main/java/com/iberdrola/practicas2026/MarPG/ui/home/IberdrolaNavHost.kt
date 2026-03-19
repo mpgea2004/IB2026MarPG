@@ -23,31 +23,25 @@ import com.iberdrola.practicas2026.MarPG.ui.factura_home.HomeScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
 
-/** Definición de rutas de navegación de la aplicación */
 object Routes {
     const val HOME = "home"
-    /** Ruta del listado con argumento booleano para origen de datos */
     const val INVOICE_LIST = "invoice_list/{isCloud}"
     const val FILTER = "filter"
-    // Flujo de Factura Electrónica
     const val ELECTRONIC_INVOICE_SELECTION = "electronic_invoice_selection"
-    const val ELECTRONIC_INVOICE_DETAIL = "electronic_invoice_detail" // La de info (Modificar)
-    const val ELECTRONIC_INVOICE_FORM = "electronic_invoice_form"     // La de activación (Legal)
-    const val ELECTRONIC_INVOICE_EDIT_EMAIL = "electronic_invoice_edit" // La de cambiar email
+    const val ELECTRONIC_INVOICE_DETAIL = "electronic_invoice_detail"
+    const val ELECTRONIC_INVOICE_FORM = "electronic_invoice_form"
+    const val ELECTRONIC_INVOICE_EDIT_EMAIL = "electronic_invoice_edit"
     const val ELECTRONIC_INVOICE_OTP = "electronic_invoice_otp"
     const val ELECTRONIC_INVOICE_SUCCESS = "electronic_invoice_success"
 }
 
-/** Grafo de navegación principal que gestiona el estado del origen de datos (Nube/Local) */
 @Composable
 fun IberdrolaNavHost(navController: NavHostController) {
 
-    //si esta a true uso mockoon, si no uso el json que tengo en assets
     var isCloudEnabled by remember { mutableStateOf(false) }
 
     NavHost(navController = navController, startDestination = Routes.HOME) {
 
-        /** Pantalla de inicio: permite configurar el origen y navegar */
         composable(Routes.HOME) {
             HomeScreen(
                 onNavigateToInvoices = { navController.navigate("invoice_list/$isCloudEnabled") },
@@ -57,26 +51,21 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        /** Pantalla de listado: recibe el parámetro isCloud para el ViewModel */
         composable(
             Routes.INVOICE_LIST,
             arguments = listOf(navArgument("isCloud") { type = NavType.BoolType })
         ) { backStackEntry ->
-            //Creo el ViewModel ligado a esta ruta
             val invoiceListViewModel: InvoiceListViewModel = hiltViewModel(backStackEntry)
             InvoiceListScreen(
                 viewModel = invoiceListViewModel,
                 onBack = {
-                    navController.popBackStack()//Vuelvo a home
+                    navController.popBackStack()
                 },
                 onNavigateToFilters = { navController.navigate(Routes.FILTER) }
             )
         }
 
-        /** Pantalla de filtros */
         composable(Routes.FILTER) { backStackEntry->
-            //Recupero la instancia del ViewModel de la lista que ya existe
-            //Uso "navController.getBackStackEntry" con la ruta de la lista
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.INVOICE_LIST)
             }
@@ -89,18 +78,14 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        /** 1. SELECCIÓN DE CONTRATO */
         composable(Routes.ELECTRONIC_INVOICE_SELECTION) { backStackEntry ->
-            // Obtenemos el VM vinculado a esta entrada del backstack para que sea el "Padre"
             val sharedViewModel: ElectronicInvoiceViewModel = hiltViewModel(backStackEntry)
 
             ElectronicInvoiceSelectionScreen(
-                viewModel = hiltViewModel(), // VM de la lista
+                viewModel = hiltViewModel(),
                 onNavigate = { contrato ->
-                    // --- PASO CLAVE: Guardar en el VM compartido ---
                     sharedViewModel.selectContract(contrato)
 
-                    // Ahora navegamos sabiendo que el VM ya tiene los datos
                     if (contrato.isEnabled) {
                         navController.navigate(Routes.ELECTRONIC_INVOICE_DETAIL)
                     } else {
@@ -111,7 +96,6 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        /** 2. DETALLE / INFO (GAS) */
         composable(Routes.ELECTRONIC_INVOICE_DETAIL) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
@@ -120,7 +104,6 @@ fun IberdrolaNavHost(navController: NavHostController) {
 
             ElectronicInvoiceDetailInfoScreen(
                 viewModel = sharedViewModel,
-                // Ahora state.selectedContract YA NO SERÁ NULL
                 electronicInvoice = sharedViewModel.state.selectedContract,
                 onBack = { navController.popBackStack() },
                 onNavigateToEdit = { navController.navigate(Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) },
@@ -128,7 +111,6 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        /** 3. FORMULARIO ACTIVACIÓN (Legal + Email) */
         composable(Routes.ELECTRONIC_INVOICE_FORM) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
@@ -140,7 +122,6 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        /** 4. MODIFICAR EMAIL */
         composable(Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
@@ -152,7 +133,6 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        /** 5. VERIFICACIÓN OTP */
         composable(Routes.ELECTRONIC_INVOICE_OTP) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
@@ -166,7 +146,6 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        /** 6. PANTALLA DE ÉXITO */
         composable(Routes.ELECTRONIC_INVOICE_SUCCESS) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)

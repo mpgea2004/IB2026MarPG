@@ -16,8 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 
@@ -38,14 +40,14 @@ fun ResendSuccessBanner(onClose: () -> Unit) {
         )
         Spacer(modifier = Modifier.width(12.dp))
         Text(
-            text = "Hemos vuelto a enviar un SMS con tu código de verificación.",
+            text = stringResource(R.string.banner_resend_success),
             fontSize = 10.sp,
             color = GreenIberdrola,
             modifier = Modifier.weight(1f)
         )
         Icon(
             imageVector = Icons.Default.Close,
-            contentDescription = "Cerrar",
+            contentDescription = stringResource(R.string.success_button_accept),
             tint = GreenIberdrola,
             modifier = Modifier
                 .size(20.dp)

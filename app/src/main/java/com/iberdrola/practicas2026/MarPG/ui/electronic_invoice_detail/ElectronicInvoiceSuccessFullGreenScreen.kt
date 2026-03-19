@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -64,15 +65,15 @@ fun ElectronicInvoiceSuccessFullGreenContent(
     onAccept: () -> Unit
 ) {
     val title = when {
-        isDeactivation -> "¡Has desactivado tu factura electrónica!"
-        isModification -> "¡Has modificado correctamente tu email!"
-        else -> "¡Has activado correctamente tu factura electrónica!"
+        isDeactivation -> stringResource(R.string.success_deactivation_title)
+        isModification -> stringResource(R.string.success_modification_title)
+        else -> stringResource(R.string.success_activation_title)
     }
 
     val subTitle = if (isDeactivation) {
-        "A partir de ahora recibirás tus facturas en formato papel en tu dirección postal."
+        stringResource(R.string.success_deactivation_subtitle)
     } else {
-        "Pronto recibirás un correo electrónico de verificación para recibir tus facturas en la dirección $email"
+        stringResource(R.string.success_activation_subtitle, email)
     }
 
     val iconResId = if (isDeactivation) {
@@ -95,7 +96,7 @@ fun ElectronicInvoiceSuccessFullGreenContent(
             Box(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), contentAlignment = Alignment.TopEnd) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Cerrar",
+                    contentDescription = stringResource(R.string.success_close_description),
                     tint = Color.White,
                     modifier = Modifier.size(32.dp).clickable { onAccept() }
                 )
@@ -111,7 +112,7 @@ fun ElectronicInvoiceSuccessFullGreenContent(
 
             Spacer(modifier = Modifier.weight(1.2f))
 
-            SuccessWhiteButton(text = "Aceptar", onClick = onAccept)
+            SuccessWhiteButton(text = stringResource(R.string.success_button_accept), onClick = onAccept)
 
             Spacer(modifier = Modifier.height(32.dp))
         }

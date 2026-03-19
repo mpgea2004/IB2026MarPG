@@ -20,13 +20,10 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -35,15 +32,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
-import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
-import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
 
@@ -86,14 +80,26 @@ fun ElectronicInvoiceDetailFormContent(
     sheetState: SheetState
 ) {
     val emailActualOfuscado = state.selectedContract?.email?.let {
-        if (it.isNotEmpty()) EmailUtils.obfuscateEmail(it) else "Sin email asignado"
-    } ?: "Sin email asignado"
+        if (it.isNotEmpty()) EmailUtils.obfuscateEmail(it) else stringResource(R.string.form_no_email_assigned)
+    } ?: stringResource(R.string.form_no_email_assigned)
+
+    val moreInfo = stringResource(R.string.form_more_info)
+    val legalTitleResp = stringResource(R.string.legal_title_responsable)
+    val legalContentResp = stringResource(R.string.legal_content_responsable)
+    val legalTitleFin = stringResource(R.string.legal_title_finalidad)
+    val legalContentFin = stringResource(R.string.legal_content_finalidad)
+    val legalTitleDer = stringResource(R.string.legal_title_derechos)
+    val legalContentDer = stringResource(R.string.legal_content_derechos)
+    val legalTitleGen = stringResource(R.string.legal_title_generales)
+    val legalContentGen = stringResource(R.string.legal_content_generales)
+    val legalTitlePart = stringResource(R.string.legal_title_particulares)
+    val legalContentPart = stringResource(R.string.legal_content_particulares)
 
     Scaffold(
         containerColor = WhiteApp,
         topBar = {
             ElectronicInvoiceHeader(
-                title = "Activa tu factura electrónica",
+                title = stringResource(R.string.form_header_title),
                 step = 1,
                 onClose = events.onBack
             )
@@ -115,18 +121,18 @@ fun ElectronicInvoiceDetailFormContent(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Email vinculado a tu cuenta:", fontSize = 12.sp)
+            Text(stringResource(R.string.form_linked_email_label), fontSize = 12.sp)
             Text(emailActualOfuscado, fontWeight = FontWeight.Bold, fontSize = 14.sp)
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text("¿En qué email deseas recibir tus facturas?", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.Bold, fontSize = 16.sp)
 
             TextField(
                 value = state.emailInput,
                 onValueChange = events.onEmailChange,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                placeholder = { Text("* Email", fontSize = 14.sp) },
+                placeholder = { Text(stringResource(R.string.form_email_placeholder), fontSize = 14.sp) },
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
@@ -138,33 +144,33 @@ fun ElectronicInvoiceDetailFormContent(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "Información básica sobre protección de datos",
+                text = stringResource(R.string.form_data_protection_title),
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )
 
             val proteccionDatosText = buildAnnotatedString {
-                append("Responsable: Iberdrola Clientes S.A.U. ")
-                appendLink("Más info") {
+                append(stringResource(R.string.form_legal_responsable))
+                appendLink(moreInfo) {
                     events.onShowLegal(
-                        "Responsable del tratamiento",
-                        "Iberdrola Clientes S.A.U., con domicilio social en Plaza Euskadi número 5, 48009 Bilbao, tratará sus datos en calidad de responsable para gestionar su relación contractual y la activación de servicios digitales."
+                        legalTitleResp,
+                        legalContentResp
                     )
                 }
 
-                append("\n\nFinalidad: Gestión de la factura electrónica. ")
-                appendLink("Más info") {
+                append(stringResource(R.string.form_legal_finalidad))
+                appendLink(moreInfo) {
                     events.onShowLegal(
-                        "Finalidad del tratamiento",
-                        "Sus datos serán tratados para la prestación del servicio de facturación electrónica, envío de avisos de disponibilidad de factura en su email y gestión del área de cliente, además del cumplimiento de obligaciones legales."
+                        legalTitleFin,
+                        legalContentFin
                     )
                 }
 
-                append("\n\nDerechos: Acceso, rectificación, supresión, limiteción del tratamineto, portabilidad de datos u oposición, incluida la oposición a decisiones individuales automatizadas.")
-                appendLink("Más info") {
+                append(stringResource(R.string.form_legal_derechos))
+                appendLink(moreInfo) {
                     events.onShowLegal(
-                        "Tus Derechos",
-                        "Usted puede ejercer sus derechos de acceso, rectificación, supresión, limitación, portabilidad y oposición contactando con nuestro delegado de protección de datos a través del correo protecciondedatos@iberdrola.es."
+                        legalTitleDer,
+                        legalContentDer
                     )
                 }
             }
@@ -180,23 +186,23 @@ fun ElectronicInvoiceDetailFormContent(
             Spacer(modifier = Modifier.height(20.dp))
 
             val checkboxText = buildAnnotatedString {
-                append("He leído y acepto la Política de privacidad, acepto las ")
+                append(stringResource(R.string.form_checkbox_prefix))
 
-                appendLink("Condiciones Generales") {
+                appendLink(stringResource(R.string.form_condiciones_generales)) {
                     events.onShowLegal(
-                        "Condiciones Generales",
-                        "Al activar el servicio de Factura Electrónica, usted acepta dejar de recibir facturas en papel. Las facturas tendrán plena validez legal y podrá volver al sistema de papel en cualquier momento desde su área privada."
+                        legalTitleGen,
+                        legalContentGen
                     )
                 }
 
-                appendLink(" y Particulares") {
+                appendLink(stringResource(R.string.form_condiciones_particulares)) {
                     events.onShowLegal(
-                        "Condiciones Particulares",
-                        "Estas condiciones regulan las ofertas específicas asociadas a su contrato. El mantenimiento de ciertos descuentos puede estar vinculado a la permanencia en facturación electrónica."
+                        legalTitlePart,
+                        legalContentPart
                     )
                 }
 
-                append(" de la oferta y la suscripción a Factura Electrónica.")
+                append(stringResource(R.string.form_checkbox_suffix))
             }
 
             Row(

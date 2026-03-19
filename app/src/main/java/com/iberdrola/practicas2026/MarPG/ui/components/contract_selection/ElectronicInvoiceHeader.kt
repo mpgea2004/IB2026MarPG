@@ -23,15 +23,17 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ElectronicInvoiceHeader(
     title: String,
-    step: Int, // 1 para el primer paso, 2 para el segundo, etc.
+    step: Int,
     totalSteps: Int = 2,
     onClose: () -> Unit
 ) {
@@ -47,7 +49,7 @@ fun ElectronicInvoiceHeader(
                 IconButton(onClick = onClose) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Cerrar",
+                        contentDescription = stringResource(R.string.success_close_description),
                         tint = Color(0xFF005941),
                         modifier = Modifier.size(30.dp)
                     )
@@ -56,7 +58,6 @@ fun ElectronicInvoiceHeader(
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
         )
 
-        // Título de la pantalla
         Text(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
@@ -67,7 +68,6 @@ fun ElectronicInvoiceHeader(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Barra de progreso dinámica
         Row(
             modifier = Modifier
                 .fillMaxWidth()

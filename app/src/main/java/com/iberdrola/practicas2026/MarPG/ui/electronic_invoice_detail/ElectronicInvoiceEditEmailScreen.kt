@@ -14,10 +14,12 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
@@ -54,7 +56,7 @@ fun ElectronicInvoiceEditEmailContent(
         containerColor = WhiteApp,
         topBar = {
             ElectronicInvoiceHeader(
-                title = "Modificar email",
+                title = stringResource(R.string.edit_email_header_title),
                 step = 1,
                 onClose = events.onBack
             )
@@ -76,7 +78,7 @@ fun ElectronicInvoiceEditEmailContent(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "¿En qué email deseas recibir tus facturas?",
+                text = stringResource(R.string.edit_email_question),
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
@@ -90,7 +92,7 @@ fun ElectronicInvoiceEditEmailContent(
                     .fillMaxWidth()
                     .padding(top = 16.dp),
                 placeholder = {
-                    Text("* Nuevo email", fontSize = 14.sp, color = Color.Gray)
+                    Text(stringResource(R.string.edit_email_placeholder), fontSize = 14.sp, color = Color.Gray)
                 },
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color.Transparent,

@@ -17,8 +17,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
@@ -27,8 +29,8 @@ fun ElectronicInvoiceBottomBar(
     onBack: () -> Unit,
     onNext: () -> Unit,
     isNextEnabled: Boolean,
-    backText: String = "Anterior",
-    nextText: String = "Siguiente",
+    backText: String = stringResource(R.string.bottom_bar_back),
+    nextText: String = stringResource(R.string.bottom_bar_next),
     showBanner: Boolean = false,
     onCloseBanner: () -> Unit = {}
 ) {
@@ -50,7 +52,6 @@ fun ElectronicInvoiceBottomBar(
                 .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Botón Anterior (Outlined)
             OutlinedButton(
                 onClick = onBack,
                 modifier = Modifier
@@ -63,7 +64,6 @@ fun ElectronicInvoiceBottomBar(
                 Text(backText, fontWeight = FontWeight.Bold)
             }
 
-            // Botón Siguiente (Relleno)
             Button(
                 onClick = onNext,
                 enabled = isNextEnabled,

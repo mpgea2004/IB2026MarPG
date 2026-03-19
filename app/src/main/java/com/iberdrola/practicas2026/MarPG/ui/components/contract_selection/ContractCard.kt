@@ -108,7 +108,6 @@ fun ContractInfo(
     val title = if (type == ContractType.LUZ) stringResource(R.string.contract_card_light) else stringResource(R.string.contract_card_gas)
     val statusText = if (isEnabled) stringResource(R.string.contract_card_active) else stringResource(R.string.contract_card_inactive)
 
-    // Defino los colores
     val (backgroundColor, contentColor) = if (isEnabled) {
         LightGreenIberdrola to GreenIberdrola
     } else {

@@ -58,7 +58,7 @@ fun ElectronicInvoiceCard(onClick: () -> Unit) {
                 )
             }
             Icon(
-                imageVector = Icons.Default.Email, // O cualquier icono adecuado
+                imageVector = Icons.Default.Email,
                 contentDescription = null,
                 tint = GreenIberdrola,
                 modifier = Modifier.size(28.dp)

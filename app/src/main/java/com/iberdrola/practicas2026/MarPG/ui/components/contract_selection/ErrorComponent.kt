@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,10 +32,9 @@ fun ErrorComponent(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Icono de error
         Icon(
             imageVector = Icons.Default.Warning,
-            contentDescription = "Error",
+            contentDescription = stringResource(R.string.error_icon_description),
             modifier = Modifier.size(80.dp),
             tint = Color.LightGray
         )
@@ -43,7 +42,7 @@ fun ErrorComponent(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "¡Vaya! Algo ha salido mal",
+            text = stringResource(R.string.error_title),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
@@ -61,7 +60,6 @@ fun ErrorComponent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Botón de reintento
         Button(
             onClick = onRetry,
             colors = ButtonDefaults.buttonColors(
@@ -72,7 +70,7 @@ fun ErrorComponent(
             shape = androidx.compose.foundation.shape.RoundedCornerShape(50.dp)
         ) {
             Text(
-                text = "REINTENTAR",
+                text = stringResource(R.string.error_button_retry),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(vertical = 4.dp)
             )

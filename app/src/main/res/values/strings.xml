@@ -28,7 +28,6 @@
     <string name="invoice_list_tab_light">Luz</string>
     <string name="invoice_list_tab_gas">Gas</string>
 
-    <!--Pantalla filtar-->
     <string name="filter_title">Filtrar facturas</string>
     <string name="filter_label_date">Fecha de emisión</string>
     <string name="filter_label_amount">Importe</string>
@@ -67,5 +66,73 @@
     <string name="contract_card_active">Activa</string>
     <string name="contract_card_inactive">Sin Activar</string>
     <string name="contract_selection_title">Factura electrónica</string>
+
+    <string name="success_deactivation_title">¡Has desactivado tu factura electrónica!</string>
+    <string name="success_modification_title">¡Has modificado correctamente tu email!</string>
+    <string name="success_activation_title">¡Has activado correctamente tu factura electrónica!</string>
+    <string name="success_deactivation_subtitle">A partir de ahora recibirás tus facturas en formato papel en tu dirección postal.</string>
+    <string name="success_activation_subtitle">Pronto recibirás un correo electrónico de verificación para recibir tus facturas en la dirección %1$s</string>
+    <string name="success_button_accept">Aceptar</string>
+    <string name="success_close_description">Cerrar</string>
+
+    <string name="otp_title">Activa tu factura electrónica</string>
+    <string name="otp_input_header">Introduce tu código de verificación</string>
+    <string name="otp_description">Para verificar tu identidad, hemos enviado un código al teléfono %1$s. Por favor, introdúcelo a continuación:</string>
+    <string name="otp_placeholder">* Código de verificación</string>
+    <string name="otp_not_received_title">¿No has recibido el código?</string>
+    <string name="otp_not_received_desc">Si no lo encuentras, podemos volver a enviar el SMS. Recuerda que aún te quedan %1$d intentos.</string>
+    <string name="otp_resend_link">Volver a enviar</string>
+
+    <string name="edit_email_header_title">Modificar email</string>
+    <string name="edit_email_question">¿En qué email deseas recibir tus facturas?</string>
+    <string name="edit_email_placeholder">* Nuevo email</string>
+
+    <string name="invoice_detail_dialog_title">Desactivar Factura Electrónica</string>
+    <string name="invoice_detail_dialog_text">No es recomendable desactivar este servicio. Recibirás tus facturas en papel y dejarás de disfrutar de las ventajas digitales. ¿Estás seguro?</string>
+    <string name="invoice_detail_dialog_confirm">Desactivar</string>
+    <string name="invoice_detail_dialog_cancel">Cancelar</string>
+    <string name="invoice_detail_btn_deactivate">Desactivar Factura Electrónica</string>
+    <string name="invoice_detail_btn_edit">Modificar email</string>
+    <string name="invoice_detail_type_light">Contrato de Luz</string>
+    <string name="invoice_detail_type_gas">Contrato de Gas</string>
+    <string name="invoice_detail_address">c/ apartado de correos 184, 5 , 1ºb -los dolores-el plan - murcia</string>
+    <string name="invoice_detail_current_status_desc">Actualmente recibes las facturas electrónicas de este contrato al:</string>
+    <string name="invoice_detail_email_label">Recibes tus facturas en este email</string>
+    <string name="invoice_detail_email_not_available">No disponible</string>
+    <string name="invoice_detail_info_box_text">Recuerda que la factura electrónica es un requisito de este Plan, por lo que no es recomendable desactivarla.</string>
+
+    <string name="form_header_title">Activa tu factura electrónica</string>
+    <string name="form_linked_email_label">Email vinculado a tu cuenta:</string>
+    <string name="form_no_email_assigned">Sin email asignado</string>
+    <string name="form_email_question">¿En qué email deseas recibir tus facturas?</string>
+    <string name="form_email_placeholder">* Email</string>
+    <string name="form_data_protection_title">Información básica sobre protección de datos</string>
+    <string name="form_legal_responsable">Responsable: Iberdrola Clientes S.A.U. </string>
+    <string name="form_legal_finalidad">\n\nFinalidad: Gestión de la factura electrónica. </string>
+    <string name="form_legal_derechos">\n\nDerechos: Acceso, rectificación, supresión, limiteción del tratamineto, portabilidad de datos u oposición, incluida la oposición a decisiones individuales automatizadas. </string>
+    <string name="form_more_info">Más info</string>
+    <string name="form_checkbox_prefix">He leído y acepto la Política de privacidad, acepto las </string>
+    <string name="form_condiciones_generales">Condiciones Generales</string>
+    <string name="form_condiciones_particulares"> y Particulares</string>
+    <string name="form_checkbox_suffix"> de la oferta y la suscripción a Factura Electrónica.</string>
+    <string name="legal_title_responsable">Responsable del tratamiento</string>
+    <string name="legal_content_responsable">Iberdrola Clientes S.A.U., con domicilio social en Plaza Euskadi número 5, 48009 Bilbao, tratará sus datos en calidad de responsable para gestionar su relación contractual y la activación de servicios digitales.</string>
+    <string name="legal_title_finalidad">Finalidad del tratamiento</string>
+    <string name="legal_content_finalidad">Sus datos serán tratados para la prestación del servicio de facturación electrónica, envío de avisos de disponibilidad de factura en su email y gestión del área de cliente, además del cumplimiento de obligaciones legales.</string>
+    <string name="legal_title_derechos">Tus Derechos</string>
+    <string name="legal_content_derechos">Usted puede ejercer sus derechos de acceso, rectificación, supresión, limitación, portabilidad y oposición contactando con nuestro delegado de protección de datos a través del correo protecciondedatos@iberdrola.es.</string>
+    <string name="legal_title_generales">Condiciones Generales</string>
+    <string name="legal_content_generales">Al activar el servicio de Factura Electrónica, usted acepta dejar de recibir facturas en papel. Las facturas tendrán plena validez legal y podrá volver al sistema de papel en cualquier momento desde su área privada.</string>
+    <string name="legal_title_particulares">Condiciones Particulares</string>
+    <string name="legal_content_particulares">Estas condiciones regulan las ofertas específicas asociadas a su contrato. El mantenimiento de ciertos descuentos puede estar vinculado a la permanencia en facturación electrónica.</string>
+    <string name="bottom_bar_back">Anterior</string>
+    <string name="bottom_bar_next">Siguiente</string>
+
+    <string name="error_title">¡Vaya! Algo ha salido mal</string>
+    <string name="error_button_retry">REINTENTAR</string>
+    <string name="error_icon_description">Error</string>
+
+    <string name="banner_resend_success">Hemos vuelto a enviar un SMS con tu código de verificación.</string>
+
 
 </resources>
