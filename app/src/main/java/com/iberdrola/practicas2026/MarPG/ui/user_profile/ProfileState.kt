@@ -5,5 +5,7 @@ data class ProfileState(
     val email: String = "",
     val phone: String = "",
     val address: String = "",
-    val password: String = ""
+    val password: String = "",
+    val emailError: String? = null,
+    val phoneError: String? = null
 )
