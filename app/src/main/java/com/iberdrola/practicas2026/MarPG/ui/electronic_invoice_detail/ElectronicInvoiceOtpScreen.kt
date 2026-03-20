@@ -46,6 +46,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 fun ElectronicInvoiceOtpScreen(
     viewModel: ElectronicInvoiceViewModel,
     onBack: () -> Unit,
+    onCloseToHome: () -> Unit,
     onNext: () -> Unit
 ) {
     val state = viewModel.state
@@ -70,6 +71,7 @@ fun ElectronicInvoiceOtpScreen(
         onResendOtp = { viewModel.onResendOtp() },
         onCloseBanner = { viewModel.closeResendBanner() },
         onBack = onBack,
+        onClose = onCloseToHome,
         onNext = { if (state.otpInput.length == 6) {
             viewModel.performUpdate()
         } }
@@ -101,7 +103,7 @@ fun ElectronicInvoiceOtpContent(
                 ElectronicInvoiceHeader(
                     title = stringResource(R.string.otp_title),
                     step = 3,
-                    onClose = events.onBack,
+                    onClose = events.onClose,
                     totalSteps = 4
                 )
             },

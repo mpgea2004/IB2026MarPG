@@ -47,7 +47,8 @@ import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
 fun ElectronicInvoiceDetailFormScreen(
     viewModel: ElectronicInvoiceViewModel,
     onBack: () -> Unit,
-    onNext: () -> Unit
+    onNext: () -> Unit,
+    onCloseToHome: () -> Unit,
 ) {
     val state = viewModel.state
 
@@ -63,6 +64,7 @@ fun ElectronicInvoiceDetailFormScreen(
         onEmailChange = { viewModel.onEmailChanged(it) },
         onLegalCheckChange = { viewModel.onLegalAccepted(it) },
         onBack = onBack,
+        onClose = onCloseToHome,
         onNext = {
             viewModel.onContinueClick(onNext)
         },
@@ -116,7 +118,7 @@ fun ElectronicInvoiceDetailFormContent(
             ElectronicInvoiceHeader(
                 title = stringResource(R.string.form_header_title),
                 step = 1,
-                onClose = events.onBack
+                onClose = events.onClose
             )
         },
         bottomBar = {

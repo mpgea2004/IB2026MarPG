@@ -30,6 +30,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 fun ElectronicInvoiceEditEmailScreen(
     viewModel: ElectronicInvoiceViewModel,
     onBack: () -> Unit,
+    onCloseToHome: () -> Unit,
     onNext: () -> Unit
 ) {
     val state = viewModel.state
@@ -44,12 +45,13 @@ fun ElectronicInvoiceEditEmailScreen(
         onNext = {
             viewModel.onContinueClick(onNext)
         },
+        onClose = onCloseToHome
     )
 
     ElectronicInvoiceEditEmailContent(
         state = state,
         events = events,
-        isButtonEnabled = state.emailInput.isNotEmpty()
+        isButtonEnabled = viewModel.canContinue()
     )
 }
 
@@ -65,7 +67,7 @@ fun ElectronicInvoiceEditEmailContent(
             ElectronicInvoiceHeader(
                 title = stringResource(R.string.edit_email_header_title),
                 step = 1,
-                onClose = events.onBack
+                onClose = events.onClose
             )
         },
         bottomBar = {

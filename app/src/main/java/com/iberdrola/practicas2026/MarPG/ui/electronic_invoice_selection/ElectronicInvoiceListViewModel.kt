@@ -49,6 +49,6 @@ class ElectronicInvoiceListViewModel @Inject constructor(
      * Acción al pulsar en una factura
      */
     fun onElectronicInvoiceClick(invoice: ElectronicInvoice) {
-
+        //mas adelante mostraré info
     }
 }

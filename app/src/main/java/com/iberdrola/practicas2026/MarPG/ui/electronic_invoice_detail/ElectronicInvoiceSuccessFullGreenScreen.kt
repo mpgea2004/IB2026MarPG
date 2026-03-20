@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +41,10 @@ fun ElectronicInvoiceSuccessFullGreenScreen(
 ) {
 
     val state = viewModel.state
+
+    BackHandler {
+        onFinish()
+    }
 
     val showEmail = EmailUtils.obfuscateEmail(state.emailInput)
 

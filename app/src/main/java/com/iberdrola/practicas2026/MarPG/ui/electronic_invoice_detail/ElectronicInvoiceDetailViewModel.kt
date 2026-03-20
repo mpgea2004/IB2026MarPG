@@ -183,42 +183,39 @@ class ElectronicInvoiceViewModel @Inject constructor(
         state = state.copy(passwordInput = nuevaPass)
     }
 
-    fun togglePasswordVisibility() {
-        state = state.copy(isPasswordVisible = !state.isPasswordVisible)
-    }
-
-    /**
-     * Valida la contraseña y guarda el teléfono en DataStore
-     */
     fun savePhoneAndContinue(onSuccess: () -> Unit) {
         viewModelScope.launch {
-            state = state.copy(isLoading = true)
+            try {
+                state = state.copy(isLoading = true, error = null)
 
-            delay(1000)
+                delay(1000)
 
-            val userSavedPassword = state.userProfile.password
+                val userSavedPassword = state.userProfile.password
 
-            val isPasswordCorrect = if (userSavedPassword.isEmpty()) {
-                state.passwordInput == "1234"
-            } else {
-                state.passwordInput == userSavedPassword
-            }
+                val isPasswordCorrect = if (userSavedPassword.isEmpty()) {
+                    state.passwordInput == "1234"
+                } else {
+                    state.passwordInput == userSavedPassword
+                }
 
-            if (isPasswordCorrect) {
-                userPrefs.updatePhone(state.newPhoneInput)
+                if (isPasswordCorrect) {
+                    userPrefs.updatePhone(state.newPhoneInput)
 
-                state = state.copy(
-                    showNoPhoneDialog = false,
-                    isLoading = false,
-                    passwordInput = "",
-                    error = null
-                )
-                onSuccess()
-            } else {
-                state = state.copy(
-                    isLoading = false,
-                    error = "La contraseña no coincide con tu perfil"
-                )
+                    state = state.copy(
+                        showNoPhoneDialog = false,
+                        passwordInput = "",
+                        error = null
+                    )
+                    onSuccess()
+                } else {
+                    state = state.copy(
+                        error = "La contraseña introducida no es correcta"
+                    )
+                }
+            } catch (e: Exception) {
+                state = state.copy(error = "Ha ocurrido un error inesperado")
+            } finally {
+                state = state.copy(isLoading = false)
             }
         }
     }

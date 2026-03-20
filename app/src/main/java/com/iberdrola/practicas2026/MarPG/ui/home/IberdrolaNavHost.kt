@@ -131,7 +131,10 @@ fun IberdrolaNavHost(navController: NavHostController) {
             ElectronicInvoiceDetailFormScreen(
                 viewModel = hiltViewModel(parentEntry),
                 onBack = { navController.popBackStack() },
-                onNext = { navController.navigate(Routes.ELECTRONIC_INVOICE_OTP) }
+                onNext = { navController.navigate(Routes.ELECTRONIC_INVOICE_OTP) },
+                onCloseToHome = {
+                    navController.popBackStack(Routes.HOME, false)
+                },
             )
         }
 
@@ -142,7 +145,10 @@ fun IberdrolaNavHost(navController: NavHostController) {
             ElectronicInvoiceEditEmailScreen(
                 viewModel = hiltViewModel(parentEntry),
                 onBack = { navController.popBackStack() },
-                onNext = { navController.navigate(Routes.ELECTRONIC_INVOICE_OTP) }
+                onNext = { navController.navigate(Routes.ELECTRONIC_INVOICE_OTP) },
+                onCloseToHome = {
+                    navController.popBackStack(Routes.HOME, false)
+                },
             )
         }
 
@@ -155,7 +161,10 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 onBack = { navController.popBackStack() },
                 onNext = {
                     navController.navigate(Routes.ELECTRONIC_INVOICE_SUCCESS)
-                }
+                },
+                onCloseToHome = {
+                    navController.popBackStack(Routes.HOME, false)
+                },
             )
         }
 
@@ -168,7 +177,6 @@ fun IberdrolaNavHost(navController: NavHostController) {
             ElectronicInvoiceSuccessFullGreenScreen(
                 viewModel = vm,
                 onFinish = {
-                    // Limpiamos el flujo y volvemos al inicio (Home o Selección)
                     navController.popBackStack(Routes.HOME, false)
                 }
             )
