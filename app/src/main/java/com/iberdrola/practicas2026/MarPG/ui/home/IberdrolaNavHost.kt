@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.home
 
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,13 +18,16 @@ import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.Electronic
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.ElectronicInvoiceOtpScreen
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.ElectronicInvoiceSuccessFullGreenScreen
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.ElectronicInvoiceViewModel
+import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_selection.ElectronicInvoiceListViewModel
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_selection.ElectronicInvoiceSelectionScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_home.HomeScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
+import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileScreen
 
 object Routes {
+    const val USER_PROFILE = "user_profile"
     const val HOME = "home"
     const val INVOICE_LIST = "invoice_list/{isCloud}"
     const val FILTER = "filter"
@@ -38,16 +42,23 @@ object Routes {
 @Composable
 fun IberdrolaNavHost(navController: NavHostController) {
 
-    var isCloudEnabled by remember { mutableStateOf(false) }
+    var isCloudEnabled by remember{ mutableStateOf(false)}
 
     NavHost(navController = navController, startDestination = Routes.HOME) {
+
 
         composable(Routes.HOME) {
             HomeScreen(
                 onNavigateToInvoices = { navController.navigate("invoice_list/$isCloudEnabled") },
                 isCloudEnabled = isCloudEnabled,
                 onToggleCloud = { isCloudEnabled = it },
-                onNavigateToElectronicInvoice = { navController.navigate(Routes.ELECTRONIC_INVOICE_SELECTION) }
+                onNavigateToElectronicInvoice = { navController.navigate(Routes.ELECTRONIC_INVOICE_SELECTION) },
+                onNavigateToProfile = { navController.navigate(Routes.USER_PROFILE) }
+            )
+        }
+        composable(Routes.USER_PROFILE) {
+            ProfileScreen(
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -65,7 +76,7 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        composable(Routes.FILTER) { backStackEntry->
+        composable(Routes.FILTER) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.INVOICE_LIST)
             }
@@ -79,10 +90,12 @@ fun IberdrolaNavHost(navController: NavHostController) {
         }
 
         composable(Routes.ELECTRONIC_INVOICE_SELECTION) { backStackEntry ->
+            val listViewModel: ElectronicInvoiceListViewModel = hiltViewModel()
+
             val sharedViewModel: ElectronicInvoiceViewModel = hiltViewModel(backStackEntry)
 
             ElectronicInvoiceSelectionScreen(
-                viewModel = hiltViewModel(),
+                viewModel = listViewModel,
                 onNavigate = { contrato ->
                     sharedViewModel.selectContract(contrato)
 
@@ -107,7 +120,7 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 electronicInvoice = sharedViewModel.state.selectedContract,
                 onBack = { navController.popBackStack() },
                 onNavigateToEdit = { navController.navigate(Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) },
-                onNavigateToSuccess = {navController.navigate(Routes.ELECTRONIC_INVOICE_SUCCESS)}
+                onNavigateToSuccess = { navController.navigate(Routes.ELECTRONIC_INVOICE_SUCCESS) }
             )
         }
 
@@ -161,4 +174,5 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
     }
+
 }

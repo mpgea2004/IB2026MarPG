@@ -5,6 +5,8 @@ import com.google.gson.Gson
 import com.iberdrola.practicas2026.MarPG.data.local.dao.ElectronicInvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDatabase
+import com.iberdrola.practicas2026.MarPG.data.local.dao.UserDao
+import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.data.network.ElectronicInvoiceApiService
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceApiServer
 import com.iberdrola.practicas2026.MarPG.data.repository.ElectronicInvoiceRepositoryImpl
@@ -83,6 +85,20 @@ object AppModule {
         @ApplicationContext context: Context
     ): ElectronicInvoiceRepository {
         return ElectronicInvoiceRepositoryImpl(api, dao, gson, context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserDao(database: InvoiceDatabase): UserDao {
+        return database.userDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserPreferencesRepository(
+        @ApplicationContext context: Context
+    ): UserPreferencesRepository {
+        return UserPreferencesRepository(context)
     }
 
 }

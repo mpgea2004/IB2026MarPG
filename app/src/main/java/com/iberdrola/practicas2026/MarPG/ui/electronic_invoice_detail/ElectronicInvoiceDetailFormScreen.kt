@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -16,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -29,6 +33,7 @@ import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
@@ -37,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
+import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.SecurityPhoneDialog
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
@@ -54,11 +60,17 @@ fun ElectronicInvoiceDetailFormScreen(
 
     val sheetState = rememberModalBottomSheetState()
 
+    if (state.showNoPhoneDialog) {
+        SecurityPhoneDialog(state, viewModel, onNext)
+    }
+
     val events = ElectronicInvoiceEvents(
         onEmailChange = { viewModel.onEmailChanged(it) },
         onLegalCheckChange = { viewModel.onLegalAccepted(it) },
         onBack = onBack,
-        onNext = onNext,
+        onNext = {
+            viewModel.onContinueClick(onNext)
+        },
         onShowLegal = { title, content -> viewModel.onShowLegalDetail(title, content) },
         onDismissLegal = { viewModel.onDismissLegalSheet() }
     )
@@ -79,9 +91,17 @@ fun ElectronicInvoiceDetailFormContent(
     isButtonEnabled: Boolean,
     sheetState: SheetState
 ) {
-    val emailActualOfuscado = state.selectedContract?.email?.let {
-        if (it.isNotEmpty()) EmailUtils.obfuscateEmail(it) else stringResource(R.string.form_no_email_assigned)
-    } ?: stringResource(R.string.form_no_email_assigned)
+    val emailParaOfuscar = when {
+        state.userProfile.email.isNotEmpty() -> state.userProfile.email
+        !state.selectedContract?.email.isNullOrEmpty() -> state.selectedContract.email
+        else -> ""
+    }
+
+    val emailActualOfuscado = if (emailParaOfuscar.isNotEmpty()) {
+        EmailUtils.obfuscateEmail(emailParaOfuscar)
+    } else {
+        stringResource(R.string.form_no_email_assigned)
+    }
 
     val moreInfo = stringResource(R.string.form_more_info)
     val legalTitleResp = stringResource(R.string.legal_title_responsable)

@@ -25,6 +25,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,6 +56,15 @@ fun ElectronicInvoiceOtpScreen(
         }
     }
 
+    val phoneToShow = remember(state.userProfile.phone) {
+        val rawPhone = state.userProfile.phone
+        if (rawPhone.length >= 3) {
+            "******${rawPhone.takeLast(3)}"
+        } else {
+            "******" // Valor por defecto si el dato es erróneo
+        }
+    }
+
     val events = ElectronicInvoiceEvents(
         onOtpChange = { viewModel.onOtpChanged(it) },
         onResendOtp = { viewModel.onResendOtp() },
@@ -68,7 +78,8 @@ fun ElectronicInvoiceOtpScreen(
     ElectronicInvoiceOtpContent(
         state = state,
         events = events,
-        isButtonEnabled = state.otpInput.length >= 6
+        isButtonEnabled = state.otpInput.length >= 6,
+        phoneToShow = phoneToShow
     )
 }
 
@@ -76,8 +87,11 @@ fun ElectronicInvoiceOtpScreen(
 fun ElectronicInvoiceOtpContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
-    isButtonEnabled: Boolean
+    isButtonEnabled: Boolean,
+    phoneToShow: String
 ) {
+
+
     val hasAttempts = state.resendAttempts > 0
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -118,7 +132,7 @@ fun ElectronicInvoiceOtpContent(
                 )
 
                 Text(
-                    text = stringResource(R.string.otp_description, "******146"),
+                    text = stringResource(R.string.otp_description, phoneToShow),
                     fontSize = 12.sp,
                     color = Color.DarkGray,
                     lineHeight = 12.sp,
@@ -130,6 +144,9 @@ fun ElectronicInvoiceOtpContent(
                     onValueChange = events.onOtpChange,
                     modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
                     placeholder = { Text(stringResource(R.string.otp_placeholder), fontSize = 14.sp) },
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.NumberPassword
+                    ),
                     colors = TextFieldDefaults.colors(
                         unfocusedContainerColor = Color.Transparent,
                         focusedContainerColor = Color.Transparent,
@@ -207,7 +224,8 @@ fun ElectronicInvoiceOtpPreview() {
         ElectronicInvoiceOtpContent(
             state = ElectronicInvoiceState(otpInput = ""),
             events = ElectronicInvoiceEvents(),
-            isButtonEnabled = false
+            isButtonEnabled = false,
+            phoneToShow = "******45",
         )
     }
 }
@@ -223,7 +241,8 @@ fun ElectronicInvoiceOtpResentPreview() {
                 showResendSuccess = true
             ),
             events = ElectronicInvoiceEvents(),
-            isButtonEnabled = false
+            isButtonEnabled = false,
+            phoneToShow = "******45",
         )
     }
 }
@@ -236,7 +255,8 @@ fun ElectronicInvoiceOtpLoadingPreview() {
                 isLoading = true
             ),
             events = ElectronicInvoiceEvents(),
-            isButtonEnabled = false
+            isButtonEnabled = false,
+            phoneToShow = "******45",
         )
     }
 }
