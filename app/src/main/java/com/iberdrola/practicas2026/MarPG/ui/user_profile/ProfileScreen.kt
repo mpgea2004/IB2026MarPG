@@ -73,7 +73,7 @@ fun ProfileScreen(
         onEmailChanged = { viewModel.onEmailChange(it)  },
         onPhoneChanged = { viewModel.onPhoneChange(it)  },
         onAddressChanged = {viewModel.onAddressChanged(it)},
-        onSaveClick = { viewModel.saveChanges() },
+        onSaveClick = { onSuccess -> viewModel.saveChanges(onSuccess) },
         onBackClick = onBack,
         onPasswordChanged = {viewModel.onPasswordChanged(it)}
     )
@@ -147,6 +147,7 @@ fun ProfileContent(
 
             ProfileField(
                 value = state.email,
+                errorMessage = state.emailError,
                 label = stringResource(R.string.profile_label_email),
                 icon = Icons.Default.Email,
                 keyboardType = KeyboardType.Email,
@@ -155,6 +156,7 @@ fun ProfileContent(
 
             ProfileField(
                 value = state.phone,
+                errorMessage = state.phoneError,
                 label = stringResource(R.string.profile_label_phone),
                 icon = Icons.Default.Phone,
                 keyboardType = KeyboardType.Phone,
@@ -196,8 +198,9 @@ fun ProfileContent(
 
         Button(
             onClick = {
-                events.onSaveClick()
-                events.onBackClick()
+                events.onSaveClick {
+                    events.onBackClick()
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -236,23 +239,35 @@ fun ProfileField(
     value: String,
     label: String,
     icon: ImageVector,
+    errorMessage: String? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
     onValueChange: (String) -> Unit
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        leadingIcon = { Icon(icon, contentDescription = null, tint = GreenDarkIberdrola) },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = GreenDarkIberdrola,
-            focusedLabelColor = GreenDarkIberdrola,
-            cursorColor = GreenDarkIberdrola,
-            unfocusedBorderColor = Color.LightGray
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label) },
+            leadingIcon = { Icon(icon, contentDescription = null, tint = GreenDarkIberdrola) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true,
+            isError = errorMessage != null,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = GreenDarkIberdrola,
+                focusedLabelColor = GreenDarkIberdrola,
+                errorBorderColor = Color.Red,
+                errorLabelColor = Color.Red
+            )
         )
-    )
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
 }
