@@ -106,17 +106,14 @@ fun HomeContent(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Tarjeta principal para navegar a la sección de facturas
             InvoiceNavigationCard(onClick = onNavigateToInvoices)
 
             Spacer(modifier = Modifier.weight(1f))
 
-            //Tarjeta para navegar a la sección de facturas electrónicas
             ElectronicInvoiceCard(onClick = onNavigateToElectronicInvoice)
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Sección inferior para configurar si los datos vienen de API o de Mock
             DataSourceConfigSection(
                 isCloudEnabled = isCloudEnabled,
                 onToggleCloud = onToggleCloud
@@ -175,7 +172,7 @@ private fun HomeHeader(userName: String,onProfileClick: () -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.Default.Person,
-                contentDescription = "Ver Perfil",
+                contentDescription = stringResource(R.string.home_profile_description),
                 tint = GreenIberdrola,
                 modifier = Modifier.size(28.dp)
             )

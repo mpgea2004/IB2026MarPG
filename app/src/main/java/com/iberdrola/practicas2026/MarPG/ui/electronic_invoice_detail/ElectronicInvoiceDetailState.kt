@@ -1,7 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
-import com.iberdrola.practicas2026.MarPG.domain.model.UserProfile
 import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileState
 
 data class ElectronicInvoiceState(

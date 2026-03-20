@@ -3,12 +3,14 @@
     <string name="home_header_subtitle">Gestión de energía y facturación</string>
     <string name="home_header_welcome">¡Bienvenido, %1$s!</string>
     <string name="home_header_title">¡Bienvenido!</string>
+    <string name="home_profile_description">Ver Perfil</string>
     <string name="home_invoices_subtitle">Gestiona tus contratos y facturas de forma sencilla.</string>
     <string name="home_invoices_title">Mis facturas</string>
     <string name="home_footer_title">Origen de datos</string>
     <string name="home_footer_typeS">Servidor (API)</string>
     <string name="home_footer_typeL">Local (json)</string>
     <string name="home_footer_subtitle">Modifica de dónde vienen los datos</string>
+
     <string name="invoice_list_back">Atrás</string>
     <string name="invoice_list_title">Mis facturas</string>
     <string name="invoice_list_subtitle">C/ PALMA - ARTA KM 49, 5, 4ºA -PINTO - MADRID</string>
@@ -136,5 +138,24 @@
 
     <string name="banner_resend_success">Hemos vuelto a enviar un SMS con tu código de verificación.</string>
 
+    <string name="security_dialog_title">Verificación de seguridad</string>
+    <string name="security_dialog_description">No tienes un teléfono vinculado. Introduce uno nuevo y confirma con tu contraseña.</string>
+    <string name="security_dialog_phone_placeholder">600 000 000</string>
+    <string name="security_dialog_phone_label">Teléfono móvil</string>
+    <string name="security_dialog_password_label">Contraseña</string>
+    <string name="security_dialog_password_show">Mostrar contraseña</string>
+    <string name="security_dialog_password_hide">Ocultar contraseña</string>
+    <string name="security_dialog_confirm">Confirmar</string>
+    <string name="security_dialog_cancel">Cancelar</string>
+
+    <string name="profile_header_title">Mi Perfil</string>
+    <string name="profile_header_back">Volver</string>
+    <string name="profile_section_account">Información de cuenta</string>
+    <string name="profile_label_name">Nombre completo</string>
+    <string name="profile_label_email">Correo electrónico</string>
+    <string name="profile_label_phone">Teléfono móvil</string>
+    <string name="profile_label_address">Dirección de suministro</string>
+    <string name="profile_label_password">Contraseña de seguridad</string>
+    <string name="profile_button_save">Guardar cambios</string>
 
 </resources>

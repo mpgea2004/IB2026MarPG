@@ -61,7 +61,7 @@ fun ElectronicInvoiceOtpScreen(
         if (rawPhone.length >= 3) {
             "******${rawPhone.takeLast(3)}"
         } else {
-            "******" // Valor por defecto si el dato es erróneo
+            "******"
         }
     }
 

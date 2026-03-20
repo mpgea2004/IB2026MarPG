@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
@@ -46,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -53,6 +55,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
@@ -78,13 +81,19 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Mi Perfil", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.profile_header_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.profile_header_back))
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = WhiteApp)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = WhiteApp,
+                    scrolledContainerColor = Color.Unspecified,
+                    navigationIconContentColor = Color.Unspecified,
+                    titleContentColor = Color.Unspecified,
+                    actionIconContentColor = Color.Unspecified
+                )
             )
         },
         containerColor = WhiteApp
@@ -115,12 +124,12 @@ fun ProfileContent(
     ) {
         Spacer(modifier = Modifier.height(32.dp))
 
-        ProfileAvatar(name = state.name)
+        ProfileAvatar()
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Información de cuenta",
+            text = stringResource(R.string.profile_section_account),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = Color.DarkGray
@@ -131,14 +140,14 @@ fun ProfileContent(
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             ProfileField(
                 value = state.name,
-                label = "Nombre completo",
+                label = stringResource(R.string.profile_label_name),
                 icon = Icons.Default.Person,
                 onValueChange = events.onNameChanged
             )
 
             ProfileField(
                 value = state.email,
-                label = "Correo electrónico",
+                label = stringResource(R.string.profile_label_email),
                 icon = Icons.Default.Email,
                 keyboardType = KeyboardType.Email,
                 onValueChange = events.onEmailChanged
@@ -146,7 +155,7 @@ fun ProfileContent(
 
             ProfileField(
                 value = state.phone,
-                label = "Teléfono móvil",
+                label = stringResource(R.string.profile_label_phone),
                 icon = Icons.Default.Phone,
                 keyboardType = KeyboardType.Phone,
                 onValueChange = events.onPhoneChanged
@@ -154,15 +163,15 @@ fun ProfileContent(
 
             ProfileField(
                 value = state.address,
-                label = "Dirección de suministro",
+                label = stringResource(R.string.profile_label_address),
                 icon = Icons.Default.Home,
                 onValueChange = events.onAddressChanged
             )
 
             OutlinedTextField(
-                value = state.password, // Asegúrate de añadir 'password' a ProfileState
-                onValueChange = { events.onPasswordChanged?.invoke(it) },
-                label = { Text("Contraseña de seguridad") },
+                value = state.password,
+                onValueChange = { events.onPasswordChanged.invoke(it) },
+                label = { Text(stringResource(R.string.profile_label_password)) },
                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = GreenDarkIberdrola) },
                 trailingIcon = {
                     val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
@@ -197,7 +206,7 @@ fun ProfileContent(
             colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
         ) {
-            Text("Guardar cambios", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+            Text(stringResource(R.string.profile_button_save), fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -205,7 +214,7 @@ fun ProfileContent(
 }
 
 @Composable
-fun ProfileAvatar(name: String) {
+fun ProfileAvatar() {
     Box(
         modifier = Modifier
             .size(100.dp)

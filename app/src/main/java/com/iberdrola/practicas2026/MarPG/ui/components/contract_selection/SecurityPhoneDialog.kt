@@ -25,12 +25,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.ElectronicInvoiceState
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.ElectronicInvoiceViewModel
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
@@ -45,16 +47,16 @@ fun SecurityPhoneDialog(
 
     AlertDialog(
         onDismissRequest = { viewModel.closePhoneDialog() },
-        title = { Text("Verificación de seguridad", fontWeight = FontWeight.Bold) },
+        title = { Text(text = stringResource(R.string.security_dialog_title), fontWeight = FontWeight.Bold) },
         text = {
             Column {
-                Text("No tienes un teléfono vinculado. Introduce uno nuevo y confirma con tu contraseña.")
+                Text(text = stringResource(R.string.security_dialog_description))
                 Spacer(modifier = Modifier.height(16.dp))
 
                 TextField(
                     value = state.newPhoneInput,
                     onValueChange = { viewModel.onNewPhoneChanged(it) },
-                    placeholder = { Text("600 000 000") },
+                    placeholder = { Text(stringResource(R.string.security_dialog_phone_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     colors = TextFieldDefaults.colors(focusedIndicatorColor = GreenDarkIberdrola)
@@ -65,10 +67,9 @@ fun SecurityPhoneDialog(
                 TextField(
                     value = state.passwordInput,
                     onValueChange = { viewModel.onPasswordChanged(it) },
-                    label = { Text("Contraseña") },
+                    label = { Text(stringResource(R.string.security_dialog_password_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    // Lógica de transformación visual
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     trailingIcon = {
@@ -77,7 +78,7 @@ fun SecurityPhoneDialog(
                         else
                             Icons.Filled.VisibilityOff
 
-                        val description = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                        val description = if (passwordVisible) stringResource(R.string.security_dialog_password_hide) else stringResource(R.string.security_dialog_password_show)
 
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(imageVector = image, contentDescription = description, tint = Color.Gray)
@@ -106,12 +107,12 @@ fun SecurityPhoneDialog(
                 enabled = state.newPhoneInput.length >= 9 && state.passwordInput.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola)
             ) {
-                Text("Confirmar")
+                Text(text = stringResource(R.string.security_dialog_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = { viewModel.closePhoneDialog() }) {
-                Text("Cancelar", color = Color.Gray)
+                Text(stringResource(R.string.security_dialog_cancel), color = Color.Gray)
             }
         }
     )

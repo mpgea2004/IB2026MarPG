@@ -202,7 +202,6 @@ fun ElectronicInvoiceDetailInfoContent(
                 .padding(padding)
                 .padding(horizontal = 20.dp)
         ) {
-            // Título del contrato
             Text(
                 text = if (contract?.type == ContractType.LUZ) stringResource(R.string.invoice_detail_type_light) else stringResource(R.string.invoice_detail_type_gas),
                 style = MaterialTheme.typography.headlineMedium,
@@ -210,7 +209,6 @@ fun ElectronicInvoiceDetailInfoContent(
                 modifier = Modifier.padding(top = 16.dp)
             )
 
-            // Dirección
             Text(
                 text = stringResource(R.string.invoice_detail_address),
                 style = MaterialTheme.typography.bodyLarge,
@@ -220,7 +218,6 @@ fun ElectronicInvoiceDetailInfoContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Subtítulo descriptivo
             Text(
                 text = stringResource(R.string.invoice_detail_current_status_desc),
                 style = MaterialTheme.typography.bodyMedium,
@@ -230,7 +227,6 @@ fun ElectronicInvoiceDetailInfoContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Email actual
             Text(
                 text = stringResource(R.string.invoice_detail_email_label),
                 style = MaterialTheme.typography.bodyLarge,
@@ -251,7 +247,6 @@ fun ElectronicInvoiceDetailInfoContent(
                 color = Color.LightGray
             )
 
-            // Cuadro informativo (Info Box)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top

@@ -1,6 +1,5 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
-import com.iberdrola.practicas2026.MarPG.domain.model.UserProfile
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateElectronicInvoiceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -176,7 +174,6 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
 
     fun onNewPhoneChanged(nuevoTelefono: String) {
-        // Solo números y máximo 9 dígitos
         if (nuevoTelefono.all { it.isDigit() } && nuevoTelefono.length <= 9) {
             state = state.copy(newPhoneInput = nuevoTelefono)
         }
