@@ -99,18 +99,22 @@ fun InvoiceListScreen(
     val remoteConfig = Firebase.remoteConfig
     var isGasEnabled by remember { mutableStateOf(true) }
 
+    val pagerState = rememberPagerState(pageCount = { if (isGasEnabled) 2 else 1 })
+
     LaunchedEffect(Unit) {
         analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
             param(FirebaseAnalytics.Param.SCREEN_NAME, "Lista_Facturas_Mar")
         }
 
         val configSettings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds = 60
+            minimumFetchIntervalInSeconds = 0
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
         remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                isGasEnabled = remoteConfig.getBoolean("show_gas_contracts")
+                val newValue = remoteConfig.getBoolean("show_gas_contracts")
+                isGasEnabled = newValue
+                viewModel.updateGasAvailability(newValue)
             }
         }
     }
@@ -131,7 +135,6 @@ fun InvoiceListScreen(
         InvoiceNotAvailableDialog(onDismiss = { showNotAvailableDialog = false })
     }
 
-    val pagerState = rememberPagerState(pageCount = { if (isGasEnabled) 2 else 1 })
 
     LaunchedEffect(pagerState.currentPage) {
         viewModel.selectTab(pagerState.currentPage)

@@ -31,7 +31,11 @@ class InvoiceListViewModel @Inject constructor(
     private val userPrefs: UserPreferencesRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
     var state by mutableStateOf<InvoiceListState>(InvoiceListState.LOADING)
+        private set
+
+    var isGasEnabled by mutableStateOf(true)
         private set
 
     var userAddress by mutableStateOf("")
@@ -120,6 +124,15 @@ class InvoiceListViewModel @Inject constructor(
         }
     }
 
+    fun updateGasAvailability(enabled: Boolean) {
+        isGasEnabled = enabled
+        if (!enabled && selectedTab == 1) {
+            selectTab(0)
+        } else {
+            updateFilteredInvoices()
+        }
+    }
+
     private fun updateFilteredInvoices() {
         if (allInvoices.isEmpty() && state is InvoiceListState.LOADING) {
             return
@@ -130,7 +143,11 @@ class InvoiceListViewModel @Inject constructor(
             return
         }
 
-        val contractTypeFilter = if (selectedTab == 0) ContractType.LUZ else ContractType.GAS
+        val contractTypeFilter = if (selectedTab == 0 || !isGasEnabled) {
+            ContractType.LUZ
+        } else {
+            ContractType.GAS
+        }
 
         val filteredInvoices = allInvoices.filter { invoice ->
             val matchesType = invoice.contractType == contractTypeFilter
