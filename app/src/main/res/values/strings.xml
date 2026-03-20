@@ -157,5 +157,6 @@
     <string name="profile_label_address">Dirección de suministro</string>
     <string name="profile_label_password">Contraseña de seguridad</string>
     <string name="profile_button_save">Guardar cambios</string>
+    <string name="profile_empty_address">Sin dirección asignada</string>
 
 </resources>

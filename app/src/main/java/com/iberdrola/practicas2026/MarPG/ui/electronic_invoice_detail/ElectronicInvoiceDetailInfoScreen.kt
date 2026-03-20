@@ -210,7 +210,7 @@ fun ElectronicInvoiceDetailInfoContent(
             )
 
             Text(
-                text = stringResource(R.string.invoice_detail_address),
+                text = state.userProfile.address.ifEmpty { stringResource(R.string.profile_empty_address) },
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp)

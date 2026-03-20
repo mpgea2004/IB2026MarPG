@@ -83,39 +83,33 @@ fun InvoiceListScreen(
 ) {
     val currentState = viewModel.state
     val selectedTab = viewModel.selectedTab
-    val errorMessage = viewModel.errorMessage //recupero el error del VM
+    val errorMessage = viewModel.errorMessage
+    val userAddress = viewModel.userAddress
 
-    /** Manejador del estado para mostrar avisos temporales (Snackbars) */
     val snackbarHostState = remember { SnackbarHostState() }
 
-    //cada vez que errorMessage cambie y no sea nulo, lanzamos el aviso
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             snackbarHostState.showSnackbar(
                 message = it,
                 duration = SnackbarDuration.Short
             )
-            //y lo limpio para que no vuelva a saltar
             viewModel.clearErrorMessage()
         }
     }
 
-    //estado para controlar el diálogo
     var showNotAvailableDialog by remember { mutableStateOf(false) }
 
     if (showNotAvailableDialog) {
         InvoiceNotAvailableDialog(onDismiss = { showNotAvailableDialog = false })
     }
 
-    //Creo el estado del Pager
     val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
 
-    //Sincronizo el Pager con el ViewModel cuando cambia la página por swipe
     LaunchedEffect(pagerState.currentPage) {
         viewModel.selectTab(pagerState.currentPage)
     }
 
-    //Si el ViewModel cambia el tab (ej. click en cabecera), muevo el Pager
     LaunchedEffect(viewModel.selectedTab) {
         if (pagerState.currentPage != viewModel.selectedTab) {
             pagerState.animateScrollToPage(viewModel.selectedTab)
@@ -128,6 +122,7 @@ fun InvoiceListScreen(
             InvoiceListHeader(
                 selectedTab = selectedTab,
                 onTabSelected = { viewModel.selectTab(it) },
+                address = userAddress,
                 onBack = {
                     viewModel.registerBackNavigation()
                     onBack()
@@ -137,14 +132,12 @@ fun InvoiceListScreen(
         }
 
     ) { padding ->
-        //Así refresca la pagina, por si cambiaron cosas en la api o si ya no hay conexion
         PullToRefreshBox(
             isRefreshing = viewModel.isRefreshing,
-            onRefresh = { viewModel.refreshInvoices() }, // Llamamos al método de carga del VM
+            onRefresh = { viewModel.refreshInvoices() },
             modifier = Modifier.padding(padding).fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ){
-            //Implemento el Pager para permitir el scroll lateral
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
@@ -152,17 +145,14 @@ fun InvoiceListScreen(
             ) { page ->
                 when (currentState) {
                     InvoiceListState.LOADING -> {
-                        /** Estado de carga inicial: muestra el esqueleto (shimmer) */
                         ShimmerInvoiceList(brush = shimmerBrush())
                     }
 
                     InvoiceListState.NODATA -> {
-                        /** Estado sin datos: se muestra cuando no hay facturas tras filtrar o por error de red */
                         InvoiceEmptyState(message = errorMessage)
                     }
 
                     is InvoiceListState.SUCCESS -> {
-                        //Esto ya es el contenido
                         InvoiceListContent(
                             groupedInvoices = currentState.groupedInvoices,
                             events = InvoiceListEvents(
@@ -184,11 +174,11 @@ fun InvoiceListScreen(
 fun InvoiceListHeader(
     selectedTab: Int,
     errorMessage: String?,
+    address: String,
     showErrorBanner: Boolean,
     onTabSelected: (Int) -> Unit,
     onBack: () -> Unit
 ){
-    //Aqui pongo todo lo que es fijo
     Surface(
         color = Color.White,
         shadowElevation = 2.dp
@@ -206,19 +196,17 @@ fun InvoiceListHeader(
                 Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
             }
             Spacer(modifier = Modifier.height(16.dp))
-            //Si hay error y estoy en modo éxito (offline), avisamos arriba
             if (showErrorBanner && errorMessage != null) {
                 ErrorBanner(message = errorMessage)
             }
             Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Text(
-                stringResource(R.string.invoice_list_subtitle),
+                address.ifEmpty { stringResource(R.string.profile_empty_address) },
                 color = Color.Black,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(16.dp))
-            //Tabs
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -253,12 +241,10 @@ fun InvoiceListContent(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
-        //ÚLTIMA FACTURA(Solo si hay alguna factura tras el filtro)
         lastInvoice?.let {
             item { LastInvoiceItem(it) }
         }
 
-        //TÍTULO HISTÓRICO Y BOTÓN FILTRAR(SIEMPRE VISIBLE)
         stickyHeader {
             Row(
                 modifier = Modifier
@@ -277,13 +263,11 @@ fun InvoiceListContent(
             }
         }
 
-        //LÓGICA DE CONTENIDO O ESTADO VACÍO POR FILTRO
         if (groupedInvoices.isEmpty()) {
             item {
                 FilterEmptyState()
             }
         } else {
-            //FACTURAS AGRUPADAS
             groupedInvoices.forEach { (year, invoicesOfYear) ->
                 item {
                     Text(
@@ -371,7 +355,6 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            //Bloque Izquierdo(Fecha, Tipo, Badge)
             Column(modifier = Modifier.weight(1f)) {
                 Text(dateDisplay, fontWeight = FontWeight.Bold)
                 Text(text = stringResource(
@@ -382,7 +365,6 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
                 StatusBadge(invoice.status)
             }
 
-            //Bloque Derecho(Precio yFlecha)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = invoice.amount.toCurrencyFormat(),
@@ -410,7 +392,6 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
 @Preview(showBackground = true, backgroundColor = 0xFFF5F5F5)
 @Composable
 fun InvoiceListLoadingPreview() {
-    //Simulamos la estructura de la Screen pero forzando el estado LOADING
     Scaffold(
         topBar = {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -434,7 +415,6 @@ fun InvoiceListLoadingPreview() {
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
-            //Fuerzo el shimmer(esqueleto)
             val brush = shimmerBrush()
             ShimmerInvoiceList(brush = brush)
         }
@@ -444,22 +424,17 @@ fun InvoiceListLoadingPreview() {
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 fun InvoiceListScreenPreview() {
-    //Datos de prueba
     val mockFacturas = listOf(
         Invoice("A01", ContractType.LUZ, 20.00, "01/02/2024", "04/03/2024", "04/03/2024", InvoiceStatus.PAGADAS),
         Invoice("A02", ContractType.GAS, 20.10, "01/01/2024", "31/01/2024", "06/02/2024", InvoiceStatus.PENDIENTES_PAGO),
         Invoice("A03", ContractType.LUZ, 150.43, "01/10/2023", "31/10/2023", "06/11/2023", InvoiceStatus.PAGADAS)
     )
 
-    //Agrupo usando el DateMapper
     val groupedMock = mockFacturas.groupBy { invoice ->
         DateMapper.toLocalDate(invoice.issueDate).year.toString()
     }
 
     MaterialTheme {
-        //Uso una versión simplificada de la Screen para la Preview
-        //ya que no puedo instanciar un ViewModel real con Hilt en una Preview fácilmente
-
         Scaffold(
             topBar = {
                 InvoiceListHeader(
@@ -467,7 +442,8 @@ fun InvoiceListScreenPreview() {
                     errorMessage = null,
                     showErrorBanner = false,
                     onTabSelected = {},
-                    onBack = {}
+                    onBack = {},
+                    address = stringResource(R.string.invoice_list_subtitle)
                 )
             }
         ){ padding ->
@@ -492,7 +468,8 @@ fun InvoiceListNoDataPreview() {
                     errorMessage = null,
                     showErrorBanner = false,
                     onTabSelected = {},
-                    onBack = {}
+                    onBack = {},
+                    address = stringResource(R.string.invoice_list_subtitle)
                 )
             }
         ) { padding ->
