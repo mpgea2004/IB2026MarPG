@@ -40,6 +40,10 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Electr
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.LoadingOverlay
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 
 
 @Composable
@@ -50,9 +54,19 @@ fun ElectronicInvoiceOtpScreen(
     onNext: () -> Unit
 ) {
     val state = viewModel.state
+    val analytics = Firebase.analytics
+
+    LaunchedEffect(Unit) {
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Verificacion_OTP_Factura_Elec")
+        }
+    }
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
+            analytics.logEvent("otp_verification_success") {
+                param("contract_id", state.selectedContract?.id ?: "unknown")
+            }
             onNext()
         }
     }
@@ -68,11 +82,19 @@ fun ElectronicInvoiceOtpScreen(
 
     val events = ElectronicInvoiceEvents(
         onOtpChange = { viewModel.onOtpChanged(it) },
-        onResendOtp = { viewModel.onResendOtp() },
+        onResendOtp = {
+            analytics.logEvent("otp_resend_click") {
+                param("attempts_left", state.resendAttempts.toString())
+            }
+            viewModel.onResendOtp() },
         onCloseBanner = { viewModel.closeResendBanner() },
         onBack = onBack,
-        onClose = onCloseToHome,
+        onClose = {
+            analytics.logEvent("otp_abandoned"){}
+            onCloseToHome()
+        },
         onNext = { if (state.otpInput.length == 6) {
+            analytics.logEvent("otp_submit_click"){}
             viewModel.performUpdate()
         } }
     )

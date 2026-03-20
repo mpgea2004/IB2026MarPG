@@ -31,6 +31,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.home.DataSourceConfigSection
 import com.iberdrola.practicas2026.MarPG.ui.components.home.ElectronicInvoiceCard
@@ -50,10 +54,16 @@ fun HomeScreen(
     isCloudEnabled: Boolean,
     onToggleCloud: (Boolean) -> Unit
 ) {
-    /** Estado que controla la animación y visibilidad del ModalBottomSheet */
     val sheetState = rememberModalBottomSheetState()
 
     val currentUserName = viewModel.userName
+    val analytics = Firebase.analytics
+
+    LaunchedEffect(Unit) {
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Home_Principal_Mar")
+        }
+    }
 
     LaunchedEffect(viewModel.isSheetVisible) {
         if (!viewModel.isSheetVisible) {
@@ -65,12 +75,37 @@ fun HomeScreen(
         isCloudEnabled = isCloudEnabled,
         isSheetVisible = viewModel.isSheetVisible,
         sheetState = sheetState,
-        onNavigateToInvoices = onNavigateToInvoices,
-        onNavigateToElectronicInvoice = onNavigateToElectronicInvoice,
-        onNavigateToProfile = onNavigateToProfile,
-        onToggleCloud = onToggleCloud,
+        onNavigateToInvoices = {
+            analytics.logEvent("nav_ver_facturas") {
+                param("desde", "home")
+            }
+            onNavigateToInvoices()
+        },
+        onNavigateToElectronicInvoice = {
+            analytics.logEvent("nav_factura_electronica") {
+                param("desde", "home")
+            }
+            onNavigateToElectronicInvoice()
+        },
+        onNavigateToProfile = {
+            analytics.logEvent("nav_ir_perfil") {
+                param("usuario", currentUserName)
+            }
+            onNavigateToProfile()
+        },
+        onToggleCloud = { enabled ->
+            analytics.logEvent("config_data_source") {
+                param("modo", if (enabled) "nube" else "local")
+            }
+            onToggleCloud(enabled)
+        },
         onSheetDismiss = { viewModel.onOptionSelected(1) },
-        onSheetOptionSelected = { tregua -> viewModel.onOptionSelected(tregua) },
+        onSheetOptionSelected = { tregua ->
+            analytics.logEvent("feedback_selected") {
+                param("opcion_id", tregua.toLong())
+            }
+            viewModel.onOptionSelected(tregua)
+        },
         currentUserName = currentUserName
     )
 }

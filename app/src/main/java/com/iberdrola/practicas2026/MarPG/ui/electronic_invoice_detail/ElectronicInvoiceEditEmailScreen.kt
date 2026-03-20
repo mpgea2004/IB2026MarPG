@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -19,6 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
@@ -35,6 +40,14 @@ fun ElectronicInvoiceEditEmailScreen(
 ) {
     val state = viewModel.state
 
+    val analytics = Firebase.analytics
+
+    LaunchedEffect(Unit) {
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Formulario_Editar_Email_Mar")
+        }
+    }
+
     if (state.showNoPhoneDialog) {
         SecurityPhoneDialog(state, viewModel, onNext)
     }
@@ -43,9 +56,17 @@ fun ElectronicInvoiceEditEmailScreen(
         onEmailChange = { viewModel.onEmailChanged(it) },
         onBack = onBack,
         onNext = {
+            analytics.logEvent("edit_email_confirm_click") {
+                param("contract_id", state.selectedContract?.id ?: "unknown")
+            }
             viewModel.onContinueClick(onNext)
         },
-        onClose = onCloseToHome
+        onClose = {
+            analytics.logEvent("edit_email_abandoned"){
+
+            }
+            onCloseToHome()
+        }
     )
 
     ElectronicInvoiceEditEmailContent(

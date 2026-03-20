@@ -20,6 +20,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +35,10 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
@@ -51,6 +56,7 @@ fun ElectronicInvoiceDetailFormScreen(
     onCloseToHome: () -> Unit,
 ) {
     val state = viewModel.state
+    val analytics = Firebase.analytics
 
     val isButtonEnabled = viewModel.canContinue()
 
@@ -60,15 +66,37 @@ fun ElectronicInvoiceDetailFormScreen(
         SecurityPhoneDialog(state, viewModel, onNext)
     }
 
+    LaunchedEffect(Unit) {
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Formulario_Alta_Factura_Elec")
+        }
+    }
+
     val events = ElectronicInvoiceEvents(
         onEmailChange = { viewModel.onEmailChanged(it) },
-        onLegalCheckChange = { viewModel.onLegalAccepted(it) },
+        onLegalCheckChange = { accepted ->
+            analytics.logEvent("form_legal_checkbox") {
+                param("accepted", accepted.toString())
+            }
+            viewModel.onLegalAccepted(accepted)
+        },
         onBack = onBack,
-        onClose = onCloseToHome,
+        onClose = {
+            analytics.logEvent("form_abandoned") { param("step", "details") }
+            onCloseToHome()
+        },
         onNext = {
+            analytics.logEvent("form_click_next") {
+                param("is_custom_email", (state.emailInput.isNotEmpty()).toString())
+            }
             viewModel.onContinueClick(onNext)
         },
-        onShowLegal = { title, content -> viewModel.onShowLegalDetail(title, content) },
+        onShowLegal = { title, content ->
+            analytics.logEvent("form_view_legal_detail") {
+                param("section_title", title)
+            }
+            viewModel.onShowLegalDetail(title, content)
+        },
         onDismissLegal = { viewModel.onDismissLegalSheet() }
     )
 

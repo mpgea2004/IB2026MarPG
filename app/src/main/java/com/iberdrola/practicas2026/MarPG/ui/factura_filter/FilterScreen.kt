@@ -1,11 +1,8 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_filter
 
 import android.widget.Toast
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,29 +12,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,9 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,6 +43,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.ui.components.filter.DateRangeSection
@@ -67,7 +56,6 @@ import com.iberdrola.practicas2026.MarPG.ui.components.filter.StatusFilterSectio
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
-import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -84,12 +72,13 @@ fun FilterScreen(
     onBack: () -> Unit
 ) {
 
-    /**
-     * Sincroniza lo qu etenga en el viewmodel con el estado del filtro
-     */
-    LaunchedEffect(Unit) {
+    val analytics = Firebase.analytics
 
+    LaunchedEffect(Unit) {
         filterViewModel.setInitialState(listViewModel.currentFilterState)
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Pantalla_Filtros_Mar")
+        }
     }
 
     val events = FilterEvents(
@@ -98,13 +87,18 @@ fun FilterScreen(
         onPriceRangeChange = { min, max -> filterViewModel.onPriceRangeChange(min, max) },
         onStatusToggle = { filterViewModel.onStatusToggle(it) },
         onClear = {
+            analytics.logEvent("filter_reset_click") { param("user_action", "clear_all") }
             filterViewModel.clearFilters(
                 minLimit = listViewModel.minInvoiceAmount,
                 maxLimit = listViewModel.maxInvoiceAmount
             )
         },
         onApply = {
-            //Paso el paquete de datos final al ViewModel de la lista
+            analytics.logEvent("filter_applied") {
+                param("min_price", filterViewModel.state.minPrice.toDouble())
+                param("max_price", filterViewModel.state.maxPrice.toDouble())
+                param("statuses_selected", filterViewModel.state.selectedStatuses.size.toLong())
+            }
             listViewModel.applyFilters(filterViewModel.state)
             onBack()
         }
@@ -113,7 +107,10 @@ fun FilterScreen(
     Scaffold(
         containerColor = WhiteApp,
         topBar = {
-            FilterTopBar(onBack)
+            FilterTopBar(onBack = {
+                analytics.logEvent("filter_exit_back") { param("method", "top_bar") }
+                onBack()
+            })
         }
     ) { padding ->
 
@@ -122,7 +119,8 @@ fun FilterScreen(
             state = filterViewModel.state,
             events = events,
             minLimit = listViewModel.minInvoiceAmount,
-            maxLimit = listViewModel.maxInvoiceAmount
+            maxLimit = listViewModel.maxInvoiceAmount,
+            analytics = analytics
         )
     }
 }
@@ -174,6 +172,7 @@ fun FilterTopBar(onBack: () -> Unit) {
 @Composable
 fun FilterContent(
     modifier: Modifier = Modifier,
+    analytics: FirebaseAnalytics?,
     state: FilterState,
     events: FilterEvents,
     minLimit: Float = 0f,
@@ -181,14 +180,14 @@ fun FilterContent(
 ) {
     val context = LocalContext.current
 
-    //Estados del datepicker
     var showFromPicker by remember { mutableStateOf(false) }
     var showToPicker by remember { mutableStateOf(false) }
 
-    //Logica para enseñar el datepicker
     if (showFromPicker) {
         MyDatePickerDialog(
-            onDateSelected = { events.onDateFromChange(it) },
+            onDateSelected = {
+                analytics?.logEvent("filter_select_date_from") { param("date", it) }
+                events.onDateFromChange(it) },
             onDismiss = { showFromPicker = false }
         )
     }
@@ -196,20 +195,19 @@ fun FilterContent(
     if (showToPicker) {
         MyDatePickerDialog(
             minDateStr = state.dateFrom,
-            onDateSelected = { events.onDateToChange(it) },
+            onDateSelected = { analytics?.logEvent("filter_select_date_to") { param("date", it) }
+                events.onDateToChange(it) },
             onDismiss = { showToPicker = false }
         )
     }
 
     val statusOptions = InvoiceStatus.getAllDescriptions()
 
-    // COLUMNA PRINCIPAL: Ocupa toda la pantalla
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(WhiteApp)
     ){
-        //PARTE SUPERIOR: Formulario con Scroll
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -218,7 +216,6 @@ fun FilterContent(
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // Título principal
             Text(
                 text = stringResource(R.string.invoice_filter_title),
                 fontSize = 18.sp,
@@ -229,17 +226,14 @@ fun FilterContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Sección fecha
             DateRangeSection(
                 dateFrom = state.dateFrom,
                 dateTo = state.dateTo,
                 onFromClick = { showFromPicker = true },
                 onToClick = {
-                    //Solo dejo que escoja el hasta si el desde ya está
                     if (state.dateFrom.isNotEmpty()) {
                         showToPicker = true
                     } else {
-                        // Si el usuario pulsa y está vacío, aviso
                         Toast.makeText(
                             context,
                             "Selecciona primero una fecha de inicio",
@@ -250,31 +244,28 @@ fun FilterContent(
             )
             Spacer(modifier = Modifier.height(40.dp))
 
-            //Importe
             Text(stringResource(R.string.invoice_filter_price), fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
 
-            //Etiqueta precio
             PriceRangeSection(
                 minPrice = state.minPrice,
                 maxPrice = state.maxPrice,
-                minLimit = minLimit, // Uso el mínimo real
-                maxLimit = maxLimit, // Uso el máximo real
+                minLimit = minLimit,
+                maxLimit = maxLimit,
                 onRangeChange = { min, max -> events.onPriceRangeChange(min, max) }
             )
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            //Estado
             StatusFilterSection(
                 statusOptions = statusOptions,
                 selectedStatuses = state.selectedStatuses,
-                onStatusToggle = { events.onStatusToggle(it) }
+                onStatusToggle = { analytics?.logEvent("filter_toggle_status") { param("status", it) }
+                    events.onStatusToggle(it) }
             )
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            //Botones final
             FilterActionButtons(
                 onApply = { events.onApply() },
                 onClear = { events.onClear() }
@@ -367,7 +358,8 @@ fun FilterScreenFilledPreview() {
                 maxPrice = 150f,
                 selectedStatuses = setOf("Pagadas")
             ),
-            events = FilterEvents(), // Eventos vacíos para la preview
+            events = FilterEvents(),
+            analytics = null
         )
     }
 }

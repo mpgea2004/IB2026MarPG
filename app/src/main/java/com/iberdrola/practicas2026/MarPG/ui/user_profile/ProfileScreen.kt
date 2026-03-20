@@ -18,7 +18,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
@@ -39,6 +38,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +55,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
@@ -67,6 +71,15 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state = viewModel.state
+
+    val analytics = Firebase.analytics
+
+    LaunchedEffect(Unit) {
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Pantalla_Perfil_Mar")
+            param(FirebaseAnalytics.Param.SCREEN_CLASS, "MainActivity")
+        }
+    }
 
     val events = ProfileEvents(
         onNameChanged = { viewModel.onNameChange(it) },
@@ -101,7 +114,8 @@ fun ProfileScreen(
         ProfileContent(
             state = state,
             events = events,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
+            analytics = analytics,
         )
     }
 }
@@ -110,6 +124,7 @@ fun ProfileScreen(
 fun ProfileContent(
     state: ProfileState,
     events: ProfileEvents,
+    analytics: FirebaseAnalytics,
     modifier: Modifier = Modifier
 ) {
 
@@ -197,7 +212,12 @@ fun ProfileContent(
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
+
             onClick = {
+                analytics.logEvent("perfil_guardado_click") {
+                    param("usuario", state.name)
+                }
+
                 events.onSaveClick {
                     events.onBackClick()
                 }
@@ -213,6 +233,13 @@ fun ProfileContent(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = { throw RuntimeException("Test Crash MarPG") },
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+        ) {
+            Text("Bomba para Crashlytics")
+        }
     }
 }
 

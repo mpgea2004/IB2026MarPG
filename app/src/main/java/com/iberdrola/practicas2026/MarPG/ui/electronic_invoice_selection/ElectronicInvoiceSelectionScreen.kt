@@ -13,6 +13,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,6 +21,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ContractCard
@@ -35,10 +40,36 @@ fun ElectronicInvoiceSelectionScreen(
     onNavigate: (ElectronicInvoice) -> Unit
 ) {
     val state = viewModel.state
+    val analytics = Firebase.analytics
+
+    LaunchedEffect(state) {
+        when (state) {
+            is ElectronicInvoiceListState.Loading -> {
+                analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+                    param(FirebaseAnalytics.Param.SCREEN_NAME, "Pantalla_Seleccion_Contrato_Mar")
+                }
+            }
+            is ElectronicInvoiceListState.Success -> {
+                analytics.logEvent("elec_invoice_load_success") {
+                    param("items_count", state.contracts.size.toLong())
+                }
+            }
+            is ElectronicInvoiceListState.Error -> {
+                analytics.logEvent("elec_invoice_load_error") {
+                    param("error_msg", state.message)
+                }
+            }
+        }
+    }
 
     val events = ElectronicInvoiceListEvents(
-        onRetry = { viewModel.loadInvoices() },
+        onRetry = { analytics.logEvent("elec_invoice_retry_click") { param("action", "retry") }
+            viewModel.loadInvoices() },
         onElectronicInvoiceClick = { invoice ->
+            analytics.logEvent("elec_invoice_selected") {
+                param("contract_id", invoice.id)
+                param("contract_type", invoice.type.name)
+            }
             viewModel.onElectronicInvoiceClick(invoice)
             onNavigate(invoice)
         }
@@ -47,7 +78,10 @@ fun ElectronicInvoiceSelectionScreen(
     Scaffold(
         containerColor = WhiteApp,
         topBar = {
-            FilterTopBar(onBack = onBack)
+            FilterTopBar(onBack = {
+                analytics.logEvent("elec_invoice_back") { param("exit_from", "top_bar") }
+                onBack()
+            })
         }
     ) { padding ->
         Box(modifier = Modifier

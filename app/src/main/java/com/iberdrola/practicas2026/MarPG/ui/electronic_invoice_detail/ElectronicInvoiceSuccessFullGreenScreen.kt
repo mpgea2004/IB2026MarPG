@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,6 +31,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
@@ -41,6 +46,20 @@ fun ElectronicInvoiceSuccessFullGreenScreen(
 ) {
 
     val state = viewModel.state
+    val analytics = Firebase.analytics
+
+    LaunchedEffect(Unit) {
+        val eventName = when {
+            state.isDeactivation -> "elec_invoice_deactivation_success"
+            state.isEditingEmail -> "elec_invoice_modification_success"
+            else -> "elec_invoice_activation_success"
+        }
+
+        analytics.logEvent(eventName) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Pantalla_Exito_Final_Verde")
+            param("contract_type", state.selectedContract?.type?.name ?: "unknown")
+        }
+    }
 
     BackHandler {
         onFinish()

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -53,6 +54,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
@@ -88,6 +95,26 @@ fun InvoiceListScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val analytics = Firebase.analytics
+    val remoteConfig = Firebase.remoteConfig
+    var isGasEnabled by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Lista_Facturas_Mar")
+        }
+
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 60
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+        remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                isGasEnabled = remoteConfig.getBoolean("show_gas_contracts")
+            }
+        }
+    }
+
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             snackbarHostState.showSnackbar(
@@ -104,7 +131,7 @@ fun InvoiceListScreen(
         InvoiceNotAvailableDialog(onDismiss = { showNotAvailableDialog = false })
     }
 
-    val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
+    val pagerState = rememberPagerState(pageCount = { if (isGasEnabled) 2 else 1 })
 
     LaunchedEffect(pagerState.currentPage) {
         viewModel.selectTab(pagerState.currentPage)
@@ -121,6 +148,7 @@ fun InvoiceListScreen(
         topBar = {
             InvoiceListHeader(
                 selectedTab = selectedTab,
+                isGasEnabled = isGasEnabled,
                 onTabSelected = { viewModel.selectTab(it) },
                 address = userAddress,
                 onBack = {
@@ -141,7 +169,7 @@ fun InvoiceListScreen(
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
-                userScrollEnabled = currentState !is InvoiceListState.LOADING // Bloqueamos scroll si carga
+                userScrollEnabled = currentState !is InvoiceListState.LOADING && isGasEnabled
             ) { page ->
                 when (currentState) {
                     InvoiceListState.LOADING -> {
@@ -156,8 +184,15 @@ fun InvoiceListScreen(
                         InvoiceListContent(
                             groupedInvoices = currentState.groupedInvoices,
                             events = InvoiceListEvents(
-                                onFilter = { onNavigateToFilters() },
+                                onFilter = {
+                                    analytics.logEvent("click_filter_invoices") { param("action", "open_filters") }
+                                    onNavigateToFilters()
+                                },
                                 onDetail = { invoice ->
+                                    analytics.logEvent("click_invoice_detail") {
+                                        param("type", invoice.contractType.name)
+                                        param("amount", invoice.amount.toString())
+                                    }
                                     showNotAvailableDialog = true
                                 }
                             )
@@ -173,6 +208,7 @@ fun InvoiceListScreen(
 @Composable
 fun InvoiceListHeader(
     selectedTab: Int,
+    isGasEnabled: Boolean,
     errorMessage: String?,
     address: String,
     showErrorBanner: Boolean,
@@ -180,7 +216,7 @@ fun InvoiceListHeader(
     onBack: () -> Unit
 ){
     Surface(
-        color = Color.White,
+        color = WhiteApp,
         shadowElevation = 2.dp
     ) {
         Column(
@@ -218,11 +254,13 @@ fun InvoiceListHeader(
                     isSelected = selectedTab == 0,
                     onClick = { onTabSelected(0)}
                 )
-                InvoiceTabItem(
-                    text = stringResource(R.string.invoice_list_tab_gas),
-                    isSelected = selectedTab == 1,
-                    onClick = { onTabSelected(1)}
-                )
+                if (isGasEnabled) {
+                    InvoiceTabItem(
+                        text = stringResource(R.string.invoice_list_tab_gas),
+                        isSelected = selectedTab == 1,
+                        onClick = { onTabSelected(1) }
+                    )
+                }
             }
         }
     }
@@ -443,7 +481,8 @@ fun InvoiceListScreenPreview() {
                     showErrorBanner = false,
                     onTabSelected = {},
                     onBack = {},
-                    address = stringResource(R.string.invoice_list_subtitle)
+                    address = stringResource(R.string.invoice_list_subtitle),
+                    isGasEnabled = true
                 )
             }
         ){ padding ->
@@ -469,7 +508,8 @@ fun InvoiceListNoDataPreview() {
                     showErrorBanner = false,
                     onTabSelected = {},
                     onBack = {},
-                    address = stringResource(R.string.invoice_list_subtitle)
+                    address = stringResource(R.string.invoice_list_subtitle),
+                    isGasEnabled = false
                 )
             }
         ) { padding ->
