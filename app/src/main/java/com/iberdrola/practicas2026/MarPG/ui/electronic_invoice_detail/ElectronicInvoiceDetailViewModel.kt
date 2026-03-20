@@ -22,6 +22,8 @@ class ElectronicInvoiceViewModel @Inject constructor(
     var state by mutableStateOf(ElectronicInvoiceState())
         private set
 
+    private val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,}\$")
+
     init {
         observeUserProfile()
     }
@@ -64,7 +66,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
      */
     fun canContinue(): Boolean {
         val email = state.emailInput.trim()
-        val isEmailValid = email.contains("@") && email.contains(".") && email.length > 5
+        val isEmailValid = emailPattern.matches(email)
         val contract = state.selectedContract
 
         if (contract == null) {

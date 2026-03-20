@@ -18,6 +18,8 @@ class ProfileViewModel @Inject constructor(
     var state by mutableStateOf(ProfileState())
         private set
 
+    private val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,}\$")
+
     init {
         viewModelScope.launch {
             userPrefs.userProfileFlow.collect { savedState ->
@@ -33,11 +35,11 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onEmailChange(newEmail: String) {
-        state = state.copy(email = newEmail)
+        state = state.copy(email = newEmail, emailError = null)
     }
 
     fun onPhoneChange(newPhone: String) {
-        state = state.copy(phone = newPhone)
+        state = state.copy(phone = newPhone, phoneError = null)
     }
 
     fun onAddressChanged(newAddress: String) {
@@ -48,9 +50,26 @@ class ProfileViewModel @Inject constructor(
         state = state.copy(password = newPassword)
     }
 
-    fun saveChanges() {
+    private fun isEmailValid(email: String): Boolean {
+        return emailPattern.matches(email)
+    }
+
+
+    fun saveChanges(onSuccess: () -> Unit) {
+        val isPhoneValid = state.phone.length == 9
+
+        if (!isEmailValid(state.email)) {
+            state = state.copy(emailError = "El formato del correo no es válido")
+            return
+        }
+
+        if (!isPhoneValid) {
+            state = state.copy(phoneError = "El teléfono debe tener 9 dígitos")
+            return
+        }
         viewModelScope.launch {
             userPrefs.updateProfile(state)
+            onSuccess()
         }
     }
 }
