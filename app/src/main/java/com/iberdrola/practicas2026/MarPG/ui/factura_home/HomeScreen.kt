@@ -48,65 +48,39 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    onNavigateToInvoices: () -> Unit,
+    onNavigateToInvoices: (Boolean) -> Unit,
     onNavigateToElectronicInvoice: () -> Unit,
     onNavigateToProfile: () -> Unit,
-    isCloudEnabled: Boolean,
-    onToggleCloud: (Boolean) -> Unit
 ) {
+    val state = viewModel.state
+    val events = viewModel.events
     val sheetState = rememberModalBottomSheetState()
 
-    val currentUserName = viewModel.userName
-    val analytics = Firebase.analytics
 
-    LaunchedEffect(Unit) {
-        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
-            param(FirebaseAnalytics.Param.SCREEN_NAME, "Home_Principal_Mar")
-        }
-    }
-
-    LaunchedEffect(viewModel.isSheetVisible) {
-        if (!viewModel.isSheetVisible) {
+    LaunchedEffect(state.isSheetVisible) {
+        if (!state.isSheetVisible) {
             sheetState.hide()
         }
     }
 
     HomeContent(
-        isCloudEnabled = isCloudEnabled,
-        isSheetVisible = viewModel.isSheetVisible,
-        sheetState = sheetState,
+        state = state,
         onNavigateToInvoices = {
-            analytics.logEvent("nav_ver_facturas") {
-                param("desde", "home")
-            }
-            onNavigateToInvoices()
+            events.onNavigateToInvoices()
+            onNavigateToInvoices(state.isCloudEnabled) // Navegamos con el estado actual
         },
         onNavigateToElectronicInvoice = {
-            analytics.logEvent("nav_factura_electronica") {
-                param("desde", "home")
-            }
+            events.onNavigateToElectronicInvoice()
             onNavigateToElectronicInvoice()
         },
         onNavigateToProfile = {
-            analytics.logEvent("nav_ir_perfil") {
-                param("usuario", currentUserName)
-            }
+            events.onProfileClick()
             onNavigateToProfile()
         },
-        onToggleCloud = { enabled ->
-            analytics.logEvent("config_data_source") {
-                param("modo", if (enabled) "nube" else "local")
-            }
-            onToggleCloud(enabled)
-        },
-        onSheetDismiss = { viewModel.onOptionSelected(1) },
-        onSheetOptionSelected = { tregua ->
-            analytics.logEvent("feedback_selected") {
-                param("opcion_id", tregua.toLong())
-            }
-            viewModel.onOptionSelected(tregua)
-        },
-        currentUserName = currentUserName
+        onToggleCloud = events.onToggleCloud,
+        onSheetDismiss = events.onDismissFeedback,
+        onSheetOptionSelected = events.onFeedbackOption,
+        sheetState = rememberModalBottomSheetState()
     )
 }
 
@@ -116,16 +90,14 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
-    isCloudEnabled: Boolean,
-    isSheetVisible: Boolean,
+    state: HomeState,
     sheetState: SheetState,
     onNavigateToInvoices: () -> Unit,
     onNavigateToElectronicInvoice: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onToggleCloud: (Boolean) -> Unit,
     onSheetDismiss: () -> Unit,
-    onSheetOptionSelected: (Int) -> Unit,
-    currentUserName:String
+    onSheetOptionSelected: (Int) -> Unit
 ) {
     Scaffold(
         containerColor = Color(0xFFF7F9F8)
@@ -136,7 +108,7 @@ fun HomeContent(
                 .padding(padding)
                 .padding(24.dp)
         ) {
-            HomeHeader(userName = currentUserName,
+            HomeHeader(userName = state.userName,
                 onProfileClick = onNavigateToProfile)
 
             Spacer(modifier = Modifier.height(48.dp))
@@ -150,14 +122,13 @@ fun HomeContent(
             Spacer(modifier = Modifier.weight(1f))
 
             DataSourceConfigSection(
-                isCloudEnabled = isCloudEnabled,
+                isCloudEnabled = state.isCloudEnabled,
                 onToggleCloud = onToggleCloud
             )
 
             Spacer(modifier = Modifier.height(16.dp))
         }
-        // Muestra el diálogo de feedback solo cuando el estado lo requiere
-        if (isSheetVisible) {
+        if (state.isSheetVisible) {
             FeedbackBottomSheet(
                 sheetState = sheetState,
                 onDismiss = onSheetDismiss,

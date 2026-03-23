@@ -46,20 +46,15 @@ fun ElectronicInvoiceSuccessFullGreenScreen(
 ) {
 
     val state = viewModel.state
-    val analytics = Firebase.analytics
 
     LaunchedEffect(Unit) {
-        val eventName = when {
-            state.isDeactivation -> "elec_invoice_deactivation_success"
-            state.isEditingEmail -> "elec_invoice_modification_success"
-            else -> "elec_invoice_activation_success"
-        }
-
-        analytics.logEvent(eventName) {
-            param(FirebaseAnalytics.Param.SCREEN_NAME, "Pantalla_Exito_Final_Verde")
-            param("contract_type", state.selectedContract?.type?.name ?: "unknown")
-        }
+        viewModel.logSuccessScreen(
+            isDeactivation = state.isDeactivation,
+            isEditingEmail = state.isEditingEmail,
+            contractType = state.selectedContract?.type?.name ?: "unknown"
+        )
     }
+
 
     BackHandler {
         onFinish()
@@ -67,15 +62,12 @@ fun ElectronicInvoiceSuccessFullGreenScreen(
 
     val showEmail = EmailUtils.obfuscateEmail(state.emailInput)
 
-    val isModification = state.isEditingEmail
-
-    val isDeactivation = state.isDeactivation
 
     ElectronicInvoiceSuccessFullGreenContent(
-        isModification = isModification,
+        isModification = state.isEditingEmail,
+        isDeactivation = state.isDeactivation,
         email = showEmail,
-        onAccept = onFinish,
-        isDeactivation = isDeactivation
+        onAccept = onFinish
     )
 }
 

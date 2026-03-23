@@ -16,5 +16,6 @@ data class ElectronicInvoiceEvents(
     val onCloseBanner: () -> Unit = {},
     val onShowLegal: (String, String) -> Unit = {_,_ -> },
     val onDismissLegal: () -> Unit = {},
-    val onClose: () -> Unit = {}
+    val onClose: () -> Unit = {},
+    val onViewScreen: (String) -> Unit = {},
 )

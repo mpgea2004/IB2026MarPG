@@ -72,14 +72,6 @@ fun ProfileScreen(
 ) {
     val state = viewModel.state
 
-    val analytics = Firebase.analytics
-
-    LaunchedEffect(Unit) {
-        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
-            param(FirebaseAnalytics.Param.SCREEN_NAME, "Pantalla_Perfil_Mar")
-            param(FirebaseAnalytics.Param.SCREEN_CLASS, "MainActivity")
-        }
-    }
 
     val events = ProfileEvents(
         onNameChanged = { viewModel.onNameChange(it) },
@@ -114,8 +106,7 @@ fun ProfileScreen(
         ProfileContent(
             state = state,
             events = events,
-            modifier = Modifier.padding(padding),
-            analytics = analytics,
+            modifier = Modifier.padding(padding)
         )
     }
 }
@@ -124,7 +115,6 @@ fun ProfileScreen(
 fun ProfileContent(
     state: ProfileState,
     events: ProfileEvents,
-    analytics: FirebaseAnalytics,
     modifier: Modifier = Modifier
 ) {
 
@@ -214,10 +204,6 @@ fun ProfileContent(
         Button(
 
             onClick = {
-                analytics.logEvent("perfil_guardado_click") {
-                    param("usuario", state.name)
-                }
-
                 events.onSaveClick {
                     events.onBackClick()
                 }

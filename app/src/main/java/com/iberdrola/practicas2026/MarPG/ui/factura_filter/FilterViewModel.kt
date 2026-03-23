@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -13,55 +14,52 @@ import javax.inject.Inject
  * además de gestionar la navegación de retorno
  */
 @HiltViewModel
-class FilterViewModel @Inject constructor() : ViewModel() {
+class FilterViewModel @Inject constructor(
+    private val logAnalytics: LogAnalyticsEventUseCase
+) : ViewModel() {
 
-    // Estado del formulario de filtros
     var state by mutableStateOf(FilterState())
         private set
 
-    /**
-     * Sincroniza el estado del filtro con los valores que ya estaban aplicados
-     * en la pantalla de la lista.
-     */
+    val events = FilterEvents(
+        onDateFromChange = { date ->
+            state = state.copy(dateFrom = date)
+            logAnalytics("filter_select_date_from", mapOf("date" to date))
+        },
+        onDateToChange = { date ->
+            state = state.copy(dateTo = date)
+            logAnalytics("filter_select_date_to", mapOf("date" to date))
+        },
+        onPriceRangeChange = { min, max ->
+            state = state.copy(minPrice = min, maxPrice = max)
+        },
+        onStatusToggle = { status ->
+            val current = state.selectedStatuses
+            val updated = if (current.contains(status)) current - status else current + status
+            state = state.copy(selectedStatuses = updated)
+            logAnalytics("filter_toggle_status", mapOf("status" to status))
+        },
+        onClear = {
+            logAnalytics("filter_reset_click", mapOf("user_action" to "clear_all"))
+            state = FilterState()
+        },
+        onApply = {
+            logAnalytics("filter_applied", mapOf(
+                "min_price" to state.minPrice.toDouble(),
+                "max_price" to state.maxPrice.toDouble(),
+                "status_count" to state.selectedStatuses.size.toLong()
+            ))
+        }
+    )
+
+    init {
+        logAnalytics("view_filter_screen")
+    }
+
+    fun onClearWithLimits(min: Float, max: Float) {
+        state = FilterState(minPrice = min, maxPrice = max)
+    }
     fun setInitialState(initialState: FilterState) {
         state = initialState
-    }
-    // --- Métodos de actualización de estado (Events) ---
-    fun onDateFromChange(date: String) {
-        state = state.copy(dateFrom = date)
-    }
-
-    fun onDateToChange(date: String) {
-        state = state.copy(dateTo = date)
-    }
-    /**
-     * Actualiza el rango de precios. Al usar .copy() aseguramos la inmutabilidad
-     * y notificamos a la UI del cambio.
-     */
-    fun onPriceRangeChange(min: Float, max: Float) {
-        state = state.copy(minPrice = min, maxPrice = max)
-    }
-
-    /**
-     * Gestiona la selección/deselección múltiple de estados.
-     * Si el estado ya existe en el Set, lo elimina; si no, lo añade.
-     */
-    fun onStatusToggle(status: String) {
-        val current = state.selectedStatuses
-        val updated = if (current.contains(status)) current - status else current + status
-        state = state.copy(selectedStatuses = updated)
-    }
-    /**
-     * Resetea todos los campos a sus valores iniciales.
-     * Los límites de precio son dinámicos para ajustarse a las facturas reales.
-     */
-    fun clearFilters(minLimit: Float, maxLimit: Float) {
-        state = FilterState(
-            minPrice = minLimit,
-            maxPrice = maxLimit,
-            dateFrom = "",
-            dateTo = "",
-            selectedStatuses = emptySet()
-        )
     }
 }

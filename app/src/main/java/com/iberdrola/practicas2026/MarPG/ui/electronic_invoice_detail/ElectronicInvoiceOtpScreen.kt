@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
@@ -25,12 +26,13 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction.Companion.Done
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,10 +42,6 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Electr
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.LoadingOverlay
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
-import com.google.firebase.Firebase
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.analytics
-import com.google.firebase.analytics.logEvent
 
 
 @Composable
@@ -54,56 +52,24 @@ fun ElectronicInvoiceOtpScreen(
     onNext: () -> Unit
 ) {
     val state = viewModel.state
-    val analytics = Firebase.analytics
+    val events = viewModel.events.copy(
+        onBack = onBack,
+        onClose = onCloseToHome
+    )
 
     LaunchedEffect(Unit) {
-        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
-            param(FirebaseAnalytics.Param.SCREEN_NAME, "Verificacion_OTP_Factura_Elec")
-        }
+        events.onViewScreen("Verificacion_OTP_Mar")
     }
 
     LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess) {
-            analytics.logEvent("otp_verification_success") {
-                param("contract_id", state.selectedContract?.id ?: "unknown")
-            }
-            onNext()
-        }
+        if (state.isSuccess) onNext()
     }
 
-    val phoneToShow = remember(state.userProfile.phone) {
-        val rawPhone = state.userProfile.phone
-        if (rawPhone.length >= 3) {
-            "******${rawPhone.takeLast(3)}"
-        } else {
-            "******"
-        }
-    }
-
-    val events = ElectronicInvoiceEvents(
-        onOtpChange = { viewModel.onOtpChanged(it) },
-        onResendOtp = {
-            analytics.logEvent("otp_resend_click") {
-                param("attempts_left", state.resendAttempts.toString())
-            }
-            viewModel.onResendOtp() },
-        onCloseBanner = { viewModel.closeResendBanner() },
-        onBack = onBack,
-        onClose = {
-            analytics.logEvent("otp_abandoned"){}
-            onCloseToHome()
-        },
-        onNext = { if (state.otpInput.length == 6) {
-            analytics.logEvent("otp_submit_click"){}
-            viewModel.performUpdate()
-        } }
-    )
 
     ElectronicInvoiceOtpContent(
         state = state,
         events = events,
-        isButtonEnabled = state.otpInput.length >= 6,
-        phoneToShow = phoneToShow
+        phoneToShow = viewModel.phoneToShow
     )
 }
 
@@ -111,7 +77,6 @@ fun ElectronicInvoiceOtpScreen(
 fun ElectronicInvoiceOtpContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
-    isButtonEnabled: Boolean,
     phoneToShow: String
 ) {
 
@@ -132,8 +97,8 @@ fun ElectronicInvoiceOtpContent(
             bottomBar = {
                 ElectronicInvoiceBottomBar(
                     onBack = events.onBack,
-                    onNext = events.onNext,
-                    isNextEnabled = isButtonEnabled,
+                    onNext = events.onConfirmUpdate,
+                    isNextEnabled = state.isNextEnabled && !state.isLoading,
                     showBanner = state.showResendSuccess,
                     onCloseBanner = events.onCloseBanner
                 )
@@ -168,8 +133,9 @@ fun ElectronicInvoiceOtpContent(
                     onValueChange = events.onOtpChange,
                     modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
                     placeholder = { Text(stringResource(R.string.otp_placeholder), fontSize = 14.sp) },
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                        keyboardType = androidx.compose.ui.text.input.KeyboardType.NumberPassword
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = Done
                     ),
                     colors = TextFieldDefaults.colors(
                         unfocusedContainerColor = Color.Transparent,
@@ -248,7 +214,6 @@ fun ElectronicInvoiceOtpPreview() {
         ElectronicInvoiceOtpContent(
             state = ElectronicInvoiceState(otpInput = ""),
             events = ElectronicInvoiceEvents(),
-            isButtonEnabled = false,
             phoneToShow = "******45",
         )
     }
@@ -265,7 +230,6 @@ fun ElectronicInvoiceOtpResentPreview() {
                 showResendSuccess = true
             ),
             events = ElectronicInvoiceEvents(),
-            isButtonEnabled = false,
             phoneToShow = "******45",
         )
     }
@@ -279,7 +243,6 @@ fun ElectronicInvoiceOtpLoadingPreview() {
                 isLoading = true
             ),
             events = ElectronicInvoiceEvents(),
-            isButtonEnabled = false,
             phoneToShow = "******45",
         )
     }

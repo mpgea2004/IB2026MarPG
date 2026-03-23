@@ -67,38 +67,25 @@ import java.util.Locale
  */
 @Composable
 fun FilterScreen(
-    listViewModel: InvoiceListViewModel, //Viene de la pantalla anterior
+    listViewModel: InvoiceListViewModel,
     filterViewModel: FilterViewModel = hiltViewModel(),
     onBack: () -> Unit
 ) {
 
-    val analytics = Firebase.analytics
-
     LaunchedEffect(Unit) {
         filterViewModel.setInitialState(listViewModel.currentFilterState)
-        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
-            param(FirebaseAnalytics.Param.SCREEN_NAME, "Pantalla_Filtros_Mar")
-        }
     }
 
-    val events = FilterEvents(
-        onDateFromChange = { filterViewModel.onDateFromChange(it) },
-        onDateToChange = { filterViewModel.onDateToChange(it) },
-        onPriceRangeChange = { min, max -> filterViewModel.onPriceRangeChange(min, max) },
-        onStatusToggle = { filterViewModel.onStatusToggle(it) },
+    val events = filterViewModel.events.copy(
         onClear = {
-            analytics.logEvent("filter_reset_click") { param("user_action", "clear_all") }
-            filterViewModel.clearFilters(
-                minLimit = listViewModel.minInvoiceAmount,
-                maxLimit = listViewModel.maxInvoiceAmount
+            filterViewModel.events.onClear()
+            filterViewModel.onClearWithLimits(
+                listViewModel.minInvoiceAmount,
+                listViewModel.maxInvoiceAmount
             )
         },
         onApply = {
-            analytics.logEvent("filter_applied") {
-                param("min_price", filterViewModel.state.minPrice.toDouble())
-                param("max_price", filterViewModel.state.maxPrice.toDouble())
-                param("statuses_selected", filterViewModel.state.selectedStatuses.size.toLong())
-            }
+            filterViewModel.events.onApply()
             listViewModel.applyFilters(filterViewModel.state)
             onBack()
         }
@@ -108,7 +95,6 @@ fun FilterScreen(
         containerColor = WhiteApp,
         topBar = {
             FilterTopBar(onBack = {
-                analytics.logEvent("filter_exit_back") { param("method", "top_bar") }
                 onBack()
             })
         }
@@ -120,7 +106,6 @@ fun FilterScreen(
             events = events,
             minLimit = listViewModel.minInvoiceAmount,
             maxLimit = listViewModel.maxInvoiceAmount,
-            analytics = analytics
         )
     }
 }
@@ -172,7 +157,6 @@ fun FilterTopBar(onBack: () -> Unit) {
 @Composable
 fun FilterContent(
     modifier: Modifier = Modifier,
-    analytics: FirebaseAnalytics?,
     state: FilterState,
     events: FilterEvents,
     minLimit: Float = 0f,
@@ -186,7 +170,6 @@ fun FilterContent(
     if (showFromPicker) {
         MyDatePickerDialog(
             onDateSelected = {
-                analytics?.logEvent("filter_select_date_from") { param("date", it) }
                 events.onDateFromChange(it) },
             onDismiss = { showFromPicker = false }
         )
@@ -195,7 +178,7 @@ fun FilterContent(
     if (showToPicker) {
         MyDatePickerDialog(
             minDateStr = state.dateFrom,
-            onDateSelected = { analytics?.logEvent("filter_select_date_to") { param("date", it) }
+            onDateSelected = {
                 events.onDateToChange(it) },
             onDismiss = { showToPicker = false }
         )
@@ -260,7 +243,7 @@ fun FilterContent(
             StatusFilterSection(
                 statusOptions = statusOptions,
                 selectedStatuses = state.selectedStatuses,
-                onStatusToggle = { analytics?.logEvent("filter_toggle_status") { param("status", it) }
+                onStatusToggle = {
                     events.onStatusToggle(it) }
             )
 
@@ -285,7 +268,6 @@ fun MyDatePickerDialog(
     onDateSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    //Convierto la fecha "Desde" a milisegundos
     val minDateMillis = remember(minDateStr) {
         if (!minDateStr.isNullOrEmpty()) {
             try {
@@ -294,12 +276,9 @@ fun MyDatePickerDialog(
         } else null
     }
 
-    //Configuro el estado con la restricción
     val datePickerState = rememberDatePickerState(
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                //Si minDateMillis es null, todo es seleccionable.
-                //Si no, solo lo que sea mayor o igual
                 return minDateMillis == null || utcTimeMillis >= minDateMillis
             }
         }
@@ -359,7 +338,6 @@ fun FilterScreenFilledPreview() {
                 selectedStatuses = setOf("Pagadas")
             ),
             events = FilterEvents(),
-            analytics = null
         )
     }
 }

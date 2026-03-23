@@ -13,6 +13,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
@@ -35,10 +36,6 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.Firebase
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.analytics
-import com.google.firebase.analytics.logEvent
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
@@ -56,8 +53,6 @@ fun ElectronicInvoiceDetailFormScreen(
     onCloseToHome: () -> Unit,
 ) {
     val state = viewModel.state
-    val analytics = Firebase.analytics
-
     val isButtonEnabled = viewModel.canContinue()
 
     val sheetState = rememberModalBottomSheetState()
@@ -67,37 +62,18 @@ fun ElectronicInvoiceDetailFormScreen(
     }
 
     LaunchedEffect(Unit) {
-        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
-            param(FirebaseAnalytics.Param.SCREEN_NAME, "Formulario_Alta_Factura_Elec")
-        }
+        viewModel.logAnalytics("view_screen", mapOf("screen_name" to "Formulario_Alta_Factura_Elec"))
     }
 
-    val events = ElectronicInvoiceEvents(
-        onEmailChange = { viewModel.onEmailChanged(it) },
-        onLegalCheckChange = { accepted ->
-            analytics.logEvent("form_legal_checkbox") {
-                param("accepted", accepted.toString())
-            }
-            viewModel.onLegalAccepted(accepted)
-        },
+    val events = viewModel.events.copy(
         onBack = onBack,
         onClose = {
-            analytics.logEvent("form_abandoned") { param("step", "details") }
+            viewModel.logAnalytics("form_abandoned", mapOf("step" to "details"))
             onCloseToHome()
         },
         onNext = {
-            analytics.logEvent("form_click_next") {
-                param("is_custom_email", (state.emailInput.isNotEmpty()).toString())
-            }
             viewModel.onContinueClick(onNext)
-        },
-        onShowLegal = { title, content ->
-            analytics.logEvent("form_view_legal_detail") {
-                param("section_title", title)
-            }
-            viewModel.onShowLegalDetail(title, content)
-        },
-        onDismissLegal = { viewModel.onDismissLegalSheet() }
+        }
     )
 
     ElectronicInvoiceDetailFormContent(
@@ -113,7 +89,7 @@ fun ElectronicInvoiceDetailFormScreen(
 fun ElectronicInvoiceDetailFormContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
-    isButtonEnabled: Boolean,
+    isButtonEnabled: Boolean = false,
     sheetState: SheetState
 ) {
     val emailParaOfuscar = when {
@@ -270,7 +246,7 @@ fun ElectronicInvoiceDetailFormContent(
                 )
             }
             if (state.showLegalSheet) {
-                androidx.compose.material3.ModalBottomSheet(
+                ModalBottomSheet(
                     onDismissRequest = { events.onDismissLegal() },
                     sheetState = sheetState,
                     containerColor = Color.White

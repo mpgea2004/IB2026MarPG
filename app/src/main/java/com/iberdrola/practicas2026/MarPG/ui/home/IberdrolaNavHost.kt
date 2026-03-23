@@ -49,11 +49,15 @@ fun IberdrolaNavHost(navController: NavHostController) {
 
         composable(Routes.HOME) {
             HomeScreen(
-                onNavigateToInvoices = { navController.navigate("invoice_list/$isCloudEnabled") },
-                isCloudEnabled = isCloudEnabled,
-                onToggleCloud = { isCloudEnabled = it },
-                onNavigateToElectronicInvoice = { navController.navigate(Routes.ELECTRONIC_INVOICE_SELECTION) },
-                onNavigateToProfile = { navController.navigate(Routes.USER_PROFILE) }
+                onNavigateToInvoices = { isCloud ->
+                    navController.navigate("invoice_list/$isCloud")
+                },
+                onNavigateToElectronicInvoice = {
+                    navController.navigate(Routes.ELECTRONIC_INVOICE_SELECTION)
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Routes.USER_PROFILE)
+                }
             )
         }
         composable(Routes.USER_PROFILE) {

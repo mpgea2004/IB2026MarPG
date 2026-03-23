@@ -1,6 +1,7 @@
 package com.iberdrola.practicas2026.MarPG.di
 
 import android.content.Context
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.gson.Gson
 import com.iberdrola.practicas2026.MarPG.data.local.dao.ElectronicInvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDao
@@ -99,6 +100,12 @@ object AppModule {
         @ApplicationContext context: Context
     ): UserPreferencesRepository {
         return UserPreferencesRepository(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAnalytics(@ApplicationContext context: Context): FirebaseAnalytics {
+        return FirebaseAnalytics.getInstance(context)
     }
 
 }

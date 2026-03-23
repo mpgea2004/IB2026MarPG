@@ -58,6 +58,9 @@ import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
 import com.google.firebase.analytics.logEvent
+import com.google.firebase.remoteconfig.ConfigUpdate
+import com.google.firebase.remoteconfig.ConfigUpdateListener
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.R
@@ -95,28 +98,29 @@ fun InvoiceListScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val analytics = Firebase.analytics
     val remoteConfig = Firebase.remoteConfig
-    var isGasEnabled by remember { mutableStateOf(true) }
+    var isGasEnabled = viewModel.isGasEnabled
 
     val pagerState = rememberPagerState(pageCount = { if (isGasEnabled) 2 else 1 })
 
     LaunchedEffect(Unit) {
-        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
-            param(FirebaseAnalytics.Param.SCREEN_NAME, "Lista_Facturas_Mar")
-        }
-
         val configSettings = remoteConfigSettings {
             minimumFetchIntervalInSeconds = 0
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
-        remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val newValue = remoteConfig.getBoolean("show_gas_contracts")
-                isGasEnabled = newValue
-                viewModel.updateGasAvailability(newValue)
-            }
+
+        remoteConfig.fetchAndActivate().addOnCompleteListener {
+            viewModel.updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
         }
+
+        remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
+            override fun onUpdate(configUpdate: ConfigUpdate) {
+                remoteConfig.activate().addOnCompleteListener {
+                    viewModel.updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
+                }
+            }
+            override fun onError(error: FirebaseRemoteConfigException) {}
+        })
     }
 
     LaunchedEffect(errorMessage) {
@@ -188,14 +192,11 @@ fun InvoiceListScreen(
                             groupedInvoices = currentState.groupedInvoices,
                             events = InvoiceListEvents(
                                 onFilter = {
-                                    analytics.logEvent("click_filter_invoices") { param("action", "open_filters") }
+                                    viewModel.onFilterClicked()
                                     onNavigateToFilters()
                                 },
                                 onDetail = { invoice ->
-                                    analytics.logEvent("click_invoice_detail") {
-                                        param("type", invoice.contractType.name)
-                                        param("amount", invoice.amount.toString())
-                                    }
+                                    viewModel.onInvoiceClick(invoice)
                                     showNotAvailableDialog = true
                                 }
                             )
@@ -355,7 +356,7 @@ fun LastInvoiceItem(invoice: Invoice) {
                 }
                 Icon(
                     painter = if (invoice.contractType == ContractType.LUZ)
-                        rememberVectorPainter(Icons.Outlined.Lightbulb) //Convierte el Vector a Painter
+                        rememberVectorPainter(Icons.Outlined.Lightbulb)
                     else
                         painterResource(R.drawable.ic_invoice_gas),
                     contentDescription = null,

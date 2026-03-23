@@ -40,36 +40,11 @@ fun ElectronicInvoiceSelectionScreen(
     onNavigate: (ElectronicInvoice) -> Unit
 ) {
     val state = viewModel.state
-    val analytics = Firebase.analytics
 
-    LaunchedEffect(state) {
-        when (state) {
-            is ElectronicInvoiceListState.Loading -> {
-                analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
-                    param(FirebaseAnalytics.Param.SCREEN_NAME, "Pantalla_Seleccion_Contrato_Mar")
-                }
-            }
-            is ElectronicInvoiceListState.Success -> {
-                analytics.logEvent("elec_invoice_load_success") {
-                    param("items_count", state.contracts.size.toLong())
-                }
-            }
-            is ElectronicInvoiceListState.Error -> {
-                analytics.logEvent("elec_invoice_load_error") {
-                    param("error_msg", state.message)
-                }
-            }
-        }
-    }
 
     val events = ElectronicInvoiceListEvents(
-        onRetry = { analytics.logEvent("elec_invoice_retry_click") { param("action", "retry") }
-            viewModel.loadInvoices() },
+        onRetry = { viewModel.onRetryClicked() },
         onElectronicInvoiceClick = { invoice ->
-            analytics.logEvent("elec_invoice_selected") {
-                param("contract_id", invoice.id)
-                param("contract_type", invoice.type.name)
-            }
             viewModel.onElectronicInvoiceClick(invoice)
             onNavigate(invoice)
         }
@@ -79,7 +54,7 @@ fun ElectronicInvoiceSelectionScreen(
         containerColor = WhiteApp,
         topBar = {
             FilterTopBar(onBack = {
-                analytics.logEvent("elec_invoice_back") { param("exit_from", "top_bar") }
+                viewModel.onBackClicked()
                 onBack()
             })
         }

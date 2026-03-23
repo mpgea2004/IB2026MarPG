@@ -11,6 +11,7 @@ import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesR
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceException
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
+import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.feedback.CheckFeedbackUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.invoice.GetInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
@@ -28,6 +29,7 @@ import kotlin.math.ceil
 class InvoiceListViewModel @Inject constructor(
     private val checkFeedbackUseCase: CheckFeedbackUseCase,
     private val getInvoicesUseCase: GetInvoiceUseCase,
+    private val logAnalyticsUseCase: LogAnalyticsEventUseCase,
     private val userPrefs: UserPreferencesRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -67,6 +69,7 @@ class InvoiceListViewModel @Inject constructor(
         get() = allInvoices.maxOfOrNull { it.amount.toFloat() }?.let { ceil(it) } ?: 500f
 
     init {
+        logAnalyticsUseCase("view_invoice_list_mar")
         loadInvoices()
         observeFeedback()
         observeUserProfile()
@@ -79,16 +82,31 @@ class InvoiceListViewModel @Inject constructor(
         }
     }
 
+
+    fun onFilterClicked() {
+        logAnalyticsUseCase("click_filter_invoices", mapOf("source" to "button_header"))
+    }
+
+    fun onInvoiceClick(invoice: Invoice) {
+        logAnalyticsUseCase("click_invoice_detail", mapOf(
+            "invoice_id" to invoice.id,
+            "contract_type" to invoice.contractType.name,
+            "amount" to invoice.amount.toString()
+        ))
+    }
     private fun loadInvoices() {
         viewModelScope.launch {
             prepareLoadingState()
 
             getInvoicesUseCase(isCloud)
-                .catch { handleLoadError(it) }
+                .catch { e->
+                    handleLoadError(e)
+                    logAnalyticsUseCase("invoice_load_error", mapOf("message" to (e.message ?: "unknown")))}
                 .collect { invoices ->
                     allInvoices = invoices
 
                     setupInitialFilterPrices(invoices)
+                    logAnalyticsUseCase("invoice_load_success", mapOf("count" to invoices.size))
 
                     if (invoices.isNotEmpty()) {
                         errorMessage = null
@@ -125,11 +143,15 @@ class InvoiceListViewModel @Inject constructor(
     }
 
     fun updateGasAvailability(enabled: Boolean) {
-        isGasEnabled = enabled
-        if (!enabled && selectedTab == 1) {
-            selectTab(0)
-        } else {
-            updateFilteredInvoices()
+        if (isGasEnabled != enabled) {
+            isGasEnabled = enabled
+
+            logAnalyticsUseCase("remote_config_gas_updated", mapOf("enabled" to enabled))
+            if (!enabled && selectedTab == 1) {
+                selectTab(0)
+            } else {
+                updateFilteredInvoices()
+            }
         }
     }
 

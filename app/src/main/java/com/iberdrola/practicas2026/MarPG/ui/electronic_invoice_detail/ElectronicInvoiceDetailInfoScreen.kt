@@ -40,10 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.Firebase
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.analytics
-import com.google.firebase.analytics.logEvent
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
@@ -62,16 +58,12 @@ fun ElectronicInvoiceDetailInfoScreen(
     if (electronicInvoice == null) return
 
     val state = viewModel.state
-    val analytics = Firebase.analytics
 
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(electronicInvoice.id) {
         viewModel.selectContract(electronicInvoice)
-        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
-            param(FirebaseAnalytics.Param.SCREEN_NAME, "Detalle_Factura_Electronica_Mar")
-            param("contract_type", electronicInvoice.type.name)
-        }
+        viewModel.logDetailScreenView(electronicInvoice.type.name)
     }
 
     LaunchedEffect(state.isSuccess) {
@@ -80,19 +72,15 @@ fun ElectronicInvoiceDetailInfoScreen(
         }
     }
 
-    val events = ElectronicInvoiceEvents(
+    val events = viewModel.events.copy(
         onBack = onBack,
         onNext = {
-            analytics.logEvent("elec_invoice_edit_click") {
-                param("contract_id", electronicInvoice.id)
-            }
-            viewModel.onEmailChanged(electronicInvoice.email!!)
+            viewModel.logAnalytics("elec_invoice_edit_click", mapOf("contract_id" to electronicInvoice.id))
+            viewModel.events.onEmailChange(electronicInvoice.email ?: "")
             onNavigateToEdit()
         },
         onConfirmDeactivate = {
-            analytics.logEvent("elec_invoice_deactivate_attempt") {
-                param("contract_type", electronicInvoice.type.name)
-            }
+            viewModel.logDeactivateAttempt(electronicInvoice.type.name)
             showDeleteDialog = true
         }
     )
@@ -100,9 +88,7 @@ fun ElectronicInvoiceDetailInfoScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = {
-                analytics.logEvent("elec_invoice_deactivate_cancel") {
-                    param("contract_type", electronicInvoice.type.name)
-                }
+                viewModel.logDeactivateCancel(electronicInvoice.type.name)
                 showDeleteDialog = false },
             icon = {
                 Icon(
@@ -131,9 +117,7 @@ fun ElectronicInvoiceDetailInfoScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        analytics.logEvent("elec_invoice_deactivate_confirmed") {
-                            param("contract_id", electronicInvoice.id)
-                        }
+                        viewModel.logDeactivateConfirmed(electronicInvoice.id)
                         showDeleteDialog = false
                         viewModel.performDeactivate()
                     }
