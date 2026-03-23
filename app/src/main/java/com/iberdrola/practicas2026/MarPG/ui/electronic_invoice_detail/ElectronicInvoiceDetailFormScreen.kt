@@ -53,7 +53,7 @@ fun ElectronicInvoiceDetailFormScreen(
     onCloseToHome: () -> Unit,
 ) {
     val state = viewModel.state
-    val isButtonEnabled = viewModel.canContinue()
+    val isButtonEnabled = viewModel.isNextEnabled
 
     val sheetState = rememberModalBottomSheetState()
 
@@ -62,6 +62,7 @@ fun ElectronicInvoiceDetailFormScreen(
     }
 
     LaunchedEffect(Unit) {
+        viewModel.updateStep(ElectronicInvoiceStep.FORM)
         viewModel.logAnalytics("view_screen", mapOf("screen_name" to "Formulario_Alta_Factura_Elec"))
     }
 

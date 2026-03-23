@@ -9,8 +9,6 @@ data class ElectronicInvoiceState(
     val otpInput: String = "",
     val isLegalAccepted: Boolean = false,
 
-    val isNextEnabled: Boolean = false,
-
     val isLoading: Boolean = false,
     val isDeactivation: Boolean = false,
     val isSuccess: Boolean = false,

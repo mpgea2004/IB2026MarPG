@@ -36,8 +36,7 @@ fun ElectronicInvoiceEditEmailScreen(
 ) {
     val state = viewModel.state
 
-    val isButtonEnabled = viewModel.canContinue()
-
+    val isButtonEnabled = viewModel.isNextEnabled
     val events = viewModel.events.copy(
         onBack = onBack,
         onClose = onCloseToHome,
@@ -47,6 +46,7 @@ fun ElectronicInvoiceEditEmailScreen(
     )
 
     LaunchedEffect(Unit) {
+        viewModel.updateStep(ElectronicInvoiceStep.FORM)
         events.onViewScreen("Formulario_Editar_Email_Mar")
     }
 

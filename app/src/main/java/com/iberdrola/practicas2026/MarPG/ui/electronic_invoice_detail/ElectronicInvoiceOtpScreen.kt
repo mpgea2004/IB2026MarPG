@@ -52,12 +52,14 @@ fun ElectronicInvoiceOtpScreen(
     onNext: () -> Unit
 ) {
     val state = viewModel.state
+    val isNextEnabled = viewModel.isNextEnabled
     val events = viewModel.events.copy(
         onBack = onBack,
         onClose = onCloseToHome
     )
 
     LaunchedEffect(Unit) {
+        viewModel.updateStep(ElectronicInvoiceStep.VERIFICATION)
         events.onViewScreen("Verificacion_OTP_Mar")
     }
 
@@ -69,6 +71,7 @@ fun ElectronicInvoiceOtpScreen(
     ElectronicInvoiceOtpContent(
         state = state,
         events = events,
+        isNextEnabled = isNextEnabled,
         phoneToShow = viewModel.phoneToShow
     )
 }
@@ -77,6 +80,7 @@ fun ElectronicInvoiceOtpScreen(
 fun ElectronicInvoiceOtpContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
+    isNextEnabled: Boolean = false,
     phoneToShow: String
 ) {
 
@@ -98,7 +102,7 @@ fun ElectronicInvoiceOtpContent(
                 ElectronicInvoiceBottomBar(
                     onBack = events.onBack,
                     onNext = events.onConfirmUpdate,
-                    isNextEnabled = state.isNextEnabled && !state.isLoading,
+                    isNextEnabled = isNextEnabled && !state.isLoading,
                     showBanner = state.showResendSuccess,
                     onCloseBanner = events.onCloseBanner
                 )

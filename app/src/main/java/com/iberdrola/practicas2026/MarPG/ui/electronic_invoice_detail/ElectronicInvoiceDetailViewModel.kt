@@ -35,6 +35,25 @@ class ElectronicInvoiceViewModel @Inject constructor(
     val phoneToShow: String
         get() = formatUserPhoneUseCase(state.userProfile.phone)
 
+    val isNextEnabled: Boolean
+        get() = when (state.currentStep) {
+            ElectronicInvoiceStep.SELECTION -> {
+                state.selectedContract != null
+            }
+            ElectronicInvoiceStep.FORM -> {
+                val emailValid = validateEmailUseCase(state.emailInput)
+                if (state.selectedContract?.isEnabled == false) {
+                    emailValid && state.isLegalAccepted
+                } else {
+                    emailValid
+                }
+            }
+            ElectronicInvoiceStep.VERIFICATION -> {
+                state.otpInput.length == 6
+            }
+            ElectronicInvoiceStep.SUCCESS -> true
+        }
+
     val events = ElectronicInvoiceEvents(
         onSelectContract = { contract ->
             selectContract(contract)
@@ -43,14 +62,12 @@ class ElectronicInvoiceViewModel @Inject constructor(
         onEmailChange = { nuevoEmail ->
             state = state.copy(
                 emailInput = nuevoEmail,
-                isNextEnabled = canContinue()
             )
         },
 
         onLegalCheckChange = { accepted ->
             state = state.copy(
                 isLegalAccepted = accepted,
-                isNextEnabled = canContinue()
             )
             logAnalytics("efactura_legal_toggle", mapOf("accepted" to accepted))
         },
@@ -59,7 +76,6 @@ class ElectronicInvoiceViewModel @Inject constructor(
             if (nuevoOtp.length <= 6 && nuevoOtp.all { it.isDigit() }) {
                 state = state.copy(
                     otpInput = nuevoOtp,
-                    isNextEnabled = nuevoOtp.length == 6
                 )
             }
         },
@@ -134,17 +150,6 @@ class ElectronicInvoiceViewModel @Inject constructor(
         ))
     }
 
-    fun canContinue(): Boolean {
-        val email = state.emailInput.trim()
-        val isEmailValid = validateEmailUseCase(email)
-        val contract = state.selectedContract ?: return false
-
-        return if (!contract.isEnabled) {
-            isEmailValid && state.isLegalAccepted
-        } else {
-            isEmailValid
-        }
-    }
 
     fun performUpdate() {
         val contract = state.selectedContract ?: return
@@ -225,6 +230,10 @@ class ElectronicInvoiceViewModel @Inject constructor(
             state = state.copy(showNoPhoneDialog = true)
             logAnalytics("efactura_missing_phone_alert")
         } else {
+            state = state.copy(
+                currentStep = ElectronicInvoiceStep.VERIFICATION,
+                otpInput = ""
+            )
             onNavigateToOtp()
         }
     }
@@ -243,10 +252,8 @@ class ElectronicInvoiceViewModel @Inject constructor(
         viewModelScope.launch {
             state = state.copy(isLoading = true, error = null)
 
-            // 1. Validamos contraseña mediante el caso de uso
             if (verifyUserPasswordUseCase(state.passwordInput)) {
 
-                // 2. Intentamos actualizar
                 val success = updateUserPhoneUseCase(state.newPhoneInput)
 
                 if (success) {
@@ -298,5 +305,8 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun logAnalytics(name: String, params: Map<String, Any?> = emptyMap()) {
         logAnalyticsUseCase(name, params)
+    }
+    fun updateStep(step: ElectronicInvoiceStep) {
+        state = state.copy(currentStep = step)
     }
 }
