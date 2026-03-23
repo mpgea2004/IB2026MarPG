@@ -1,13 +1,16 @@
 package com.iberdrola.practicas2026.MarPG.domain.use_case.users
 
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.ValidateEmailUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.ValidatePhoneUseCase
 import javax.inject.Inject
 
-class ValidateProfileUseCase @Inject constructor() {
-    private val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,}\$")
-
+class ValidateProfileUseCase @Inject constructor(
+    private val validateEmail: ValidateEmailUseCase,
+    private val validatePhone: ValidatePhoneUseCase
+) {
     operator fun invoke(email: String, phone: String): ProfileValidationResult {
-        val isEmailValid = emailPattern.matches(email)
-        val isPhoneValid = phone.length == 9 && phone.all { it.isDigit() }
+        val isEmailValid = email.isEmpty() || validateEmail(email)
+        val isPhoneValid = phone.isEmpty() || validatePhone(phone)
 
         return if (isEmailValid && isPhoneValid) {
             ProfileValidationResult.Success

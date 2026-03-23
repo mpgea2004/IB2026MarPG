@@ -12,10 +12,7 @@ import javax.inject.Inject
 class GetElectronicInvoiceUseCase @Inject constructor(
     private val repository: ElectronicInvoiceRepository
 ) {
-    /**
-     * Al invocar el caso de uso, devuelve el flujo de contratos
-     * @param isCloud Indica si debe intentar refrescar los datos desde la API
-     */
+
     operator fun invoke(isCloud: Boolean = true): Flow<List<ElectronicInvoice>> {
         return repository.getAllElectronicInvoice(isCloud)
     }

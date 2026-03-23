@@ -7,7 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.FormatUserPhoneUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateElectronicInvoiceUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateUserPhoneUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.ValidateEmailUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.VerifyUserPasswordUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -19,19 +23,17 @@ class ElectronicInvoiceViewModel @Inject constructor(
     private val updateUseCase: UpdateElectronicInvoiceUseCase,
     private val userPrefs: UserPreferencesRepository,
     private val logAnalyticsUseCase: LogAnalyticsEventUseCase,
+    private val verifyUserPasswordUseCase: VerifyUserPasswordUseCase,
+    private val updateUserPhoneUseCase: UpdateUserPhoneUseCase,
+    private val formatUserPhoneUseCase: FormatUserPhoneUseCase,
+    private val validateEmailUseCase: ValidateEmailUseCase
 ) : ViewModel() {
 
     var state by mutableStateOf(ElectronicInvoiceState())
         private set
 
-    private val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,}\$")
-
     val phoneToShow: String
-        get() = if (state.userProfile.phone.length >= 3) {
-            "******${state.userProfile.phone.takeLast(3)}"
-        } else {
-            "******"
-        }
+        get() = formatUserPhoneUseCase(state.userProfile.phone)
 
     val events = ElectronicInvoiceEvents(
         onSelectContract = { contract ->
@@ -134,7 +136,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun canContinue(): Boolean {
         val email = state.emailInput.trim()
-        val isEmailValid = emailPattern.matches(email)
+        val isEmailValid = validateEmailUseCase(email)
         val contract = state.selectedContract ?: return false
 
         return if (!contract.isEnabled) {
@@ -239,40 +241,25 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun savePhoneAndContinue(onSuccess: () -> Unit) {
         viewModelScope.launch {
-            try {
-                state = state.copy(isLoading = true, error = null)
+            state = state.copy(isLoading = true, error = null)
 
-                delay(1000)
+            // 1. Validamos contraseña mediante el caso de uso
+            if (verifyUserPasswordUseCase(state.passwordInput)) {
 
-                val userSavedPassword = state.userProfile.password
+                // 2. Intentamos actualizar
+                val success = updateUserPhoneUseCase(state.newPhoneInput)
 
-                val isPasswordCorrect = if (userSavedPassword.isEmpty()) {
-                    state.passwordInput == "1234"
-                } else {
-                    state.passwordInput == userSavedPassword
-                }
-
-                if (isPasswordCorrect) {
-                    userPrefs.updatePhone(state.newPhoneInput)
-
-                    state = state.copy(
-                        showNoPhoneDialog = false,
-                        passwordInput = "",
-                        error = null
-                    )
+                if (success) {
+                    state = state.copy(showNoPhoneDialog = false, passwordInput = "")
                     logAnalytics("efactura_phone_update_success")
                     onSuccess()
                 } else {
-                    state = state.copy(
-                        error = "La contraseña introducida no es correcta"
-                    )
-                    logAnalytics("efactura_phone_update_auth_fail")
+                    state = state.copy(error = "El formato del teléfono no es válido")
                 }
-            } catch (e: Exception) {
-                state = state.copy(error = "Ha ocurrido un error inesperado")
-            } finally {
-                state = state.copy(isLoading = false)
+            } else {
+                state = state.copy(error = "La contraseña introducida no es correcta")
             }
+            state = state.copy(isLoading = false)
         }
     }
 

@@ -6,6 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.ValidateEmailUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.ValidatePhoneUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.users.ProfileValidationResult
 import com.iberdrola.practicas2026.MarPG.domain.use_case.users.ValidateProfileUseCase
@@ -17,13 +19,21 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     private val userPrefs: UserPreferencesRepository,
     private val logAnalyticsUseCase: LogAnalyticsEventUseCase,
-    private val validateProfile: ValidateProfileUseCase
+    private val validateProfile: ValidateProfileUseCase,
+    private val validateEmailUseCase: ValidateEmailUseCase,
+    private val validatePhoneUseCase: ValidatePhoneUseCase,
 ) : ViewModel() {
 
     var state by mutableStateOf(ProfileState())
         private set
 
-    private val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,}\$")
+    val isSaveEnabled: Boolean
+        get() {
+            val isNameValid = state.name.isNotEmpty()
+            val isEmailValid = state.email.isEmpty() || validateEmailUseCase(state.email)
+            val isPhoneValid = state.phone.isEmpty() || validatePhoneUseCase(state.phone)
+            return isNameValid && isEmailValid && isPhoneValid
+        }
 
     init {
         logAnalyticsUseCase("view_profile_mar")
@@ -45,11 +55,21 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onEmailChange(newEmail: String) {
-        state = state.copy(email = newEmail, emailError = null)
+        val isValid = validateEmailUseCase(newEmail)
+        state = state.copy(
+            email = newEmail,
+            emailError = if (newEmail.isNotEmpty() && !isValid) "Formato de email inválido" else null
+        )
     }
 
     fun onPhoneChange(newPhone: String) {
-        state = state.copy(phone = newPhone, phoneError = null)
+        if (newPhone.all { it.isDigit() } && newPhone.length <= 9) {
+            val isValid = validatePhoneUseCase(newPhone)
+            state = state.copy(
+                phone = newPhone,
+                phoneError = if (newPhone.isNotEmpty() && !isValid) "El teléfono debe tener 9 dígitos" else null
+            )
+        }
     }
 
     fun onAddressChanged(newAddress: String) {
@@ -60,9 +80,6 @@ class ProfileViewModel @Inject constructor(
         state = state.copy(password = newPassword)
     }
 
-    private fun isEmailValid(email: String): Boolean {
-        return emailPattern.matches(email)
-    }
 
 
     fun saveChanges(onSuccess: () -> Unit) {

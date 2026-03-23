@@ -72,6 +72,7 @@ fun ProfileScreen(
 ) {
     val state = viewModel.state
 
+    val isSaveEnabled = viewModel.isSaveEnabled
 
     val events = ProfileEvents(
         onNameChanged = { viewModel.onNameChange(it) },
@@ -106,6 +107,7 @@ fun ProfileScreen(
         ProfileContent(
             state = state,
             events = events,
+            isSaveEnabled = isSaveEnabled,
             modifier = Modifier.padding(padding)
         )
     }
@@ -115,6 +117,7 @@ fun ProfileScreen(
 fun ProfileContent(
     state: ProfileState,
     events: ProfileEvents,
+    isSaveEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
 
@@ -208,6 +211,7 @@ fun ProfileContent(
                     events.onBackClick()
                 }
             },
+            enabled = isSaveEnabled,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

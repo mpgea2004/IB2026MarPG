@@ -8,12 +8,9 @@ import javax.inject.Inject
 class CheckFeedbackUseCase @Inject constructor(
     private val dataStore: FeedbackDataStore
 ) {
-    // Para que el ViewModel observe si ha llegado a 0
     fun shouldShowFeedback(): Flow<Boolean> = dataStore.remainingAttempts.map { it <= 0 }
 
-    // El "atrás" de la pantalla de facturas
     suspend fun notifyBackPress() = dataStore.decrementAttempts()
 
-    // Configurar la siguiente tregua
     suspend fun setNextTregua(value: Int) = dataStore.resetTo(value)
 }

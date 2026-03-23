@@ -21,7 +21,6 @@ class GetInvoiceUseCase @Inject constructor(
      */
     operator fun invoke(isCloud: Boolean) : Flow<List<Invoice>> {
         return repository.getAllInvoices(isCloud).map { invoices->
-            //Ordenación descendente usando el DateMapper para comparar fechas reales
             invoices.sortedByDescending { DateMapper.toLocalDate(it.issueDate) }
         }
     }
