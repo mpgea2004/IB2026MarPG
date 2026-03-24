@@ -202,7 +202,7 @@ fun ProfileContent(
             )
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(48.dp))
 
         Button(
 
