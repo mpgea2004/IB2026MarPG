@@ -138,12 +138,11 @@ private fun HomeHeader(userName: String,onProfileClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 32.dp),
+            .padding(top = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Top
     ) {
-        Column {
-            Spacer(modifier = Modifier.height(32.dp))
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = if (userName.isNotEmpty()) {
                     stringResource(R.string.home_header_welcome, userName)
@@ -151,6 +150,7 @@ private fun HomeHeader(userName: String,onProfileClick: () -> Unit) {
                     stringResource(R.string.home_header_welcome)
                 },
                 fontSize = 32.sp,
+                lineHeight = 38.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = GreenIberdrola
             )
@@ -158,9 +158,11 @@ private fun HomeHeader(userName: String,onProfileClick: () -> Unit) {
                 text = stringResource(R.string.home_header_subtitle),
                 fontSize = 16.sp,
                 color = TextGrey,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
+
         IconButton(
             onClick = onProfileClick,
             modifier = Modifier
