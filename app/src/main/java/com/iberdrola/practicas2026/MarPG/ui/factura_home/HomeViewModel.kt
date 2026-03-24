@@ -58,9 +58,6 @@ class HomeViewModel @Inject constructor(
         observeUserProfile()
     }
 
-    fun onProfileClicked() {
-        logAnalyticsUseCase("click_home_profile")
-    }
 
     private fun observeUserProfile() {
         viewModelScope.launch {
@@ -71,7 +68,8 @@ class HomeViewModel @Inject constructor(
     private fun observeFeedback() {
         viewModelScope.launch {
             checkFeedbackUseCase.shouldShowFeedback().collect { shouldShow ->
-                state = state.copy(isSheetVisible = shouldShow)            }
+                state = state.copy(isSheetVisible = shouldShow)
+            }
         }
     }
 }

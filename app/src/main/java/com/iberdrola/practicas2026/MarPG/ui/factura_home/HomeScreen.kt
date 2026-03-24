@@ -1,6 +1,7 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_home
 
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -55,6 +57,7 @@ fun HomeScreen(
     val state = viewModel.state
     val events = viewModel.events
     val sheetState = rememberModalBottomSheetState()
+    val context = LocalContext.current
 
 
     LaunchedEffect(state.isSheetVisible) {
@@ -79,8 +82,18 @@ fun HomeScreen(
         },
         onToggleCloud = events.onToggleCloud,
         onSheetDismiss = events.onDismissFeedback,
-        onSheetOptionSelected = events.onFeedbackOption,
-        sheetState = rememberModalBottomSheetState()
+        onSheetOptionSelected = { tregua ->
+            events.onFeedbackOption(tregua)
+
+            if (tregua == 10) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.feedback_thanks_title),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        },
+        sheetState = sheetState
     )
 }
 
