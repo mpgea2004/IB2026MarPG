@@ -7,5 +7,5 @@ import com.iberdrola.practicas2026.MarPG.data.dto.InvoiceDto
  * Facilita la recepción de la lista de facturas mediante Retrofit o Gson
  */
 data class InvoiceResponse(
-    val invoices: List<InvoiceDto> // Lista de objetos DTO de facturas
+    val invoices: List<InvoiceDto>
 )

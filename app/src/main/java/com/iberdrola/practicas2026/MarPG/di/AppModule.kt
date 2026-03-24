@@ -3,6 +3,7 @@ package com.iberdrola.practicas2026.MarPG.di
 import android.content.Context
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.gson.Gson
+import com.iberdrola.practicas2026.MarPG.data.analytics.FirebaseAnalyticsManager
 import com.iberdrola.practicas2026.MarPG.data.local.dao.ElectronicInvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDatabase
@@ -13,6 +14,7 @@ import com.iberdrola.practicas2026.MarPG.data.network.InvoiceApiServer
 import com.iberdrola.practicas2026.MarPG.data.repository.ElectronicInvoiceRepositoryImpl
 import com.iberdrola.practicas2026.MarPG.data.repository.InvoiceRepositoryImpl
 import com.iberdrola.practicas2026.MarPG.domain.repository.ElectronicInvoiceRepository
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsManager
 import com.iberdrola.practicas2026.MarPG.domain.resository.InvoiceRepository
 import dagger.Module
 import dagger.Provides
@@ -106,6 +108,12 @@ object AppModule {
     @Singleton
     fun provideFirebaseAnalytics(@ApplicationContext context: Context): FirebaseAnalytics {
         return FirebaseAnalytics.getInstance(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAnalyticsManager(firebaseAnalytics: FirebaseAnalytics): AnalyticsManager {
+        return FirebaseAnalyticsManager(firebaseAnalytics)
     }
 
 }
