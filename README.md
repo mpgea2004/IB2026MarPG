@@ -1,6 +1,8 @@
 # ⚡ Iberdrola Android - Prácticas 2026 (MarPG)
 
-![Portada de la Aplicación](app/screenshots/portada.png)
+<p align="center">
+  <img src="app/screenshots/portada.png" width="400" alt="Portada de la Aplicación">
+</p>
 
 Este repositorio contiene la solución técnica avanzada desarrollada para el programa de formación de **Iberdrola / Viewnext**. El proyecto no solo cumple con los hitos de las cuatro entregas oficiales, sino que integra módulos de valor añadido para elevar la experiencia de usuario y la robustez del sistema bajo estándares de industria.
 
@@ -52,47 +54,47 @@ graph TD
 
 #### Home (Personalizada):
 Es el centro de control principal. Ofrece accesos directos y una vista general para mejorar la usabilidad.
-![Pantalla Home](app/screenshots/home.png)
+<img src="app/screenshots/home.png" width="250" alt="Pantalla Home">
 
 #### Perfil de Usuario (Personalizada):
 Sección para que el usuario gestione su número de teléfono y email, datos clave para la facturación electrónica.
-![Pantalla Perfil de Usuario](app/screenshots/perfil_usuario.png)
+<img src="app/screenshots/perfil_usuario.png" width="250" alt="Pantalla Perfil de Usuario">
 
 #### Feed de Facturas:
 Lista principal de todas las facturas. Incluye efectos de carga (Shimmer) y responde a los filtros y la conexión de red.
-![Pantalla Feed de Facturas](app/screenshots/feed_facturas.png)
+<img src="app/screenshots/feed_facturas.png" width="250" alt="Pantalla Feed de Facturas">
 
 #### Filtrado de Facturas:
 Pantalla con filtros avanzados para buscar facturas específicas (por fecha, importe, estado, etc.).
-![Pantalla Filtrado de Facturas](app/screenshots/filtrado_facturas.png)
+<img src="app/screenshots/filtrado_facturas.png" width="250" alt="Pantalla Filtrado de Facturas">
 
 #### Feed de Facturas Electrónicas:
 Muestra el estado de la facturación electrónica para los distintos contratos, indicando cuáles están activados.
-![Pantalla Feed Facturas Electrónicas](app/screenshots/feed_factura_electronica.png)
+<img src="app/screenshots/feed_factura_electronica.png" width="250" alt="Pantalla Feed Facturas Electrónicas">
 
 #### Detalle Factura Electrónica Activa:
 Muestra los datos y opciones de configuración de una factura electrónica que ya está activada.
-![Pantalla Detalle Factura Electrónica Activa](app/screenshots/detalle_factura_electronica_activa.png)
+<img src="app/screenshots/detalle_factura_electronica_activa.png" width="250" alt="Pantalla Detalle Factura Electrónica Activa">
 
 #### Éxito Desactivar Factura Electrónica (Personalizada):
 Mensaje de confirmación que aparece tras desactivar correctamente el servicio de factura electrónica.
-![Pantalla Éxito Desactivar Factura Electrónica](app/screenshots/exito_desactivar_factura_electronica.png)
+<img src="app/screenshots/exito_desactivar_factura_electronica.png" width="250" alt="Pantalla Éxito Desactivar Factura Electrónica">
 
 #### Edición Email de Factura Electrónica Activa:
 Formulario sencillo para cambiar la dirección de correo electrónico donde se reciben las facturas electrónicas.
-![Pantalla Edición Email Factura Electrónica](app/screenshots/edicion_email_factura_electronica.png)
+<img src="app/screenshots/edicion_email_factura_electronica.png" width="250" alt="Pantalla Edición Email Factura Electrónica">
 
 #### Activación de Factura Electrónica:
 Proceso inicial para dar de alta el servicio de factura electrónica en un contrato.
-![Pantalla Activación Factura Electrónica](app/screenshots/activacion_factura_electronica.png)
+<img src="app/screenshots/activacion_factura_electronica.png" width="250" alt="Pantalla Activación Factura Electrónica">
 
 #### Código Verificación de Factura Electrónica:
 Pantalla de seguridad para introducir el código recibido (SMS/Email) y confirmar la activación del servicio.
-![Pantalla Código Verificación Factura Electrónica](app/screenshots/codigo_verificacion_factura_electronica.png)
+<img src="app/screenshots/codigo_verificacion_factura_electronica.png" width="250" alt="Pantalla Código Verificación Factura Electrónica">
 
 #### Éxito de Factura Electrónica:
 Mensaje final que confirma que el proceso de activación o modificación se ha completado con éxito.
-![Pantalla Éxito Factura Electrónica](app/screenshots/exito_factura_electronica.png)
+<img src="app/screenshots/exito_factura_electronica.png" width="250" alt="Pantalla Éxito Factura Electrónica">
 
 ---
 
