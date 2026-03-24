@@ -99,6 +99,9 @@ Mensaje final que confirma que el proceso de activación o modificación se ha c
 ---
 
 ## 🌟 Funcionalidades de Valor Añadido
+#### Gestión de Facturación Electrónica:
+Implementación de un flujo completo de activación, modificación y **desactivación** de facturas electrónicas. Incluye lógica de validación mediante código de verificación y estados de éxito personalizados, garantizando una experiencia de usuario segura y bidireccional con el backend.
+
 #### Switch de Conectividad: 
 Selector de modo para forzar el Modo Offline, permitiendo validar la robustez de la caché local en entornos sin cobertura.
 
@@ -106,7 +109,7 @@ Selector de modo para forzar el Modo Offline, permitiendo validar la robustez de
 Uso de DataStore para persistir el número de visualizaciones del diálogo de feedback, asegurando que el conteo no se pierda al cerrar la App.
 
 #### Gestión de Sesión de Usuario (DataStore):
-Implementación de un perfil de usuario persistente mediante **Protocol Buffers (Proto DataStore)**. Esta solución permite que la lógica de las pantallas (como la Home y el Perfil) reaccione instantáneamente al estado del usuario, eliminando tiempos de carga innecesarios y garantizando que la información de contacto (email/teléfono) esté disponible de forma reactiva en todo el grafo de navegación.
+Uso de **Preferences DataStore** para gestionar un perfil de usuario reactivo. Esta solución permite que la lógica de las pantallas (Home y Perfil) reaccione instantáneamente a cambios en el email o teléfono, eliminando tiempos de carga y garantizando la disponibilidad de los datos en todo el grafo de navegación.
 
 ---
 

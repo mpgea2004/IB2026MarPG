@@ -94,5 +94,4 @@ dependencies {
     // Testing de UI (Carpeta 'androidTest')
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.kotlinx.coroutines.test)
 }

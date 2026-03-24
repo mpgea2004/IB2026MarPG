@@ -48,10 +48,4 @@ class UserPreferencesRepository @Inject constructor(
             prefs[PreferencesKeys.PHONE] = newPhone
         }
     }
-
-    suspend fun updatePassword(newPass: String) {
-        context.dataStore.edit { prefs ->
-            prefs[PreferencesKeys.PASSWORD] = newPass
-        }
-    }
 }
