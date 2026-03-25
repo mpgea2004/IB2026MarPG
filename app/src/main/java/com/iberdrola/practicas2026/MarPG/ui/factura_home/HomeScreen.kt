@@ -1,6 +1,7 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_home
 
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -53,6 +55,8 @@ fun HomeScreen(
     /** Estado que controla la animación y visibilidad del ModalBottomSheet */
     val sheetState = rememberModalBottomSheetState()
 
+    val context = LocalContext.current
+
     val currentUserName = viewModel.userName
 
     LaunchedEffect(viewModel.isSheetVisible) {
@@ -70,7 +74,15 @@ fun HomeScreen(
         onNavigateToProfile = onNavigateToProfile,
         onToggleCloud = onToggleCloud,
         onSheetDismiss = { viewModel.onOptionSelected(1) },
-        onSheetOptionSelected = { tregua -> viewModel.onOptionSelected(tregua) },
+        onSheetOptionSelected = { tregua -> viewModel.onOptionSelected(tregua)
+            if (tregua == 10) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.feedback_thanks_title),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        },
         currentUserName = currentUserName
     )
 }
@@ -121,7 +133,6 @@ fun HomeContent(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
-        // Muestra el diálogo de feedback solo cuando el estado lo requiere
         if (isSheetVisible) {
             FeedbackBottomSheet(
                 sheetState = sheetState,
