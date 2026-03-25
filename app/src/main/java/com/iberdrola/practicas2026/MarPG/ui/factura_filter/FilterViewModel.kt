@@ -39,7 +39,10 @@ class FilterViewModel @Inject constructor() : ViewModel() {
      * y notificamos a la UI del cambio.
      */
     fun onPriceRangeChange(min: Float, max: Float) {
-        state = state.copy(minPrice = min, maxPrice = max)
+        val exactMin = min.toInt().toFloat()
+        val exactMax = max.toInt().toFloat()
+
+        state = state.copy(minPrice = exactMin, maxPrice = exactMax)
     }
 
     /**
