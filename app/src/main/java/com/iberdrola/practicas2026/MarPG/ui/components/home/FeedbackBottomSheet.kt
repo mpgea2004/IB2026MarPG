@@ -4,6 +4,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.iberdrola.practicas2026.MarPG.ui.components.FeedbackSheetContent
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
@@ -15,14 +19,23 @@ fun FeedbackBottomSheet(
     onDismiss: () -> Unit,
     onOptionSelected: (Int) -> Unit
 ) {
+    var isSubmitted by remember { mutableStateOf(false) }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = WhiteApp
     ) {
-        FeedbackSheetContent(
-            onRatingClick = { onOptionSelected(10) },//Si dice carita, tregua de 10
-            onLaterClick = { onOptionSelected(3) },//Si dice más tarde, tregua de 3
-        )
+        if (!isSubmitted) {
+            FeedbackSheetContent(
+                onRatingClick = {
+                    isSubmitted = true
+                    onOptionSelected(10)
+                },
+                onLaterClick = {
+                    onOptionSelected(3)
+                }
+            )
+        }
     }
 }

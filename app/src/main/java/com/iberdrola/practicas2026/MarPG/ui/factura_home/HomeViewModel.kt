@@ -20,7 +20,6 @@ class HomeViewModel @Inject constructor(
         private set
 
     init {
-        // Emoiezo a escuchar el contador en cuanto se crea la Home
         observeFeedback()
     }
 
@@ -42,10 +41,7 @@ class HomeViewModel @Inject constructor(
      */
     fun onOptionSelected(target: Int) {
         viewModelScope.launch {
-            // Guardamos la nueva tregua en DataStore y reseteamos
             checkFeedbackUseCase.setNextTregua(target)
-            // Al cambiar el valor en DataStore, el collect de arriba
-            // recibirá un número > 0 y pondrá isSheetVisible a false solo.
         }
     }
 }

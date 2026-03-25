@@ -61,4 +61,7 @@
     <string name="filter_date_to_label">Hasta</string>
     <string name="filter_date_placeholder">dd/mm/aaaa</string>
 
+    <string name="feedback_thanks_title">¡Muchas gracias!</string>
+    <string name="feedback_thanks_subtitle">Tu valoración nos ayuda a mejorar cada día.</string>
+
 </resources>

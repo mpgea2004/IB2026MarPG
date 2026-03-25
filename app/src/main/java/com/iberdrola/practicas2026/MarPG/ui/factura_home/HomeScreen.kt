@@ -1,6 +1,7 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_home
 
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,8 +40,9 @@ fun HomeScreen(
 ) {
     /** Estado que controla la animación y visibilidad del ModalBottomSheet */
     val sheetState = rememberModalBottomSheetState()
+    val context = LocalContext.current
 
-// Si el VM dice que ya no debe verse, cerramos con animación
+
     LaunchedEffect(viewModel.isSheetVisible) {
         if (!viewModel.isSheetVisible) {
             sheetState.hide()
@@ -53,7 +56,14 @@ fun HomeScreen(
         onNavigateToInvoices = onNavigateToInvoices,
         onToggleCloud = onToggleCloud,
         onSheetDismiss = { viewModel.onOptionSelected(1) },
-        onSheetOptionSelected = { tregua -> viewModel.onOptionSelected(tregua) }
+        onSheetOptionSelected = { tregua -> viewModel.onOptionSelected(tregua)
+            if (tregua == 10) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.feedback_thanks_title),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }}
     )
 }
 
@@ -71,6 +81,7 @@ fun HomeContent(
     onSheetDismiss: () -> Unit,
     onSheetOptionSelected: (Int) -> Unit
 ) {
+
     Scaffold(
         containerColor = Color(0xFFF7F9F8)
     ) { padding ->
@@ -84,12 +95,10 @@ fun HomeContent(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Tarjeta principal para navegar a la sección de facturas
             InvoiceNavigationCard(onClick = onNavigateToInvoices)
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Sección inferior para configurar si los datos vienen de API o de Mock
             DataSourceConfigSection(
                 isCloudEnabled = isCloudEnabled,
                 onToggleCloud = onToggleCloud
@@ -97,7 +106,6 @@ fun HomeContent(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
-        // Muestra el diálogo de feedback solo cuando el estado lo requiere
         if (isSheetVisible) {
             FeedbackBottomSheet(
                 sheetState = sheetState,
