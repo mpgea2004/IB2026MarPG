@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_home
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -59,6 +61,7 @@ fun HomeScreen(
 ) {
     val sheetState = rememberModalBottomSheetState()
 
+    val context = LocalContext.current
 
     Scaffold(
         containerColor = Color(0xFFF7F9F8)
@@ -89,9 +92,18 @@ fun HomeScreen(
         if (viewModel.isSheetVisible) {
             FeedbackBottomSheet(
                 sheetState = sheetState,
-                //Si el usuario cierra el sheet sin elegir, aplico tregua de 1
                 onDismiss = { viewModel.onOptionSelected(1) },
-                onOptionSelected = { tregua -> viewModel.onOptionSelected(tregua) }
+                onOptionSelected = { target ->
+                    viewModel.onOptionSelected(target)
+
+                    if (target == 10) {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.feedback_thanks_title),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             )
         }
     }
@@ -233,8 +245,8 @@ private fun FeedbackBottomSheet(
         containerColor = Color.White
     ) {
         FeedbackSheetContent(
-            onRatingClick = { onOptionSelected(10) },//Si dice carita, tregua de 10
-            onLaterClick = { onOptionSelected(3) },//Si dice más tarde, tregua de 3
+            onRatingClick = { onOptionSelected(10)},
+            onLaterClick = { onOptionSelected(3)}
         )
     }
 }

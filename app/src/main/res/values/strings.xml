@@ -27,5 +27,6 @@
     <string name="invoice_not_available_button">Aceptar</string>
     <string name="invoice_list_tab_light">Luz</string>
     <string name="invoice_list_tab_gas">Gas</string>
+    <string name="feedback_thanks_title">¡Gracias por valorar!</string>
 
 </resources>
