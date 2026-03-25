@@ -5,6 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.feedback.CheckFeedbackUseCase
@@ -12,7 +15,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** Gestión de estado para la Home y control de lógica de feedback con DataStore */@HiltViewModel
+/** Gestión de estado para la Home y control de lógica de feedback con DataStore */
+@HiltViewModel
 class HomeViewModel @Inject constructor(
     private val checkFeedbackUseCase: CheckFeedbackUseCase,
     private val userPrefs: UserPreferencesRepository,
@@ -54,17 +58,31 @@ class HomeViewModel @Inject constructor(
 
     init {
         logAnalyticsUseCase("view_home_mar")
+        fetchRemoteConfig()
         observeFeedback()
         observeUserProfile()
     }
 
+    private fun fetchRemoteConfig() {
+        val remoteConfig = Firebase.remoteConfig
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 0
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+        
+        remoteConfig.fetchAndActivate().addOnCompleteListener {
+            state = state.copy(isGasEnabled = remoteConfig.getBoolean("show_gas_contracts"))
+        }
+    }
 
     private fun observeUserProfile() {
         viewModelScope.launch {
             userPrefs.userProfileFlow.collect { profile ->
-                state = state.copy(userName = profile.name.ifEmpty { "Usuario" })            }
+                state = state.copy(userName = profile.name.ifEmpty { "Usuario" })
+            }
         }
     }
+    
     private fun observeFeedback() {
         viewModelScope.launch {
             checkFeedbackUseCase.shouldShowFeedback().collect { shouldShow ->

@@ -37,7 +37,7 @@ class InvoiceListViewModel @Inject constructor(
     var state by mutableStateOf<InvoiceListState>(InvoiceListState.LOADING)
         private set
 
-    var isGasEnabled by mutableStateOf(true)
+    var isGasEnabled: Boolean? by mutableStateOf(null)
         private set
 
     var userAddress by mutableStateOf("")
@@ -70,7 +70,6 @@ class InvoiceListViewModel @Inject constructor(
 
     init {
         logAnalyticsUseCase("view_invoice_list_mar")
-        loadInvoices()
         observeFeedback()
         observeUserProfile()
     }
@@ -95,6 +94,8 @@ class InvoiceListViewModel @Inject constructor(
         ))
     }
     private fun loadInvoices() {
+        if (isGasEnabled == null) return
+
         viewModelScope.launch {
             prepareLoadingState()
 
@@ -143,10 +144,14 @@ class InvoiceListViewModel @Inject constructor(
     }
 
     fun updateGasAvailability(enabled: Boolean) {
-        if (isGasEnabled != enabled) {
-            isGasEnabled = enabled
+        val firstLoad = isGasEnabled == null
+        isGasEnabled = enabled
 
-            logAnalyticsUseCase("remote_config_gas_updated", mapOf("enabled" to enabled))
+        logAnalyticsUseCase("remote_config_gas_updated", mapOf("enabled" to enabled))
+        
+        if (firstLoad) {
+            loadInvoices()
+        } else {
             if (!enabled && selectedTab == 1) {
                 selectTab(0)
             } else {
@@ -165,7 +170,7 @@ class InvoiceListViewModel @Inject constructor(
             return
         }
 
-        val contractTypeFilter = if (selectedTab == 0 || !isGasEnabled) {
+        val contractTypeFilter = if (selectedTab == 0 || isGasEnabled == false) {
             ContractType.LUZ
         } else {
             ContractType.GAS

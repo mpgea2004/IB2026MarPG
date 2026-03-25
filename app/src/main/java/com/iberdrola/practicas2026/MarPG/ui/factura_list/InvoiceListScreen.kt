@@ -55,9 +55,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.Firebase
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.analytics
-import com.google.firebase.analytics.logEvent
 import com.google.firebase.remoteconfig.ConfigUpdate
 import com.google.firebase.remoteconfig.ConfigUpdateListener
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
@@ -91,37 +88,41 @@ fun InvoiceListScreen(
     onBack: () -> Unit,
     onNavigateToFilters:() -> Unit
 ) {
+    val isGasEnabled = viewModel.isGasEnabled
     val currentState = viewModel.state
     val selectedTab = viewModel.selectedTab
     val errorMessage = viewModel.errorMessage
     val userAddress = viewModel.userAddress
 
     val snackbarHostState = remember { SnackbarHostState() }
-
     val remoteConfig = Firebase.remoteConfig
-    var isGasEnabled = viewModel.isGasEnabled
+
+    if (isGasEnabled == null) {
+        LoadingScreen()
+        
+        LaunchedEffect(Unit) {
+            val configSettings = remoteConfigSettings {
+                minimumFetchIntervalInSeconds = 0
+            }
+            remoteConfig.setConfigSettingsAsync(configSettings)
+
+            remoteConfig.fetchAndActivate().addOnCompleteListener {
+                viewModel.updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
+            }
+
+            remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
+                override fun onUpdate(configUpdate: ConfigUpdate) {
+                    remoteConfig.activate().addOnCompleteListener {
+                        viewModel.updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
+                    }
+                }
+                override fun onError(error: FirebaseRemoteConfigException) {}
+            })
+        }
+        return
+    }
 
     val pagerState = rememberPagerState(pageCount = { if (isGasEnabled) 2 else 1 })
-
-    LaunchedEffect(Unit) {
-        val configSettings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds = 0
-        }
-        remoteConfig.setConfigSettingsAsync(configSettings)
-
-        remoteConfig.fetchAndActivate().addOnCompleteListener {
-            viewModel.updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
-        }
-
-        remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
-            override fun onUpdate(configUpdate: ConfigUpdate) {
-                remoteConfig.activate().addOnCompleteListener {
-                    viewModel.updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
-                }
-            }
-            override fun onError(error: FirebaseRemoteConfigException) {}
-        })
-    }
 
     LaunchedEffect(errorMessage) {
         errorMessage?.let {

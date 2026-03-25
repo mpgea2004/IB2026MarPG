@@ -4,5 +4,6 @@ data class HomeState(
     val userName: String = "",
     val isSheetVisible: Boolean = false,
     val isCloudEnabled: Boolean = false,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val isGasEnabled: Boolean? = null
 )

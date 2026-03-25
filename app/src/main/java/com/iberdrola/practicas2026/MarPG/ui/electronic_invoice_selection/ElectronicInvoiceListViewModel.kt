@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.usecase.GetElectronicInvoiceUseCase
@@ -25,16 +26,20 @@ class ElectronicInvoiceListViewModel @Inject constructor(
         private set
 
     private val isCloud: Boolean = savedStateHandle["isCloud"] ?: false
+    
+    var isGasEnabledConfig: Boolean? by mutableStateOf(null)
+        private set
 
     init {
         logAnalyticsUseCase("view_electronic_invoice_selection")
-        loadInvoices()
     }
 
     /**
      * Carga inicial y reintento
      */
     fun loadInvoices() {
+        val currentShowGas = isGasEnabledConfig ?: return
+        
         viewModelScope.launch {
             state = ElectronicInvoiceListState.Loading
 
@@ -44,9 +49,25 @@ class ElectronicInvoiceListViewModel @Inject constructor(
                     logAnalyticsUseCase("elec_invoice_load_error", mapOf("error" to (e.message ?: "unknown")))
                 }
                 .collect { invoiceList ->
-                    state = ElectronicInvoiceListState.Success(invoiceList)
-                    logAnalyticsUseCase("elec_invoice_load_success", mapOf("count" to invoiceList.size))
+                    val filteredList = if (!currentShowGas) {
+                        invoiceList.filter { it.type != ContractType.GAS }
+                    } else {
+                        invoiceList
+                    }
+                    
+                    state = ElectronicInvoiceListState.Success(filteredList)
+                    logAnalyticsUseCase("elec_invoice_load_success", mapOf("count" to filteredList.size))
                 }
+        }
+    }
+    
+    /**
+     * Actualiza la disponibilidad de contratos de gas desde la UI (Remote Config)
+     */
+    fun updateGasAvailability(show: Boolean) {
+        if (isGasEnabledConfig != show) {
+            isGasEnabledConfig = show
+            loadInvoices()
         }
     }
 
