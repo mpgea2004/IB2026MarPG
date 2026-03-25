@@ -31,7 +31,9 @@ class FilterViewModel @Inject constructor(
             logAnalytics("filter_select_date_to", mapOf("date" to date))
         },
         onPriceRangeChange = { min, max ->
-            state = state.copy(minPrice = min, maxPrice = max)
+            val exactMin = min.toInt().toFloat()
+            val exactMax = max.toInt().toFloat()
+            state = state.copy(minPrice = exactMin, maxPrice = exactMax)
         },
         onStatusToggle = { status ->
             val current = state.selectedStatuses
