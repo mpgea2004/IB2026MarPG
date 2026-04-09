@@ -20,10 +20,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.SecurityPhoneDialog
+import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.WarningSameEmailDialog
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
@@ -50,22 +52,22 @@ fun ElectronicInvoiceEditEmailScreen(
         events.onViewScreen("Formulario_Editar_Email_Mar")
     }
 
-    if (state.showNoPhoneDialog) {
-        SecurityPhoneDialog(state, viewModel, onNext)
-    }
-
     ElectronicInvoiceEditEmailContent(
         state = state,
+        viewModel = viewModel,
         events = events,
         isButtonEnabled = isButtonEnabled,
+        onNext = onNext
     )
 }
 
 @Composable
 fun ElectronicInvoiceEditEmailContent(
     state: ElectronicInvoiceState,
+    viewModel: ElectronicInvoiceViewModel,
     events: ElectronicInvoiceEvents,
-    isButtonEnabled: Boolean = false
+    isButtonEnabled: Boolean = false,
+    onNext: () -> Unit
 ) {
     Scaffold(
         containerColor = WhiteApp,
@@ -84,6 +86,18 @@ fun ElectronicInvoiceEditEmailContent(
             )
         }
     ) { padding ->
+
+        if (state.showNoPhoneDialog) {
+            SecurityPhoneDialog(state = state, viewModel = viewModel, onConfirm = onNext)
+        }
+
+        if (state.showSameEmailWarning) {
+            WarningSameEmailDialog(
+                onConfirm = { events.onDismissSameEmailWarning() },
+                onDismiss = { events.onDismissSameEmailWarning() }
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -128,7 +142,9 @@ fun ElectronicInvoiceEditEmailPreview() {
     MaterialTheme {
         ElectronicInvoiceEditEmailContent(
             state = ElectronicInvoiceState(emailInput = ""),
+            viewModel = hiltViewModel(),
             events = ElectronicInvoiceEvents(),
+            onNext = {}
         )
     }
 }

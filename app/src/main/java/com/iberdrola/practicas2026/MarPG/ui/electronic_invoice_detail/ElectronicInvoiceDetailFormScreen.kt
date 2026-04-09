@@ -40,6 +40,7 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.SecurityPhoneDialog
+import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.WarningSameEmailDialog
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
@@ -56,10 +57,6 @@ fun ElectronicInvoiceDetailFormScreen(
     val isButtonEnabled = viewModel.isNextEnabled
 
     val sheetState = rememberModalBottomSheetState()
-
-    if (state.showNoPhoneDialog) {
-        SecurityPhoneDialog(state, viewModel, onNext)
-    }
 
     LaunchedEffect(Unit) {
         viewModel.updateStep(ElectronicInvoiceStep.FORM)
@@ -79,9 +76,11 @@ fun ElectronicInvoiceDetailFormScreen(
 
     ElectronicInvoiceDetailFormContent(
         state = state,
+        viewModel = viewModel,
         events = events,
         isButtonEnabled = isButtonEnabled,
-        sheetState = sheetState
+        sheetState = sheetState,
+        onNext = onNext
     )
 }
 
@@ -89,9 +88,11 @@ fun ElectronicInvoiceDetailFormScreen(
 @Composable
 fun ElectronicInvoiceDetailFormContent(
     state: ElectronicInvoiceState,
+    viewModel: ElectronicInvoiceViewModel,
     events: ElectronicInvoiceEvents,
     isButtonEnabled: Boolean = false,
-    sheetState: SheetState
+    sheetState: SheetState,
+    onNext: () -> Unit
 ) {
     val emailParaOfuscar = when {
         state.userProfile.email.isNotEmpty() -> state.userProfile.email
@@ -134,6 +135,18 @@ fun ElectronicInvoiceDetailFormContent(
             )
         }
     ) { padding ->
+
+        if (state.showNoPhoneDialog) {
+            SecurityPhoneDialog(state = state, viewModel = viewModel, onConfirm = onNext)
+        }
+
+        if (state.showSameEmailWarning) {
+            WarningSameEmailDialog(
+                onConfirm = { events.onDismissSameEmailWarning() },
+                onDismiss = { events.onDismissSameEmailWarning() }
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()

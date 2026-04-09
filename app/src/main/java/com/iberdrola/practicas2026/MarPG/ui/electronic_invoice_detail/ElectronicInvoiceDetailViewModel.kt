@@ -32,6 +32,8 @@ class ElectronicInvoiceViewModel @Inject constructor(
     var state by mutableStateOf(ElectronicInvoiceState())
         private set
 
+    private var hasAcknowledgedSameEmail = false
+
     val phoneToShow: String
         get() = formatUserPhoneUseCase(state.userProfile.phone)
 
@@ -62,7 +64,9 @@ class ElectronicInvoiceViewModel @Inject constructor(
         onEmailChange = { nuevoEmail ->
             state = state.copy(
                 emailInput = nuevoEmail,
+                showSameEmailWarning = false
             )
+            hasAcknowledgedSameEmail = false
         },
 
         onLegalCheckChange = { accepted ->
@@ -108,6 +112,10 @@ class ElectronicInvoiceViewModel @Inject constructor(
             state = state.copy(showLegalSheet = false)
         },
 
+        onDismissSameEmailWarning = {
+            dismissSameEmailWarning()
+        },
+
         onBack = {
             logAnalytics("efactura_nav_back", mapOf("from_step" to state.currentStep.name))
         },
@@ -142,8 +150,10 @@ class ElectronicInvoiceViewModel @Inject constructor(
             isEditingEmail = contract.isEnabled,
             isLegalAccepted = false,
             isSuccess = false,
-            error = null
+            error = null,
+            showSameEmailWarning = false
         )
+        hasAcknowledgedSameEmail = false
         logAnalytics("efactura_contract_selected", mapOf(
             "contract_type" to contract.type.toString(),
             "already_enabled" to contract.isEnabled
@@ -226,13 +236,20 @@ class ElectronicInvoiceViewModel @Inject constructor(
         }
     }
     fun onContinueClick(onNavigateToOtp: () -> Unit) {
+        if (state.emailInput == state.selectedContract?.email && !hasAcknowledgedSameEmail) {
+            state = state.copy(showSameEmailWarning = true)
+            hasAcknowledgedSameEmail = true
+            return
+        }
+
         if (state.userProfile.phone.isEmpty()) {
             state = state.copy(showNoPhoneDialog = true)
             logAnalytics("efactura_missing_phone_alert")
         } else {
             state = state.copy(
                 currentStep = ElectronicInvoiceStep.VERIFICATION,
-                otpInput = ""
+                otpInput = "",
+                showSameEmailWarning = false
             )
             onNavigateToOtp()
         }
@@ -308,5 +325,9 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
     fun updateStep(step: ElectronicInvoiceStep) {
         state = state.copy(currentStep = step)
+    }
+
+    fun dismissSameEmailWarning() {
+        state = state.copy(showSameEmailWarning = false)
     }
 }

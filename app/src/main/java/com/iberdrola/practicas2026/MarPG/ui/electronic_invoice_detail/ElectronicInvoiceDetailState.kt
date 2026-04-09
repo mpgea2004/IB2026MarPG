@@ -32,7 +32,9 @@ data class ElectronicInvoiceState(
     val newPhoneInput: String = "",
     val passwordInput: String = "",
     val isPasswordVisible: Boolean = false,
-    val phoneError: String? = null
+    val phoneError: String? = null,
+
+    val showSameEmailWarning: Boolean = false
 )
 enum class ElectronicInvoiceStep {
     SELECTION, FORM, VERIFICATION, SUCCESS

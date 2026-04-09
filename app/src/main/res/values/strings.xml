@@ -162,4 +162,8 @@
     <string name="feedback_thanks_title">¡Muchas gracias!</string>
     <string name="feedback_thanks_subtitle">Tu valoración nos ayuda a mejorar cada día.</string>
 
+    <string name="warning_same_email_title">Aviso de email</string>
+    <string name="warning_same_email_message">Cuidado, estás intentando poner el mismo email que ya tenías establecido.</string>
+    <string name="warning_same_email_confirm">Entendido</string>
+
 </resources>
