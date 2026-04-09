@@ -116,8 +116,8 @@
     <string name="form_legal_derechos">\n\nDerechos: Acceso, rectificación, supresión, limiteción del tratamineto, portabilidad de datos u oposición, incluida la oposición a decisiones individuales automatizadas. </string>
     <string name="form_more_info">Más info</string>
     <string name="form_checkbox_prefix">He leído y acepto la Política de privacidad, acepto las </string>
-    <string name="form_condiciones_generales">Condiciones Generales</string>
-    <string name="form_condiciones_particulares"> y Particulares</string>
+    <string name="form_condiciones_generales"> Condiciones Generales </string>
+    <string name="form_condiciones_particulares"> y Particulares </string>
     <string name="form_checkbox_suffix"> de la oferta y la suscripción a Factura Electrónica.</string>
     <string name="legal_title_responsable">Responsable del tratamiento</string>
     <string name="legal_content_responsable">Iberdrola Clientes S.A.U., con domicilio social en Plaza Euskadi número 5, 48009 Bilbao, tratará sus datos en calidad de responsable para gestionar su relación contractual y la activación de servicios digitales.</string>
@@ -158,6 +158,10 @@
     <string name="profile_label_password">Contraseña de seguridad</string>
     <string name="profile_button_save">Guardar cambios</string>
     <string name="profile_empty_address">Sin dirección asignada</string>
-    <string name="feedback_thanks_title">¡Gracias por valirar!</string>
+    <string name="feedback_thanks_title">¡Gracias por validar!</string>
+
+    <string name="warning_same_email_title">Aviso de email</string>
+    <string name="warning_same_email_message">Cuidado, estás intentando poner el mismo email que ya tenías establecido.</string>
+    <string name="warning_same_email_confirm">Entendido</string>
 
 </resources>

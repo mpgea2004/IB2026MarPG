@@ -13,6 +13,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
@@ -38,6 +39,7 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.SecurityPhoneDialog
+import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.WarningSameEmailDialog
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
@@ -58,6 +60,10 @@ fun ElectronicInvoiceDetailFormScreen(
 
     if (state.showNoPhoneDialog) {
         SecurityPhoneDialog(state, viewModel, onNext)
+    }
+    
+    if (state.showSameEmailWarning) {
+        WarningSameEmailDialog(viewModel = viewModel)
     }
 
     val events = ElectronicInvoiceEvents(
@@ -143,7 +149,7 @@ fun ElectronicInvoiceDetailFormContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.Bold, fontSize = 15.sp)
 
             TextField(
                 value = state.emailInput,
@@ -241,8 +247,10 @@ fun ElectronicInvoiceDetailFormContent(
                     modifier = Modifier.padding(start = 4.dp, top = 10.dp)
                 )
             }
+            Spacer(modifier = Modifier.height(30.dp))
+
             if (state.showLegalSheet) {
-                androidx.compose.material3.ModalBottomSheet(
+                ModalBottomSheet(
                     onDismissRequest = { events.onDismissLegal() },
                     sheetState = sheetState,
                     containerColor = Color.White

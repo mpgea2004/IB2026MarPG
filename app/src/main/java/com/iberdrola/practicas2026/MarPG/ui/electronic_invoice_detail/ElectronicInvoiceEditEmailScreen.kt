@@ -23,6 +23,7 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.SecurityPhoneDialog
+import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.WarningSameEmailDialog
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
@@ -37,6 +38,10 @@ fun ElectronicInvoiceEditEmailScreen(
 
     if (state.showNoPhoneDialog) {
         SecurityPhoneDialog(state, viewModel, onNext)
+    }
+    
+    if (state.showSameEmailWarning) {
+        WarningSameEmailDialog(viewModel = viewModel)
     }
 
     val events = ElectronicInvoiceEvents(

@@ -23,6 +23,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
         private set
 
     private val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,}\$")
+    private var hasAcknowledgedSameEmail = false
 
     init {
         observeUserProfile()
@@ -49,12 +50,18 @@ class ElectronicInvoiceViewModel @Inject constructor(
             isEditingEmail = contract.isEnabled,
             isLegalAccepted = false,
             isSuccess = false,
-            error = null
+            error = null,
+            showSameEmailWarning = false
         )
+        hasAcknowledgedSameEmail = false
     }
 
     fun onEmailChanged(nuevoEmail: String) {
-        state = state.copy(emailInput = nuevoEmail)
+        state = state.copy(
+            emailInput = nuevoEmail,
+            showSameEmailWarning = false
+        )
+        hasAcknowledgedSameEmail = false
     }
 
     fun onLegalAccepted(accepted: Boolean) {
@@ -168,11 +175,26 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
 
     fun onContinueClick(onNavigateToOtp: () -> Unit) {
+        // Comprobación de email idéntico
+        val isSameEmail = state.emailInput == state.selectedContract?.email
+        
+        if (isSameEmail && !hasAcknowledgedSameEmail) {
+            state = state.copy(showSameEmailWarning = true)
+            hasAcknowledgedSameEmail = true
+            return
+        }
+
+        // Proceso normal
         if (state.userProfile.phone.isEmpty()) {
             state = state.copy(showNoPhoneDialog = true)
         } else {
+            state = state.copy(showSameEmailWarning = false)
             onNavigateToOtp()
         }
+    }
+
+    fun dismissSameEmailWarning() {
+        state = state.copy(showSameEmailWarning = false)
     }
 
     fun onNewPhoneChanged(nuevoTelefono: String) {
