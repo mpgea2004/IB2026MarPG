@@ -93,7 +93,7 @@ fun SecurityPhoneDialog(
 
                 if (state.error != null) {
                     Text(
-                        state.error,
+                        stringResource(state.error),
                         color = Color.Red,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(top = 8.dp)

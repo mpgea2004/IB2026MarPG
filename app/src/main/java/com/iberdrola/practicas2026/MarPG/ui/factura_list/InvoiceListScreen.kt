@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -46,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -85,13 +87,14 @@ fun InvoiceListScreen(
     val selectedTab = viewModel.selectedTab
     val errorMessage = viewModel.errorMessage
     val userAddress = viewModel.userAddress
+    val context = LocalContext.current
 
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             snackbarHostState.showSnackbar(
-                message = it,
+                message = context.getString(it),
                 duration = SnackbarDuration.Short
             )
             viewModel.clearErrorMessage()
@@ -104,7 +107,7 @@ fun InvoiceListScreen(
         InvoiceNotAvailableDialog(onDismiss = { showNotAvailableDialog = false })
     }
 
-    val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
+    val pagerState = rememberPagerState(pageCount = { 2 })
 
     LaunchedEffect(pagerState.currentPage) {
         viewModel.selectTab(pagerState.currentPage)
@@ -127,7 +130,7 @@ fun InvoiceListScreen(
                     viewModel.registerBackNavigation()
                     onBack()
                 },
-                errorMessage = errorMessage,
+                errorMessage = errorMessage?.let { stringResource(it) },
                 showErrorBanner = currentState is InvoiceListState.SUCCESS && errorMessage != null            )
         }
 
@@ -135,7 +138,9 @@ fun InvoiceListScreen(
         PullToRefreshBox(
             isRefreshing = viewModel.isRefreshing,
             onRefresh = { viewModel.refreshInvoices() },
-            modifier = Modifier.padding(padding).fillMaxSize(),
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ){
             HorizontalPager(
@@ -149,7 +154,7 @@ fun InvoiceListScreen(
                     }
 
                     InvoiceListState.NODATA -> {
-                        InvoiceEmptyState(message = errorMessage)
+                        InvoiceEmptyState(message = errorMessage?.let { stringResource(it) })
                     }
 
                     is InvoiceListState.SUCCESS -> {
@@ -190,7 +195,9 @@ fun InvoiceListHeader(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 8.dp).clickable { onBack() }
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .clickable { onBack() }
             ) {
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola,                    modifier = Modifier.size(32.dp))
                 Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
@@ -314,7 +321,7 @@ fun LastInvoiceItem(invoice: Invoice) {
                 }
                 Icon(
                     painter = if (invoice.contractType == ContractType.LUZ)
-                        rememberVectorPainter(Icons.Outlined.Lightbulb) //Convierte el Vector a Painter
+                        rememberVectorPainter(Icons.Outlined.Lightbulb)
                     else
                         painterResource(R.drawable.ic_invoice_gas),
                     contentDescription = null,

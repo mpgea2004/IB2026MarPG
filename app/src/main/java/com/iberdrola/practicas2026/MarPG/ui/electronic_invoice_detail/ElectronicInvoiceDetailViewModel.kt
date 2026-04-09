@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateElectronicInvoiceUseCase
@@ -23,6 +24,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
         private set
 
     private val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,}\$")
+    
     private var hasAcknowledgedSameEmail = false
 
     init {
@@ -68,9 +70,6 @@ class ElectronicInvoiceViewModel @Inject constructor(
         state = state.copy(isLegalAccepted = accepted)
     }
 
-    /**
-     * Validación del botón de continuar.
-     */
     fun canContinue(): Boolean {
         val email = state.emailInput.trim()
         val isEmailValid = emailPattern.matches(email)
@@ -109,7 +108,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
                     error = null
                 )
             } catch (e: Exception) {
-                state = state.copy(isLoading = false, error = e.message)
+                state = state.copy(isLoading = false, error = R.string.error_unexpected)
             }
         }
     }
@@ -135,7 +134,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
                     error = null
                 )
             } catch (e: Exception) {
-                state = state.copy(isLoading = false, error = e.message)
+                state = state.copy(isLoading = false, error = R.string.error_unexpected)
             }
         }
     }
@@ -175,7 +174,6 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
 
     fun onContinueClick(onNavigateToOtp: () -> Unit) {
-        // Comprobación de email idéntico
         val isSameEmail = state.emailInput == state.selectedContract?.email
         
         if (isSameEmail && !hasAcknowledgedSameEmail) {
@@ -184,7 +182,6 @@ class ElectronicInvoiceViewModel @Inject constructor(
             return
         }
 
-        // Proceso normal
         if (state.userProfile.phone.isEmpty()) {
             state = state.copy(showNoPhoneDialog = true)
         } else {
@@ -233,11 +230,11 @@ class ElectronicInvoiceViewModel @Inject constructor(
                     onSuccess()
                 } else {
                     state = state.copy(
-                        error = "La contraseña introducida no es correcta"
+                        error = R.string.error_incorrect_password
                     )
                 }
             } catch (e: Exception) {
-                state = state.copy(error = "Ha ocurrido un error inesperado")
+                state = state.copy(error = R.string.error_unexpected)
             } finally {
                 state = state.copy(isLoading = false)
             }

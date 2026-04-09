@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceException
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
@@ -31,6 +32,7 @@ class InvoiceListViewModel @Inject constructor(
     private val userPrefs: UserPreferencesRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
     var state by mutableStateOf<InvoiceListState>(InvoiceListState.LOADING)
         private set
 
@@ -47,7 +49,7 @@ class InvoiceListViewModel @Inject constructor(
 
     private val isCloud: Boolean = savedStateHandle["isCloud"] ?: false
 
-    var errorMessage by mutableStateOf<String?>(null)
+    var errorMessage by mutableStateOf<Int?>(null)
         private set
 
     var currentFilterState by mutableStateOf(FilterState())
@@ -103,7 +105,13 @@ class InvoiceListViewModel @Inject constructor(
     }
 
     private fun handleLoadError(e: Throwable) {
-        errorMessage = if (e is InvoiceException) e.message else InvoiceException.Unknown.message
+        errorMessage = when(e) {
+            is InvoiceException.NetworkError -> R.string.error_unexpected
+            is InvoiceException.ServerError -> R.string.error_unexpected
+            is InvoiceException.LocalDataError -> R.string.error_unknown
+            else -> R.string.error_unknown
+        }
+        
         if (allInvoices.isEmpty()) {
             state = InvoiceListState.NODATA
         }

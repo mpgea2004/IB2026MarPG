@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -59,12 +60,12 @@ class ProfileViewModel @Inject constructor(
         val isPhoneValid = state.phone.length == 9
 
         if (!isEmailValid(state.email)) {
-            state = state.copy(emailError = "El formato del correo no es válido")
+            state = state.copy(emailError = R.string.error_invalid_email_format)
             return
         }
 
         if (!isPhoneValid) {
-            state = state.copy(phoneError = "El teléfono debe tener 9 dígitos")
+            state = state.copy(phoneError = R.string.error_invalid_phone_format)
             return
         }
         viewModelScope.launch {

@@ -18,7 +18,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
@@ -239,7 +238,7 @@ fun ProfileField(
     value: String,
     label: String,
     icon: ImageVector,
-    errorMessage: String? = null,
+    errorMessage: Int? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
     onValueChange: (String) -> Unit
 ) {
@@ -263,7 +262,7 @@ fun ProfileField(
         )
         if (errorMessage != null) {
             Text(
-                text = errorMessage,
+                text = stringResource(errorMessage),
                 color = Color.Red,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(start = 16.dp, top = 4.dp)
