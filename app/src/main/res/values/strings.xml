@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">IB2026MarPG</string>
     <string name="home_header_subtitle">Gestión de energía y facturación</string>
-    <string name="home_header_welcome">¡Bienvenido, %1$s!</string>
-    <string name="home_header_title">¡Bienvenido!</string>
+    <string name="home_header_welcome">¡Buenas, %1$s!</string>
+    <string name="home_header_title">¡Buenas!</string>
     <string name="home_profile_description">Ver Perfil</string>
     <string name="home_invoices_subtitle">Gestiona tus contratos y facturas de forma sencilla.</string>
     <string name="home_invoices_title">Mis facturas</string>
