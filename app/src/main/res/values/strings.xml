@@ -170,5 +170,6 @@
     <string name="error_incorrect_password">La contraseña introducida no es correcta</string>
     <string name="error_unexpected">Ha ocurrido un error inesperado</string>
     <string name="error_unknown">Error desconocido</string>
+    <string name="invoice_list_last_invoice_date_range_short">%1$s - %2$s</string>
 
 </resources>

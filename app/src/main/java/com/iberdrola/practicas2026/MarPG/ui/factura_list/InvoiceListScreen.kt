@@ -75,6 +75,8 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
 import androidx.activity.compose.BackHandler
+import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper.formatToShortDisplay
+import com.iberdrola.practicas2026.MarPG.ui.theme.BorderLight
 
 /** Pantalla principal del listado de facturas con filtrado por tipo y estados de carga */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -308,6 +310,10 @@ fun InvoiceListContent(
 /** Tarjeta destacada para la factura más reciente, esta también se ve afectada por el filtrado */
 @Composable
 fun LastInvoiceItem(invoice: Invoice) {
+
+    val startDateFormatted = formatToShortDisplay(invoice.startDate)
+    val endDateFormatted = formatToShortDisplay(invoice.endDate)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -344,18 +350,14 @@ fun LastInvoiceItem(invoice: Invoice) {
             }
             Text(text = invoice.amount.toAnnotatedCurrencyFormat(28.sp), fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 8.dp))
             Text(
-                text = stringResource(
-                    id = R.string.invoice_list_last_invoice_date_range,
-                    invoice.startDate,
-                    invoice.endDate
-                ),
+                text = stringResource(R.string.invoice_list_last_invoice_date_range, startDateFormatted, endDateFormatted),
                 color = TextGrey,
                 fontSize = 12.sp
             )
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 16.dp),
-                thickness = DividerDefaults.Thickness,
-                color = DividerDefaults.color
+                thickness = 1.dp,
+                color = BorderLight
             )
             StatusBadge(invoice.status)
         }
