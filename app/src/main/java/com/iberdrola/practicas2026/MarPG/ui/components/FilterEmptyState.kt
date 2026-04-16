@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
 /**
  * Componente visual que se muestra cuando el usuario aplica filtros
@@ -49,7 +50,8 @@ fun FilterEmptyState() {
             textAlign = TextAlign.Center,
             fontSize = 16.sp,
             color = Color.Gray,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            fontFamily = IberPangeaFamily
         )
         Spacer(modifier = Modifier.height(24.dp))
     }

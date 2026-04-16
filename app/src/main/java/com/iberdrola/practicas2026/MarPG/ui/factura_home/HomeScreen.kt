@@ -39,6 +39,7 @@ import com.iberdrola.practicas2026.MarPG.ui.components.home.ElectronicInvoiceCar
 import com.iberdrola.practicas2026.MarPG.ui.components.home.FeedbackBottomSheet
 import com.iberdrola.practicas2026.MarPG.ui.components.home.InvoiceNavigationCard
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 
 /** Pantalla principal: acceso a facturas y configuración de origen de datos */
@@ -163,14 +164,16 @@ private fun HomeHeader(userName: String,onProfileClick: () -> Unit) {
                 fontSize = 32.sp,
                 lineHeight = 38.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = GreenIberdrola
+                color = GreenIberdrola,
+                fontFamily = IberPangeaFamily
             )
             Text(
                 text = stringResource(R.string.home_header_subtitle),
                 fontSize = 16.sp,
                 color = TextGrey,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 4.dp),
+                fontFamily = IberPangeaFamily
             )
         }
 

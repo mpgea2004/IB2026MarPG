@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
 
 /**
@@ -49,7 +50,7 @@ fun FeedbackSheetContent(
             .padding(bottom = 32.dp, start = 24.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(stringResource(R.string.feedback_sheet_title), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.feedback_sheet_title), fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -58,7 +59,8 @@ fun FeedbackSheetContent(
             textAlign = TextAlign.Center,
             color = Color.Gray,
             fontSize = 15.sp,
-            lineHeight = 20.sp
+            lineHeight = 20.sp,
+            fontFamily = IberPangeaFamily
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp), thickness = 0.5.dp, color = Color.LightGray)
@@ -97,7 +99,8 @@ fun FeedbackSheetContent(
             color = Color(0xFF008244),
             fontWeight = FontWeight.Bold,
             textDecoration = TextDecoration.Underline,
-            modifier = Modifier.clickable { onLaterClick() }
+            modifier = Modifier.clickable { onLaterClick() },
+            fontFamily = IberPangeaFamily
         )
     }
 }

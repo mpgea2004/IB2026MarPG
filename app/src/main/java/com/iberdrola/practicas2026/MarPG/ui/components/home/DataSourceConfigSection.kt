@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 /** Switch para alternar entre Mockoon (Nube) y Assets (Local) */
@@ -35,7 +36,8 @@ fun DataSourceConfigSection(
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Gray,
-            modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
+            modifier = Modifier.padding(bottom = 8.dp, start = 4.dp),
+            fontFamily = IberPangeaFamily
         )
 
         Card(
@@ -52,12 +54,14 @@ fun DataSourceConfigSection(
                     Text(
                         text = if (isCloudEnabled) stringResource(R.string.home_footer_typeS) else stringResource(R.string.home_footer_typeL),
                         fontWeight = FontWeight.Bold,
-                        color = if (isCloudEnabled) GreenIberdrola else Color.DarkGray
+                        color = if (isCloudEnabled) GreenIberdrola else Color.DarkGray,
+                        fontFamily = IberPangeaFamily
                     )
                     Text(
                         text = stringResource(R.string.home_footer_subtitle),
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = Color.Gray,
+                        fontFamily = IberPangeaFamily
                     )
                 }
                 Switch(

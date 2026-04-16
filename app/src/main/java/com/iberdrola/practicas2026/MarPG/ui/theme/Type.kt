@@ -36,5 +36,6 @@ val Typography = Typography(
 )
 val IberPangeaFamily = FontFamily(
     Font(R.font.iber_pangea, FontWeight.Normal),
-    Font(R.font.pangea_bold, FontWeight.Bold)
+            Font(R.font.pangea_bold, FontWeight.ExtraBold),
+            Font(R.font.pangea_medium, FontWeight.Bold)
 )

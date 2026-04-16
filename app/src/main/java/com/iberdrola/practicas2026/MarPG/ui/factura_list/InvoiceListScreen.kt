@@ -213,7 +213,7 @@ fun InvoiceListHeader(
             ) {
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola,
                     modifier = Modifier.size(32.dp))
-                Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.ExtraBold, textDecoration = TextDecoration.Underline)
+                Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
             }
             Spacer(modifier = Modifier.height(16.dp))
             if (showErrorBanner && errorMessage != null) {
@@ -224,7 +224,8 @@ fun InvoiceListHeader(
                 address.ifEmpty { stringResource(R.string.profile_empty_address) },
                 color = Color.Black,
                 fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontFamily = IberPangeaFamily
             )
             Spacer(modifier = Modifier.height(16.dp))
             Row(
@@ -277,7 +278,8 @@ fun InvoiceListContent(
                 Text(
                     stringResource(R.string.invoice_list_historic_title),
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = IberPangeaFamily
                 )
                 FilterButton(onClick = { events.onFilter() })
             }
@@ -294,7 +296,8 @@ fun InvoiceListContent(
                         text = year,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = Color.Black,
+                        fontFamily = IberPangeaFamily
                     )
                 }
                 items(invoicesOfYear) { invoice ->
@@ -331,7 +334,7 @@ fun LastInvoiceItem(invoice: Invoice) {
             .background(WhiteApp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text(stringResource(R.string.invoice_list_last_invoice_title), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.invoice_list_last_invoice_title), fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
                     Text(
                         text = stringResource(
                             id = R.string.invoice_list_invoice_type_label,
@@ -339,7 +342,8 @@ fun LastInvoiceItem(invoice: Invoice) {
                         ),
                         color = Color.Black,
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = IberPangeaFamily
                     )
                 }
                 Icon(
@@ -352,11 +356,12 @@ fun LastInvoiceItem(invoice: Invoice) {
                     modifier = Modifier.size(32.dp)
                 )
             }
-            Text(text = invoice.amount.toAnnotatedCurrencyFormat(28.sp), fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 8.dp))
+            Text(text = invoice.amount.toAnnotatedCurrencyFormat(28.sp), fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 8.dp),fontFamily = IberPangeaFamily)
             Text(
                 text = stringResource(R.string.invoice_list_last_invoice_date_range, startDateFormatted, endDateFormatted),
                 color = TextGrey,
-                fontSize = 12.sp
+                fontSize = 12.sp,
+                fontFamily = IberPangeaFamily
             )
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 16.dp),
@@ -382,11 +387,11 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(dateDisplay, fontWeight = FontWeight.Bold)
+                Text(dateDisplay, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
                 Text(text = stringResource(
                     id = R.string.invoice_list_invoice_type_label,
                     invoice.contractType.name.lowercase()
-                ), color = Color.Black, fontSize = 14.sp)
+                ), color = Color.Black, fontSize = 14.sp,fontFamily = IberPangeaFamily)
                 Spacer(modifier = Modifier.height(8.dp))
                 StatusBadge(invoice.status)
             }
@@ -396,13 +401,13 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
                     text = invoice.amount.toAnnotatedCurrencyFormat(14.sp, 14.sp),
                     color = TextGrey,
                     fontWeight = FontWeight.Medium,
+                    fontFamily = IberPangeaFamily
                 )
                 Icon(
                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = null,
                     tint = TextGrey,
                     modifier = Modifier.size(32.dp)
-
                 )
             }
         }

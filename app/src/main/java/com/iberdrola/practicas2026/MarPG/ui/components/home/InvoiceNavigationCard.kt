@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
@@ -75,12 +76,14 @@ fun InvoiceNavigationCard(onClick: () -> Unit) {
                     stringResource(R.string.home_invoices_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = Color.Black,
+                    fontFamily = IberPangeaFamily
                 )
                 Text(
                     stringResource(R.string.home_invoices_subtitle),
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = Color.Gray,
+                    fontFamily = IberPangeaFamily
                 )
             }
         }

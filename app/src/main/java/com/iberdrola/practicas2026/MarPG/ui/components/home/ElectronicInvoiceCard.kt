@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
@@ -51,12 +52,14 @@ fun ElectronicInvoiceCard(onClick: () -> Unit) {
                     text = stringResource(R.string.electronic_invoice_card_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = Color.Black,
+                    fontFamily = IberPangeaFamily
                 )
                 Text(
                     text = stringResource(R.string.electronic_invoice_card_subtitle),
                     fontSize = 14.sp,
-                    color = TextGrey
+                    color = TextGrey,
+                    fontFamily = IberPangeaFamily
                 )
             }
             Icon(
