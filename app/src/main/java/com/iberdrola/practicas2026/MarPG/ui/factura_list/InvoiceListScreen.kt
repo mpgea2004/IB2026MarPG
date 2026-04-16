@@ -74,6 +74,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
+import androidx.activity.compose.BackHandler
 
 /** Pantalla principal del listado de facturas con filtrado por tipo y estados de carga */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +84,12 @@ fun InvoiceListScreen(
     onBack: () -> Unit,
     onNavigateToFilters:() -> Unit
 ) {
+
+    BackHandler {
+        viewModel.registerBackNavigation()
+        onBack()
+    }
+
     val currentState = viewModel.state
     val selectedTab = viewModel.selectedTab
     val errorMessage = viewModel.errorMessage
