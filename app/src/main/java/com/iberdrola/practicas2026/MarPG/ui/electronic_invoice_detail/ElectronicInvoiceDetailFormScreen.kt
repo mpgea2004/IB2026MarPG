@@ -1,6 +1,7 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -145,7 +147,7 @@ fun ElectronicInvoiceDetailFormContent(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(stringResource(R.string.form_linked_email_label), fontSize = 12.sp)
-            Text(emailActualOfuscado, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(emailActualOfuscado, fontWeight = FontWeight.Bold, fontSize = 12.sp)
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -155,13 +157,21 @@ fun ElectronicInvoiceDetailFormContent(
                 value = state.emailInput,
                 onValueChange = events.onEmailChange,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                placeholder = { Text(stringResource(R.string.form_email_placeholder), fontSize = 14.sp) },
+                textStyle = TextStyle(
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                ),
+                placeholder = { Text(stringResource(R.string.form_email_placeholder), fontSize = 14.sp, color = Color.Gray)},
                 colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Gray,
                     unfocusedContainerColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.LightGray,
                     focusedContainerColor = Color.Transparent,
                     focusedIndicatorColor = GreenDarkIberdrola,
                     cursorColor = GreenDarkIberdrola
-                )
+                ),
+                singleLine = true
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -174,6 +184,7 @@ fun ElectronicInvoiceDetailFormContent(
 
             val proteccionDatosText = buildAnnotatedString {
                 append(stringResource(R.string.form_legal_responsable))
+                append(" ")
                 appendLink(moreInfo) {
                     events.onShowLegal(
                         legalTitleResp,
@@ -182,6 +193,7 @@ fun ElectronicInvoiceDetailFormContent(
                 }
 
                 append(stringResource(R.string.form_legal_finalidad))
+                append(" ")
                 appendLink(moreInfo) {
                     events.onShowLegal(
                         legalTitleFin,
@@ -190,6 +202,7 @@ fun ElectronicInvoiceDetailFormContent(
                 }
 
                 append(stringResource(R.string.form_legal_derechos))
+                append(" ")
                 appendLink(moreInfo) {
                     events.onShowLegal(
                         legalTitleDer,
@@ -210,6 +223,7 @@ fun ElectronicInvoiceDetailFormContent(
 
             val checkboxText = buildAnnotatedString {
                 append(stringResource(R.string.form_checkbox_prefix))
+                append(" ")
 
                 appendLink(stringResource(R.string.form_condiciones_generales)) {
                     events.onShowLegal(
@@ -217,6 +231,7 @@ fun ElectronicInvoiceDetailFormContent(
                         legalContentGen
                     )
                 }
+                append(" ")
 
                 appendLink(stringResource(R.string.form_condiciones_particulares)) {
                     events.onShowLegal(
@@ -224,6 +239,7 @@ fun ElectronicInvoiceDetailFormContent(
                         legalContentPart
                     )
                 }
+                append(" ")
 
                 append(stringResource(R.string.form_checkbox_suffix))
             }
@@ -238,7 +254,7 @@ fun ElectronicInvoiceDetailFormContent(
                     colors = CheckboxDefaults.colors(
                         checkedColor = GreenDarkIberdrola,
                         uncheckedColor = GreenDarkIberdrola,
-                        checkmarkColor = Color.White
+                        checkmarkColor = WhiteApp
                     )
                 )
                 Text(
@@ -253,7 +269,7 @@ fun ElectronicInvoiceDetailFormContent(
                 ModalBottomSheet(
                     onDismissRequest = { events.onDismissLegal() },
                     sheetState = sheetState,
-                    containerColor = Color.White
+                    containerColor = WhiteApp
                 ) {
                     Column(
                         modifier = Modifier

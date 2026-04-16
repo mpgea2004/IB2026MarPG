@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
@@ -28,9 +29,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -124,19 +127,19 @@ fun ElectronicInvoiceOtpContent(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
             ) {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = stringResource(R.string.otp_input_header),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontSize = 16.sp
                 )
 
                 Text(
                     text = stringResource(R.string.otp_description, phoneToShow),
                     fontSize = 12.sp,
-                    color = Color.DarkGray,
+                    color = Color.Black,
                     lineHeight = 12.sp,
                     modifier = Modifier.padding(top = 16.dp)
                 )
@@ -145,14 +148,14 @@ fun ElectronicInvoiceOtpContent(
                     value = state.otpInput,
                     onValueChange = events.onOtpChange,
                     modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
-                    placeholder = { Text(stringResource(R.string.otp_placeholder), fontSize = 14.sp) },
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                        keyboardType = androidx.compose.ui.text.input.KeyboardType.NumberPassword
+                    placeholder = { Text(stringResource(R.string.otp_placeholder), fontSize = 14.sp, color = Color.DarkGray) },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.NumberPassword
                     ),
                     colors = TextFieldDefaults.colors(
                         unfocusedContainerColor = Color.Transparent,
                         focusedContainerColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.LightGray,
+                        unfocusedIndicatorColor = Color.DarkGray,
                         focusedIndicatorColor = GreenDarkIberdrola
                     ),
                     singleLine = true
@@ -206,7 +209,9 @@ fun ElectronicInvoiceOtpContent(
                                     color = GreenDarkIberdrola,
                                     textDecoration = TextDecoration.Underline,
                                     modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
                                         .clickable { events.onResendOtp() }
+                                        .padding(vertical = 2.dp)
                                 )
                             }
                         }

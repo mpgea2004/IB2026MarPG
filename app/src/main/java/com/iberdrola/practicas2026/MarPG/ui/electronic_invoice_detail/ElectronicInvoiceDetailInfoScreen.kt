@@ -170,7 +170,7 @@ fun ElectronicInvoiceDetailInfoContent(
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
+                        containerColor = WhiteApp,
                         contentColor = GreenDarkIberdrola
                     ),
                     border = BorderStroke(1.5.dp, color = GreenDarkIberdrola)
@@ -187,7 +187,7 @@ fun ElectronicInvoiceDetailInfoContent(
                         .padding(16.dp)
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola)
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola, contentColor = WhiteApp)
                 ) {
                     Icon(imageVector = Icons.Outlined.Edit, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))

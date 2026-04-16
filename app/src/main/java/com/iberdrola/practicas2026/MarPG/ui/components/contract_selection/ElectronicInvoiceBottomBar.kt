@@ -74,7 +74,8 @@ fun ElectronicInvoiceBottomBar(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = GreenDarkIberdrola,
                     disabledContainerColor = Color(0xFFF2F4F2),
-                    disabledContentColor = Color.LightGray
+                    disabledContentColor = Color.LightGray,
+                    contentColor = WhiteApp
                 )
             ) {
                 Text(nextText, fontWeight = FontWeight.Bold)

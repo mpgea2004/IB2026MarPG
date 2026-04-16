@@ -78,6 +78,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.ui.draw.clip
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper.formatToShortDisplay
 import com.iberdrola.practicas2026.MarPG.ui.theme.BorderLight
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
 /** Pantalla principal del listado de facturas con filtrado por tipo y estados de carga */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -212,13 +213,13 @@ fun InvoiceListHeader(
             ) {
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola,
                     modifier = Modifier.size(32.dp))
-                Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
+                Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.ExtraBold, textDecoration = TextDecoration.Underline)
             }
             Spacer(modifier = Modifier.height(16.dp))
             if (showErrorBanner && errorMessage != null) {
                 ErrorBanner(message = errorMessage)
             }
-            Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
             Text(
                 address.ifEmpty { stringResource(R.string.profile_empty_address) },
                 color = Color.Black,

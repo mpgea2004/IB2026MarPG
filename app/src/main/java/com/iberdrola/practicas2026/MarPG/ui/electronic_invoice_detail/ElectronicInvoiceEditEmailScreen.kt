@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -89,12 +90,12 @@ fun ElectronicInvoiceEditEmailContent(
                 .padding(padding)
                 .padding(horizontal = 24.dp)
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = stringResource(R.string.edit_email_question),
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = 16.sp,
+                fontSize = 15.sp,
                 lineHeight = 22.sp,
                 color = Color(0xFF222222)
             )
@@ -105,6 +106,10 @@ fun ElectronicInvoiceEditEmailContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp),
+                textStyle = TextStyle(
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                ),
                 placeholder = {
                     Text(stringResource(R.string.edit_email_placeholder), fontSize = 14.sp, color = Color.Gray)
                 },
@@ -112,6 +117,8 @@ fun ElectronicInvoiceEditEmailContent(
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.LightGray,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Gray,
                     focusedIndicatorColor = GreenDarkIberdrola,
                     cursorColor = GreenDarkIberdrola
                 ),
