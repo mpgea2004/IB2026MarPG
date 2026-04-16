@@ -369,7 +369,7 @@ fun FilterScreenFilledPreview() {
                 maxPrice = 150f,
                 selectedStatuses = setOf("Pagadas")
             ),
-            events = FilterEvents(), // Eventos vacíos para la preview
+            events = FilterEvents(),
         )
     }
 }

@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -50,8 +51,12 @@ fun FilterActionButtons(
             color = GreenIberdrola,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
                 .clickable { onClear() }
-                .padding(bottom = 32.dp)
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .padding(bottom = 8.dp)
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
