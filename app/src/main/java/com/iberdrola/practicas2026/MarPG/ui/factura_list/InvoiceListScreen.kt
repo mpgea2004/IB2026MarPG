@@ -75,6 +75,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.draw.clip
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper.formatToShortDisplay
 import com.iberdrola.practicas2026.MarPG.ui.theme.BorderLight
 
@@ -206,9 +207,11 @@ fun InvoiceListHeader(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(top = 8.dp)
+                    .clip(RoundedCornerShape(50))
                     .clickable { onBack() }
             ) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola,                    modifier = Modifier.size(32.dp))
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola,
+                    modifier = Modifier.size(32.dp))
                 Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
             }
             Spacer(modifier = Modifier.height(16.dp))
