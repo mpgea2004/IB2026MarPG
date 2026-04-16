@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 
 /**
@@ -56,7 +57,8 @@ fun PriceRangeSection(
                     maxPrice.toInt()
                 ),
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                fontFamily = IberPangeaFamily
             )
         }
 
@@ -119,8 +121,8 @@ fun PriceRangeSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = stringResource(id = R.string.filter_price_limit, minLimit.toInt()), color = Color.Gray, fontSize = 14.sp)
-            Text(stringResource(id = R.string.filter_price_limit, maxLimit.toInt()), color = Color.Gray, fontSize = 14.sp)
+            Text(text = stringResource(id = R.string.filter_price_limit, minLimit.toInt()), color = Color.Gray, fontSize = 14.sp,fontFamily = IberPangeaFamily)
+            Text(stringResource(id = R.string.filter_price_limit, maxLimit.toInt()), color = Color.Gray, fontSize = 14.sp,fontFamily = IberPangeaFamily)
         }
     }
 }

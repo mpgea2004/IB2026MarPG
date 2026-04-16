@@ -32,6 +32,7 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 
 /**
@@ -119,7 +120,8 @@ fun ContractInfo(
             text = title,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            color = Color.Black
+            color = Color.Black,
+            fontFamily = IberPangeaFamily
         )
 
         Spacer(modifier = Modifier.height(6.dp))
@@ -133,7 +135,8 @@ fun ContractInfo(
                 color = contentColor,
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontFamily = IberPangeaFamily
             )
         }
     }

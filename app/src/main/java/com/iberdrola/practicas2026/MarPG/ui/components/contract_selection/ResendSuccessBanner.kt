@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 
 @Composable
@@ -44,7 +45,8 @@ fun ResendSuccessBanner(onClose: () -> Unit) {
             text = stringResource(R.string.banner_resend_success),
             fontSize = 9.5.sp,
             color = Color.Black,
-            modifier = Modifier.weight(0.5f)
+            modifier = Modifier.weight(0.5f),
+            fontFamily = IberPangeaFamily
         )
         Icon(
             imageVector = Icons.Default.Close,

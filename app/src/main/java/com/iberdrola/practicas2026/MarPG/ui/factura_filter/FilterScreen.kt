@@ -68,10 +68,13 @@ import com.iberdrola.practicas2026.MarPG.ui.components.filter.StatusFilterSectio
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
+import java.util.Locale.getDefault
 
 /**
  * Pantalla principal de filtrado de facturas
@@ -160,7 +163,8 @@ fun FilterTopBar(onBack: () -> Unit) {
                     text = stringResource(R.string.invoice_list_back),
                     color = GreenIberdrola,
                     fontWeight = FontWeight.Bold,
-                    textDecoration = TextDecoration.Underline
+                    textDecoration = TextDecoration.Underline,
+                    fontFamily = IberPangeaFamily
                 )
             }
         }
@@ -226,7 +230,8 @@ fun FilterContent(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.Black,
-                modifier = Modifier.padding(top = 16.dp)
+                modifier = Modifier.padding(top = 16.dp),
+                fontFamily = IberPangeaFamily
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -245,7 +250,7 @@ fun FilterContent(
                         Toast.makeText(
                             context,
                             "Selecciona primero una fecha de inicio",
-                            Toast.LENGTH_SHORT
+                            Toast.LENGTH_SHORT,
                         ).show()
                     }
                 }
@@ -253,7 +258,7 @@ fun FilterContent(
             Spacer(modifier = Modifier.height(40.dp))
 
             //Importe
-            Text(stringResource(R.string.invoice_filter_price), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.invoice_filter_price), fontSize = 14.sp, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
             Spacer(modifier = Modifier.height(16.dp))
 
             //Etiqueta precio
@@ -300,7 +305,7 @@ fun MyDatePickerDialog(
     val minDateMillis = remember(minDateStr) {
         if (!minDateStr.isNullOrEmpty()) {
             try {
-                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(minDateStr)?.time
+                SimpleDateFormat("dd/MM/yyyy", getDefault()).parse(minDateStr)?.time
             } catch (e: Exception) { null }
         } else null
     }
@@ -317,8 +322,8 @@ fun MyDatePickerDialog(
     )
 
     val selectedDate = datePickerState.selectedDateMillis?.let {
-        val date = java.util.Date(it)
-        val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val date = Date(it)
+        val format = SimpleDateFormat("dd/MM/yyyy",getDefault())
         format.format(date)
     } ?: ""
 
@@ -329,12 +334,12 @@ fun MyDatePickerDialog(
                 if (selectedDate.isNotEmpty()) onDateSelected(selectedDate)
                 onDismiss()
             }) {
-                Text("OK", color = GreenIberdrola, fontWeight = FontWeight.Bold)
+                Text("OK", color = GreenIberdrola, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
             }
         },
         dismissButton = {
             TextButton(onClick = { onDismiss() }) {
-                Text("Cancelar", color = GreenIberdrola)
+                Text("Cancelar", color = GreenIberdrola,fontFamily = IberPangeaFamily)
             }
         }
     ) {

@@ -27,7 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Brush.Companion.linearGradient
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -42,9 +44,9 @@ import androidx.compose.ui.unit.dp
 fun shimmerBrush(showShimmer: Boolean = true, targetValue: Float = 1000f): Brush {
     return if (showShimmer) {
         val shimmerColors = listOf(
-            Color.LightGray.copy(alpha = 0.6f),
-            Color.LightGray.copy(alpha = 0.2f),
-            Color.LightGray.copy(alpha = 0.6f),
+            LightGray.copy(alpha = 0.6f),
+            LightGray.copy(alpha = 0.2f),
+            LightGray.copy(alpha = 0.6f),
         )
 
         val transition = rememberInfiniteTransition(label = "shimmerTransition")
@@ -57,13 +59,13 @@ fun shimmerBrush(showShimmer: Boolean = true, targetValue: Float = 1000f): Brush
             ), label = "shimmerAnimation"
         )
 
-        Brush.linearGradient(
+        linearGradient(
             colors = shimmerColors,
             start = Offset.Zero,
             end = Offset(x = translateAnimation.value, y = translateAnimation.value)
         )
     } else {
-        Brush.linearGradient(
+        linearGradient(
             colors = listOf(Color.Transparent, Color.Transparent),
             start = Offset.Zero,
             end = Offset.Zero

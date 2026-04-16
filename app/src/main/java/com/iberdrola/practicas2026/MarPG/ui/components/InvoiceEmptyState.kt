@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
 
 /**
@@ -52,14 +53,16 @@ fun InvoiceEmptyState(message: String? = null) {
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            fontFamily = IberPangeaFamily
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = stringResource(R.string.invoice_empty_state_subtitle),
             fontSize = 14.sp,
             color = Color.Gray,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            fontFamily = IberPangeaFamily
         )
     }
 }

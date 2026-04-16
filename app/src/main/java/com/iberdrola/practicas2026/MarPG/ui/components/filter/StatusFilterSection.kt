@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
 /**
  * Sección de filtros por estado de factura (Pagadas, Anuladas, etc.)
@@ -37,7 +38,8 @@ fun StatusFilterSection(
         Text(
             text = stringResource(R.string.invoice_filter_state),
             fontSize = 14.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            fontFamily = IberPangeaFamily
         )
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -64,7 +66,8 @@ fun StatusFilterSection(
                     Text(
                         text = status,
                         modifier = Modifier.padding(start = 8.dp),
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        fontFamily = IberPangeaFamily
                     )
                 }
             }

@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -36,6 +37,7 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.ElectronicInvoiceState
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.ElectronicInvoiceViewModel
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
 @Composable
 fun SecurityPhoneDialog(
@@ -56,10 +58,11 @@ fun SecurityPhoneDialog(
                 TextField(
                     value = state.newPhoneInput,
                     onValueChange = { viewModel.onNewPhoneChanged(it) },
-                    placeholder = { Text(stringResource(R.string.security_dialog_phone_label)) },
+                    placeholder = { Text(stringResource(R.string.security_dialog_phone_label),fontFamily = IberPangeaFamily) },
+                    textStyle = TextStyle(fontFamily = IberPangeaFamily, color = Color.Black),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    colors = TextFieldDefaults.colors(focusedIndicatorColor = GreenDarkIberdrola)
+                    colors = TextFieldDefaults.colors(focusedIndicatorColor = GreenDarkIberdrola),
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -67,9 +70,10 @@ fun SecurityPhoneDialog(
                 TextField(
                     value = state.passwordInput,
                     onValueChange = { viewModel.onPasswordChanged(it) },
-                    label = { Text(stringResource(R.string.security_dialog_password_label)) },
+                    label = { Text(stringResource(R.string.security_dialog_password_label),fontFamily = IberPangeaFamily) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
+                    textStyle = TextStyle(fontFamily = IberPangeaFamily, color = Color.Black),
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     trailingIcon = {
@@ -96,7 +100,8 @@ fun SecurityPhoneDialog(
                         stringResource(state.error),
                         color = Color.Red,
                         fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 8.dp),
+                        fontFamily = IberPangeaFamily
                     )
                 }
             }
@@ -107,12 +112,12 @@ fun SecurityPhoneDialog(
                 enabled = state.newPhoneInput.length >= 9 && state.passwordInput.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola)
             ) {
-                Text(text = stringResource(R.string.security_dialog_confirm))
+                Text(text = stringResource(R.string.security_dialog_confirm),fontFamily = IberPangeaFamily)
             }
         },
         dismissButton = {
             TextButton(onClick = { viewModel.closePhoneDialog() }) {
-                Text(stringResource(R.string.security_dialog_cancel), color = Color.Gray)
+                Text(stringResource(R.string.security_dialog_cancel), color = Color.Gray,fontFamily = IberPangeaFamily)
             }
         }
     )

@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,7 +64,8 @@ fun ElectronicInvoiceHeader(
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF222222),
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+            fontFamily = IberPangeaFamily
         )
 
         Spacer(modifier = Modifier.height(12.dp))

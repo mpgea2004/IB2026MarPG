@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
 /** * Sección de filtros por rango de fechas.
  * Permite al usuario abrir selectores de fecha para los límites "Desde" y "Hasta".
@@ -39,7 +40,7 @@ fun DateRangeSection(
     onToClick: () -> Unit
 ) {
     Column {
-        Text(text = stringResource(R.string.filter_date_section_title), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(text = stringResource(R.string.filter_date_section_title), fontSize = 14.sp, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -77,8 +78,8 @@ private fun DateField(
             onValueChange = { },
             readOnly = true,
             enabled = false,
-            label = { Text(label, fontSize = 14.sp, textAlign = TextAlign.Start) },
-            textStyle = TextStyle(fontSize = 14.sp),
+            label = { Text(label, fontSize = 14.sp, textAlign = TextAlign.Start, fontFamily = IberPangeaFamily) },
+            textStyle = TextStyle(fontSize = 14.sp, fontFamily = IberPangeaFamily),
             modifier = Modifier.fillMaxWidth(),
             trailingIcon = {
                 Icon(Icons.Outlined.CalendarToday, null, tint = Color.DarkGray, modifier= Modifier.size(20.dp))

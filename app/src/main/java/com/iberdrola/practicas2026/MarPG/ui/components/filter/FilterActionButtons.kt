@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 /** * Botones de acción para la pantalla de filtros
@@ -40,7 +41,7 @@ fun FilterActionButtons(
             shape = RoundedCornerShape(27.dp),
             colors = ButtonDefaults.buttonColors(containerColor = GreenIberdrola)
         ) {
-            Text(stringResource(R.string.invoice_filter_button_apply), color = WhiteApp, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.invoice_filter_button_apply), color = WhiteApp, fontSize = 16.sp, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -50,6 +51,7 @@ fun FilterActionButtons(
             textDecoration = TextDecoration.Underline,
             color = GreenIberdrola,
             fontWeight = FontWeight.Bold,
+            fontFamily = IberPangeaFamily,
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
                 .clickable { onClear() }

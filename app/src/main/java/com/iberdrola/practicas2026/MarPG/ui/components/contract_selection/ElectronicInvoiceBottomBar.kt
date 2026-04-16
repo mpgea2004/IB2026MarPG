@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 @Composable
@@ -61,7 +62,7 @@ fun ElectronicInvoiceBottomBar(
                 border = BorderStroke(1.dp, GreenDarkIberdrola),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = GreenDarkIberdrola)
             ) {
-                Text(backText, fontWeight = FontWeight.Bold)
+                Text(backText, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
             }
 
             Button(
@@ -78,7 +79,7 @@ fun ElectronicInvoiceBottomBar(
                     contentColor = WhiteApp
                 )
             ) {
-                Text(nextText, fontWeight = FontWeight.Bold)
+                Text(nextText, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
             }
         }
     }
