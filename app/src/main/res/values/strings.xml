@@ -59,8 +59,8 @@
     <string name="invoice_filter_state">Por estado</string>
     <string name="filter_price_range">%1$d€ - %2$d€</string>
     <string name="filter_date_section_title">Por fecha</string>
-    <string name="filter_date_from_label">Desde</string>
-    <string name="filter_date_to_label">Hasta</string>
+    <string name="filter_date_from_label">˙ Desde</string>
+    <string name="filter_date_to_label">˙ Hasta</string>
     <string name="filter_date_placeholder">dd/mm/aaaa</string>
     <string name="electronic_invoice_card_title">Factura electrónica</string>
     <string name="electronic_invoice_card_subtitle">Gestiona tus contratos</string>

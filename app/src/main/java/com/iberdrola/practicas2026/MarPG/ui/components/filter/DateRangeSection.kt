@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material3.Icon
@@ -16,9 +18,12 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
@@ -66,16 +71,17 @@ private fun DateField(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    Box(modifier = modifier.clickable { onClick() }) {
+    Box(modifier = modifier.clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)).clickable { onClick() }) {
         TextField(
             value = value,
             onValueChange = { },
             readOnly = true,
             enabled = false,
-            label = { Text(label, fontSize = 14.sp) },
+            label = { Text(label, fontSize = 14.sp, textAlign = TextAlign.Start) },
+            textStyle = TextStyle(fontSize = 14.sp),
             modifier = Modifier.fillMaxWidth(),
             trailingIcon = {
-                Icon(Icons.Outlined.CalendarToday, null, tint = Color.DarkGray)
+                Icon(Icons.Outlined.CalendarToday, null, tint = Color.DarkGray, modifier= Modifier.size(20.dp))
             },
             colors = TextFieldDefaults.colors(
                 disabledContainerColor = Color.Transparent,
