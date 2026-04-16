@@ -294,7 +294,8 @@ fun InvoiceListContent(
                 items(invoicesOfYear) { invoice ->
                     InvoiceHistoricalItem(invoice = invoice, onClick = { events.onDetail(invoice) })
                     HorizontalDivider(
-                        modifier = Modifier.padding(top = 16.dp),
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp),
                         thickness = 0.5.dp,
                         color = Color.LightGray
                     )
