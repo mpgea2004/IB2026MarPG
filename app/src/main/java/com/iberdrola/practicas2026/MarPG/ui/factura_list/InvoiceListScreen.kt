@@ -73,7 +73,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
-import com.iberdrola.practicas2026.MarPG.ui.utils.toCurrencyFormat
+import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
 
 /** Pantalla principal del listado de facturas con filtrado por tipo y estados de carga */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -146,7 +146,7 @@ fun InvoiceListScreen(
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
-                userScrollEnabled = currentState !is InvoiceListState.LOADING // Bloqueamos scroll si carga
+                userScrollEnabled = currentState !is InvoiceListState.LOADING
             ) { page ->
                 when (currentState) {
                     InvoiceListState.LOADING -> {
@@ -185,7 +185,7 @@ fun InvoiceListHeader(
     onBack: () -> Unit
 ){
     Surface(
-        color = Color.White,
+        color = WhiteApp,
         shadowElevation = 2.dp
     ) {
         Column(
@@ -256,7 +256,7 @@ fun InvoiceListContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(WhiteApp)
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -286,6 +286,11 @@ fun InvoiceListContent(
                 }
                 items(invoicesOfYear) { invoice ->
                     InvoiceHistoricalItem(invoice = invoice, onClick = { events.onDetail(invoice) })
+                    HorizontalDivider(
+                        modifier = Modifier.padding(top = 16.dp),
+                        thickness = 0.5.dp,
+                        color = Color.LightGray
+                    )
                 }
             }
         }
@@ -305,7 +310,7 @@ fun LastInvoiceItem(invoice: Invoice) {
     ) {
         Column(modifier = Modifier
             .padding(20.dp)
-            .background(Color.White)) {
+            .background(WhiteApp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
                     Text(stringResource(R.string.invoice_list_last_invoice_title), fontWeight = FontWeight.Bold)
@@ -329,7 +334,7 @@ fun LastInvoiceItem(invoice: Invoice) {
                     modifier = Modifier.size(32.dp)
                 )
             }
-            Text(text = invoice.amount.toCurrencyFormat(), fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 8.dp))
+            Text(text = invoice.amount.toAnnotatedCurrencyFormat(28.sp), fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 8.dp))
             Text(
                 text = stringResource(
                     id = R.string.invoice_list_last_invoice_date_range,
@@ -374,10 +379,9 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = invoice.amount.toCurrencyFormat(),
+                    text = invoice.amount.toAnnotatedCurrencyFormat(14.sp, 14.sp),
                     color = TextGrey,
                     fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp
                 )
                 Icon(
                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -388,11 +392,6 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
                 )
             }
         }
-        HorizontalDivider(
-            modifier = Modifier.padding(top = 16.dp),
-            thickness = 0.5.dp,
-            color = Color.LightGray
-        )
     }
 }
 
