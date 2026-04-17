@@ -37,6 +37,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +57,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.Typography
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 
@@ -80,10 +83,10 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.profile_header_title), fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.profile_header_title), fontWeight = FontWeight.Bold, style = Typography.titleLarge, color = Color.Black) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.profile_header_back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.profile_header_back), tint = Color.Black)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -129,7 +132,7 @@ fun ProfileContent(
 
         Text(
             text = stringResource(R.string.profile_section_account),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
             fontWeight = FontWeight.Bold,
             color = Color.DarkGray
         )
@@ -172,12 +175,13 @@ fun ProfileContent(
             OutlinedTextField(
                 value = state.password,
                 onValueChange = { events.onPasswordChanged.invoke(it) },
-                label = { Text(stringResource(R.string.profile_label_password)) },
+                textStyle = MaterialTheme.typography.bodyMedium,
+                label = { Text(stringResource(R.string.profile_label_password), style = MaterialTheme.typography.bodyMedium) },
                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = GreenDarkIberdrola) },
                 trailingIcon = {
                     val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = null)
+                        Icon(imageVector = image, contentDescription = null, tint = GreenIberdrola)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -186,9 +190,20 @@ fun ProfileContent(
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 colors = OutlinedTextFieldDefaults.colors(
+                    cursorColor = GreenDarkIberdrola,
+                    errorCursorColor = Color.Red,
                     focusedBorderColor = GreenDarkIberdrola,
                     focusedLabelColor = GreenDarkIberdrola,
-                    cursorColor = GreenDarkIberdrola
+                    errorBorderColor = Color.Red,
+                    errorLabelColor = Color.Red,
+                    errorTextColor = Color.Black,
+                    errorLeadingIconColor = Color.Red,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Gray,
+                    unfocusedBorderColor = Color.Gray,
+                    unfocusedLabelColor = Color.Gray,
+                    focusedLeadingIconColor = GreenDarkIberdrola,
+                    unfocusedLeadingIconColor = Color.Gray
                 )
             )
         }
@@ -208,7 +223,7 @@ fun ProfileContent(
             colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
         ) {
-            Text(stringResource(R.string.profile_button_save), fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+            Text(stringResource(R.string.profile_button_save), fontSize = 16.sp, style = MaterialTheme.typography.labelSmall, color = WhiteApp)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -246,7 +261,8 @@ fun ProfileField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            label = { Text(label) },
+            textStyle = MaterialTheme.typography.bodyMedium,
+            label = { Text(label, style = MaterialTheme.typography.bodyMedium) },
             leadingIcon = { Icon(icon, contentDescription = null, tint = GreenDarkIberdrola) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -254,10 +270,20 @@ fun ProfileField(
             isError = errorMessage != null,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             colors = OutlinedTextFieldDefaults.colors(
+                cursorColor = GreenDarkIberdrola,
+                errorCursorColor = Color.Red,
                 focusedBorderColor = GreenDarkIberdrola,
                 focusedLabelColor = GreenDarkIberdrola,
                 errorBorderColor = Color.Red,
-                errorLabelColor = Color.Red
+                errorLabelColor = Color.Red,
+                errorTextColor = Color.Black,
+                errorLeadingIconColor = Color.Red,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Gray,
+                unfocusedBorderColor = Color.Gray,
+                unfocusedLabelColor = Color.Gray,
+                focusedLeadingIconColor = GreenDarkIberdrola,
+                unfocusedLeadingIconColor = Color.Gray
             )
         )
         if (errorMessage != null) {

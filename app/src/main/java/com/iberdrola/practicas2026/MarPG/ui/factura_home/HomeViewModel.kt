@@ -11,7 +11,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** Gestión de estado para la Home y control de lógica de feedback con DataStore */@HiltViewModel
+/** Gestión de estado para la Home y control de lógica de feedback con DataStore */
+@HiltViewModel
 class HomeViewModel @Inject constructor(
     private val checkFeedbackUseCase: CheckFeedbackUseCase,
     private val userPrefs: UserPreferencesRepository
@@ -24,6 +25,9 @@ class HomeViewModel @Inject constructor(
     var userName by mutableStateOf("")
         private set
 
+    var isProfileComplete by mutableStateOf(false)
+        private set
+
     init {
         observeFeedback()
         observeUserProfile()
@@ -33,6 +37,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             userPrefs.userProfileFlow.collect { profile ->
                 userName = profile.name.ifEmpty { "Usuario" }
+                isProfileComplete = profile.name.isNotEmpty() &&
+                        profile.email.isNotEmpty() &&
+                        profile.password.isNotEmpty()
             }
         }
     }

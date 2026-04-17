@@ -24,8 +24,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -60,6 +62,8 @@ fun HomeScreen(
 
     val currentUserName = viewModel.userName
 
+    val isProfileComplete = viewModel.isProfileComplete
+
     LaunchedEffect(viewModel.isSheetVisible) {
         if (!viewModel.isSheetVisible) {
             sheetState.hide()
@@ -70,8 +74,21 @@ fun HomeScreen(
         isCloudEnabled = isCloudEnabled,
         isSheetVisible = viewModel.isSheetVisible,
         sheetState = sheetState,
-        onNavigateToInvoices = onNavigateToInvoices,
-        onNavigateToElectronicInvoice = onNavigateToElectronicInvoice,
+        isProfileComplete = isProfileComplete,
+        onNavigateToInvoices = {
+            if (isProfileComplete) {
+                onNavigateToInvoices()
+            } else {
+                Toast.makeText(context, "Completa tu Nombre, Email y Password en el perfil para acceder", Toast.LENGTH_LONG).show()
+            }
+        },
+        onNavigateToElectronicInvoice = {
+            if (isProfileComplete) {
+                onNavigateToElectronicInvoice()
+            } else {
+                Toast.makeText(context, "Completa tu perfil para gestionar la factura electrónica", Toast.LENGTH_LONG).show()
+            }
+        },
         onNavigateToProfile = onNavigateToProfile,
         onToggleCloud = onToggleCloud,
         onSheetDismiss = { viewModel.onOptionSelected(1) },
@@ -97,6 +114,7 @@ fun HomeContent(
     isCloudEnabled: Boolean,
     isSheetVisible: Boolean,
     sheetState: SheetState,
+    isProfileComplete: Boolean,
     onNavigateToInvoices: () -> Unit,
     onNavigateToElectronicInvoice: () -> Unit,
     onNavigateToProfile: () -> Unit,
@@ -119,11 +137,15 @@ fun HomeContent(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            InvoiceNavigationCard(onClick = onNavigateToInvoices)
+            Column(modifier = Modifier.alpha(if (isProfileComplete) 1f else 0.6f)) {
+                InvoiceNavigationCard(onClick = onNavigateToInvoices)
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            ElectronicInvoiceCard(onClick = onNavigateToElectronicInvoice)
+            Column(modifier = Modifier.alpha(if (isProfileComplete) 1f else 0.6f)) {
+                ElectronicInvoiceCard(onClick = onNavigateToElectronicInvoice)
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -147,6 +169,24 @@ fun HomeContent(
 /** Título y subtítulo de bienvenida */
 @Composable
 private fun HomeHeader(userName: String,onProfileClick: () -> Unit) {
+
+    val processedName = remember(userName) {
+        if (userName.isNotEmpty() && userName != "Usuario") {
+            val capitalized = userName.split(" ")
+                .filter { it.isNotEmpty() }
+                .joinToString(" ") { word ->
+                    word.lowercase().replaceFirstChar { it.uppercase() }
+                }
+            if (capitalized.length > 15) {
+                capitalized.take(15) + "..."
+            } else {
+                capitalized
+            }
+        } else {
+            ""
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -156,10 +196,10 @@ private fun HomeHeader(userName: String,onProfileClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = if (userName.isNotEmpty()) {
-                    stringResource(R.string.home_header_welcome, userName)
+                text = if (userName.isNotEmpty() && userName != "Usuario") {
+                    stringResource(R.string.home_header_welcome, processedName)
                 } else {
-                    stringResource(R.string.home_header_welcome)
+                    stringResource(R.string.home_header_title)
                 },
                 fontSize = 32.sp,
                 lineHeight = 38.sp,

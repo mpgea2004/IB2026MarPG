@@ -57,7 +57,7 @@ class ProfileViewModel @Inject constructor(
 
 
     fun saveChanges(onSuccess: () -> Unit) {
-        val isPhoneValid = state.phone.length == 9
+        val isPhoneValid = state.phone.length == 9 || state.phone.isEmpty()
 
         if (!isEmailValid(state.email)) {
             state = state.copy(emailError = R.string.error_invalid_email_format)
