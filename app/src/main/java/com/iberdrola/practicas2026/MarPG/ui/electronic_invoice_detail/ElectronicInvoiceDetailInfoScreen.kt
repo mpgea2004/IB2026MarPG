@@ -45,6 +45,7 @@ import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 @Composable
@@ -204,9 +205,10 @@ fun ElectronicInvoiceDetailInfoContent(
         ) {
             Text(
                 text = if (contract?.type == ContractType.LUZ) stringResource(R.string.invoice_detail_type_light) else stringResource(R.string.invoice_detail_type_gas),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 16.dp)
+                modifier = Modifier.padding(top = 16.dp),
+                fontFamily = IberPangeaFamily
             )
 
             Text(
@@ -230,9 +232,11 @@ fun ElectronicInvoiceDetailInfoContent(
             Text(
                 text = stringResource(R.string.invoice_detail_email_label),
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.ExtraBold,
                 fontSize = 14.sp
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = email ?: stringResource(R.string.invoice_detail_email_label),
                 style = MaterialTheme.typography.bodyLarge,
@@ -242,7 +246,7 @@ fun ElectronicInvoiceDetailInfoContent(
             )
 
             HorizontalDivider(
-                modifier = Modifier.padding(vertical = 24.dp),
+                modifier = Modifier.padding(vertical = 20.dp),
                 thickness = DividerDefaults.Thickness,
                 color = Color.LightGray
             )
@@ -257,7 +261,7 @@ fun ElectronicInvoiceDetailInfoContent(
                     tint = Color.Gray,
                     modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = stringResource(R.string.invoice_detail_info_box_text),
                     style = MaterialTheme.typography.bodySmall,

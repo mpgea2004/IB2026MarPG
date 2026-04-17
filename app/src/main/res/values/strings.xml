@@ -63,7 +63,7 @@
     <string name="filter_date_to_label">* Hasta</string>
     <string name="filter_date_placeholder">dd/mm/aaaa</string>
     <string name="electronic_invoice_card_title">Factura electrónica</string>
-    <string name="electronic_invoice_card_subtitle">Gestiona tus contratos</string>
+    <string name="electronic_invoice_card_subtitle">Gestiona tus contratos electrónicos</string>
     <string name="contract_card_light">Contrato de Luz</string>
     <string name="contract_card_gas">Contrato de gas</string>
     <string name="contract_card_active">Activa</string>
@@ -103,7 +103,7 @@
     <string name="invoice_detail_current_status_desc">Actualmente recibes las facturas electrónicas de este contrato al:</string>
     <string name="invoice_detail_email_label">Recibes tus facturas en este email</string>
     <string name="invoice_detail_email_not_available">No disponible</string>
-    <string name="invoice_detail_info_box_text">Recuerda que la factura electrónica es un requisito de este Plan, por lo que no es recomendable desactivarla.</string>
+    <string name="invoice_detail_info_box_text">Recuerda que la factura electrónica es el objetivo de este Plan, por lo que no es recomendable desactivarla.</string>
 
     <string name="form_header_title">Activa tu factura electrónica</string>
     <string name="form_linked_email_label">Email vinculado a tu cuenta:</string>
