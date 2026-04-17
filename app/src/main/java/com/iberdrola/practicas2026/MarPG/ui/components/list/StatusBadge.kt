@@ -41,7 +41,12 @@ fun StatusBadge(status: InvoiceStatus) {
         shape = RoundedCornerShape(12.dp)
     ) {
         Text(
-            text = status.description,
+            text = when(status) {
+                InvoiceStatus.PAGADAS -> "Pagada"
+                InvoiceStatus.PENDIENTES_PAGO -> "Pendiente de pago"
+                InvoiceStatus.ANULADAS -> "Anulada"
+                else -> status.description
+            },
             color = contentColor,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             fontSize = 12.sp,

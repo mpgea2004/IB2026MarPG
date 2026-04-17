@@ -277,8 +277,8 @@ fun InvoiceListContent(
             ) {
                 Text(
                     stringResource(R.string.invoice_list_historic_title),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.ExtraBold,
                     fontFamily = IberPangeaFamily
                 )
                 FilterButton(onClick = { events.onFilter() })
@@ -295,7 +295,7 @@ fun InvoiceListContent(
                     Text(
                         text = year,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.ExtraBold,
                         color = Color.Black,
                         fontFamily = IberPangeaFamily
                     )
@@ -390,8 +390,8 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
                 Text(dateDisplay, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
                 Text(text = stringResource(
                     id = R.string.invoice_list_invoice_type_label,
-                    invoice.contractType.name.lowercase()
-                ), color = Color.Black, fontSize = 14.sp,fontFamily = IberPangeaFamily)
+                    invoice.contractType.name.lowercase().replaceFirstChar { it.uppercase() }),
+                    color = Color.Black, fontSize = 14.sp,fontFamily = IberPangeaFamily)
                 Spacer(modifier = Modifier.height(8.dp))
                 StatusBadge(invoice.status)
             }
