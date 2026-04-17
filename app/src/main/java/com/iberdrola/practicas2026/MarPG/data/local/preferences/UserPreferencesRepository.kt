@@ -43,6 +43,12 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    suspend fun clearProfile() {
+        context.dataStore.edit { prefs ->
+            prefs.clear()
+        }
+    }
+
     suspend fun updatePhone(newPhone: String) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.PHONE] = newPhone

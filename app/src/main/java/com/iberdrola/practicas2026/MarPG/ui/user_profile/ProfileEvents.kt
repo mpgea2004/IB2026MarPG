@@ -8,5 +8,6 @@ data class ProfileEvents(
     val onSaveClick: (onSuccess: () -> Unit) -> Unit,
     val onBackClick: () -> Unit = {},
     val onAddressChanged: (String) -> Unit = {},
-    val onPasswordChanged: (String) -> Unit = {}
+    val onPasswordChanged: (String) -> Unit = {},
+    val onLogout: () -> Unit = {},
 )

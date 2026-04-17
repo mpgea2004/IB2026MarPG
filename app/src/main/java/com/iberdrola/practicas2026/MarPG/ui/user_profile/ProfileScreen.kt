@@ -18,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
@@ -32,10 +33,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
@@ -77,7 +80,8 @@ fun ProfileScreen(
         onAddressChanged = {viewModel.onAddressChanged(it)},
         onSaveClick = { onSuccess -> viewModel.saveChanges(onSuccess) },
         onBackClick = onBack,
-        onPasswordChanged = {viewModel.onPasswordChanged(it)}
+        onPasswordChanged = {viewModel.onPasswordChanged(it)},
+        onLogout = {viewModel.logout { onBack() }}
     )
 
     Scaffold(
@@ -89,12 +93,23 @@ fun ProfileScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.profile_header_back), tint = Color.Black)
                     }
                 },
+                actions = {
+                    val isLoggedIn = state.name.isNotEmpty() || state.email.isNotEmpty() || state.password.isNotEmpty()
+                    val canLogout = isLoggedIn && state.isSaved
+
+                    IconButton(
+                        onClick = events.onLogout,
+                        enabled = canLogout
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = "Cerrar sesión",
+                            tint = if (canLogout) Color.Red else Color.LightGray.copy(alpha = 0.5f)
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = WhiteApp,
-                    scrolledContainerColor = Color.Unspecified,
-                    navigationIconContentColor = Color.Unspecified,
-                    titleContentColor = Color.Unspecified,
-                    actionIconContentColor = Color.Unspecified
+                    containerColor = WhiteApp
                 )
             )
         },
@@ -142,6 +157,7 @@ fun ProfileContent(
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             ProfileField(
                 value = state.name,
+                errorMessage = state.nameError,
                 label = stringResource(R.string.profile_label_name),
                 icon = Icons.Default.Person,
                 onValueChange = events.onNameChanged
@@ -172,39 +188,12 @@ fun ProfileContent(
                 onValueChange = events.onAddressChanged
             )
 
-            OutlinedTextField(
+            PasswordField(
                 value = state.password,
-                onValueChange = { events.onPasswordChanged.invoke(it) },
-                textStyle = MaterialTheme.typography.bodyMedium,
-                label = { Text(stringResource(R.string.profile_label_password), style = MaterialTheme.typography.bodyMedium) },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = GreenDarkIberdrola) },
-                trailingIcon = {
-                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = null, tint = GreenIberdrola)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                colors = OutlinedTextFieldDefaults.colors(
-                    cursorColor = GreenDarkIberdrola,
-                    errorCursorColor = Color.Red,
-                    focusedBorderColor = GreenDarkIberdrola,
-                    focusedLabelColor = GreenDarkIberdrola,
-                    errorBorderColor = Color.Red,
-                    errorLabelColor = Color.Red,
-                    errorTextColor = Color.Black,
-                    errorLeadingIconColor = Color.Red,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Gray,
-                    unfocusedBorderColor = Color.Gray,
-                    unfocusedLabelColor = Color.Gray,
-                    focusedLeadingIconColor = GreenDarkIberdrola,
-                    unfocusedLeadingIconColor = Color.Gray
-                )
+                errorMessage = state.passwordError,
+                isVisible = passwordVisible,
+                onValueChange = events.onPasswordChanged,
+                onToggleVisibility = { passwordVisible = !passwordVisible }
             )
         }
 
@@ -247,6 +236,57 @@ fun ProfileAvatar() {
         )
     }
 }
+
+@Composable
+fun PasswordField(
+    value: String,
+    errorMessage: Int?,
+    isVisible: Boolean,
+    onValueChange: (String) -> Unit,
+    onToggleVisibility: () -> Unit
+) {
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.Black),
+            label = { Text(stringResource(R.string.profile_label_password), style = MaterialTheme.typography.bodyMedium) },
+            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = GreenDarkIberdrola) },
+            trailingIcon = {
+                val image = if (isVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                IconButton(onClick = onToggleVisibility) {
+                    Icon(imageVector = image, contentDescription = null, tint = GreenIberdrola)
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true,
+            isError = errorMessage != null,
+            visualTransformation = if (isVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            colors = OutlinedTextFieldDefaults.colors(
+                cursorColor = GreenDarkIberdrola,
+                focusedBorderColor = GreenDarkIberdrola,
+                focusedLabelColor = GreenDarkIberdrola,
+                unfocusedBorderColor = Color.Gray,
+                unfocusedLabelColor = Color.Gray,
+                errorBorderColor = Color.Red,
+                errorLabelColor = Color.Red,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
+            )
+        )
+        if (errorMessage != null) {
+            Text(
+                text = stringResource(errorMessage),
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
+}
+
 
 @Composable
 fun ProfileField(

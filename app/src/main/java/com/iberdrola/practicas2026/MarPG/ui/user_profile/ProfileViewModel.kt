@@ -25,51 +25,83 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             userPrefs.userProfileFlow.collect { savedState ->
                 if (state.name.isEmpty() && savedState.name.isNotEmpty()) {
-                    state = savedState
+                    state = savedState.copy(isSaved = true)
                 }
             }
         }
     }
 
     fun onNameChange(newName: String) {
-        state = state.copy(name = newName)
+        state = state.copy(name = newName, nameError = null, isSaved = false)
     }
 
     fun onEmailChange(newEmail: String) {
-        state = state.copy(email = newEmail, emailError = null)
+        state = state.copy(email = newEmail, emailError = null, isSaved = false)
     }
 
     fun onPhoneChange(newPhone: String) {
-        state = state.copy(phone = newPhone, phoneError = null)
+        state = state.copy(phone = newPhone, phoneError = null, isSaved = false)
     }
 
     fun onAddressChanged(newAddress: String) {
-        state = state.copy(address = newAddress)
+        state = state.copy(address = newAddress, isSaved = false)
     }
 
     fun onPasswordChanged(newPassword: String) {
-        state = state.copy(password = newPassword)
+        state = state.copy(password = newPassword, passwordError = null, isSaved = false)
     }
 
     private fun isEmailValid(email: String): Boolean {
         return emailPattern.matches(email)
     }
 
-
     fun saveChanges(onSuccess: () -> Unit) {
-        val isPhoneValid = state.phone.length == 9 || state.phone.isEmpty()
+        state = state.copy(nameError = null, emailError = null, phoneError = null, passwordError = null)
 
-        if (!isEmailValid(state.email)) {
-            state = state.copy(emailError = R.string.error_invalid_email_format)
-            return
+        val isNameEmpty = state.name.trim().isEmpty()
+        val isEmailInvalid = !isEmailValid(state.email)
+        val isEmailEmpty = state.email.trim().isEmpty()
+        val isPasswordInvalid = state.password.trim().length < 4
+        val isPhoneInvalid = state.phone.isNotEmpty() && state.phone.length != 9
+
+        var hasError = false
+
+        if (isNameEmpty) {
+            state = state.copy(nameError = R.string.error_field_required)
+            hasError = true
+        }
+        if (isEmailEmpty) {
+            state = state.copy(emailError = R.string.error_field_required)
+            hasError = true
+        } else {
+            if (isEmailInvalid) {
+                state = state.copy(emailError = R.string.error_invalid_email_format)
+                hasError = true
+            }
         }
 
-        if (!isPhoneValid) {
+        if (isPasswordInvalid) {
+            state = state.copy(passwordError = R.string.error_field_required)
+            hasError = true
+        }
+        if (isPhoneInvalid) {
             state = state.copy(phoneError = R.string.error_invalid_phone_format)
-            return
+            hasError = true
         }
+
+        if (!hasError) {
+            viewModelScope.launch {
+                userPrefs.updateProfile(state)
+                state = state.copy(isSaved = true)
+                onSuccess()
+            }
+        }
+    }
+
+    fun logout(onSuccess: () -> Unit) {
         viewModelScope.launch {
-            userPrefs.updateProfile(state)
+            userPrefs.clearProfile()
+            state = ProfileState()
             onSuccess()
         }
     }
