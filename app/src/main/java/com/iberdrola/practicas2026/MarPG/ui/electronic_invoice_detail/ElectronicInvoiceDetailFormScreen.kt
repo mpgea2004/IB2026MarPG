@@ -147,11 +147,11 @@ fun ElectronicInvoiceDetailFormContent(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(stringResource(R.string.form_linked_email_label), fontSize = 12.sp)
-            Text(emailActualOfuscado, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            Text(emailActualOfuscado, fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
 
             TextField(
                 value = state.emailInput,
@@ -178,7 +178,7 @@ fun ElectronicInvoiceDetailFormContent(
 
             Text(
                 text = stringResource(R.string.form_data_protection_title),
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.ExtraBold,
                 fontSize = 16.sp
             )
 

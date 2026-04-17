@@ -26,6 +26,7 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Contra
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ErrorComponent
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 @Composable
@@ -98,9 +99,9 @@ fun ElectronicInvoiceSelectionContent(
         Text(
             text = stringResource(R.string.contract_selection_title),
             fontSize = 22.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = Color.Black,
-            modifier = Modifier.padding(horizontal = 24.dp)
+            modifier = Modifier.padding(horizontal = 24.dp),
         )
 
         Spacer(modifier = Modifier.height(14.dp))

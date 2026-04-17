@@ -43,6 +43,7 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Electr
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.LoadingOverlay
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
 
 @Composable
@@ -132,8 +133,8 @@ fun ElectronicInvoiceOtpContent(
                 Text(
                     text = stringResource(R.string.otp_input_header),
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 16.sp,
                 )
 
                 Text(
@@ -148,15 +149,20 @@ fun ElectronicInvoiceOtpContent(
                     value = state.otpInput,
                     onValueChange = events.onOtpChange,
                     modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
-                    placeholder = { Text(stringResource(R.string.otp_placeholder), fontSize = 14.sp, color = Color.DarkGray) },
+                    placeholder = { Text(stringResource(R.string.otp_placeholder), fontSize = 14.sp, color = Color.DarkGray,style = MaterialTheme.typography.bodyLarge) },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.NumberPassword
+                    ),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                        color = Color.Gray,
+                        fontSize = 16.sp
                     ),
                     colors = TextFieldDefaults.colors(
                         unfocusedContainerColor = Color.Transparent,
                         focusedContainerColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.DarkGray,
-                        focusedIndicatorColor = GreenDarkIberdrola
+                        focusedIndicatorColor = GreenDarkIberdrola,
+                        cursorColor = GreenDarkIberdrola
                     ),
                     singleLine = true
                 )
