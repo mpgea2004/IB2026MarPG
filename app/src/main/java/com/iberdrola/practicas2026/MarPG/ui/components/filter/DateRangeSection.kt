@@ -8,22 +8,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
@@ -43,7 +42,7 @@ fun DateRangeSection(
         Text(text = stringResource(R.string.filter_date_section_title), fontSize = 14.sp, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
         Spacer(modifier = Modifier.height(16.dp))
         Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             DateField(
@@ -62,9 +61,6 @@ fun DateRangeSection(
     }
 }
 
-/** * Campo de texto personalizado que actúa como botón para abrir el DatePicker
- * Se marca como 'disabled' y 'readOnly' para evitar la escritura manual y usar el estilo visual deseado
- */
 @Composable
 private fun DateField(
     label: String,
@@ -72,24 +68,55 @@ private fun DateField(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    Box(modifier = modifier.clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)).clickable { onClick() }) {
-        TextField(
-            value = value,
-            onValueChange = { },
-            readOnly = true,
-            enabled = false,
-            label = { Text(label, fontSize = 14.sp, textAlign = TextAlign.Start, fontFamily = IberPangeaFamily) },
-            textStyle = TextStyle(fontSize = 14.sp, fontFamily = IberPangeaFamily),
-            modifier = Modifier.fillMaxWidth(),
-            trailingIcon = {
-                Icon(Icons.Outlined.CalendarToday, null, tint = Color.DarkGray, modifier= Modifier.size(20.dp))
-            },
-            colors = TextFieldDefaults.colors(
-                disabledContainerColor = Color.Transparent,
-                disabledIndicatorColor = Color.Black,
-                disabledTextColor = Color.Black,
-                disabledLabelColor = Color.Gray
-            )
+    Box(
+        modifier = modifier
+            .height(56.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+            .clickable { onClick() }
+    ) {
+        Column(
+            modifier = Modifier.align(Alignment.CenterStart),
+            verticalArrangement = Arrangement.Center
+        ) {
+            if (value.isNotEmpty()) {
+                Text(
+                    text = label,
+                    fontSize = 10.sp,
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Gray,
+                    lineHeight = 12.sp
+                )
+                Text(
+                    text = value,
+                    fontSize = 14.sp,
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Black,
+                    lineHeight = 16.sp
+                )
+            } else {
+                Text(
+                    text = label,
+                    fontSize = 14.sp,
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Gray
+                )
+            }
+        }
+        
+        Icon(
+            imageVector = Icons.Outlined.CalendarToday,
+            contentDescription = null,
+            tint = Color.DarkGray,
+            modifier = Modifier
+                .size(25.dp).padding(end = 4.dp)
+                .align(Alignment.CenterEnd)
+        )
+        
+        HorizontalDivider(
+            modifier = Modifier.align(Alignment.BottomStart),
+            thickness = 1.dp,
+            color = Color.Black
         )
     }
 }

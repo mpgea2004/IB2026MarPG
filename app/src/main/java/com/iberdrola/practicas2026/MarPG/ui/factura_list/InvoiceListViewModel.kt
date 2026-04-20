@@ -22,7 +22,13 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.math.ceil
+import kotlin.math.floor
 
+enum class SortOption {
+    DATE,
+    PRICE,
+    TYPE
+}
 
 @HiltViewModel
 class InvoiceListViewModel @Inject constructor(
@@ -54,14 +60,20 @@ class InvoiceListViewModel @Inject constructor(
     var currentFilterState by mutableStateOf(FilterState())
         private set
 
+    var currentSortOption by mutableStateOf(SortOption.DATE)
+        private set
+
     var isRefreshing by mutableStateOf(false)
         private set
 
     var selectedInvoice by mutableStateOf<Invoice?>(null)
         private set
 
+    var showSingleInvoiceDialog by mutableStateOf(false)
+        private set
+
     val minInvoiceAmount: Float
-        get() = allInvoices.minOfOrNull { it.amount.toFloat() } ?: 0f
+        get() = allInvoices.minOfOrNull { it.amount.toFloat() }?.let { floor(it) } ?: 0f
 
     val maxInvoiceAmount: Float
         get() = allInvoices.maxOfOrNull { it.amount.toFloat() }?.let { ceil(it) } ?: 500f
@@ -135,28 +147,37 @@ class InvoiceListViewModel @Inject constructor(
             return
         }
 
-        if (allInvoices.isEmpty()) {
+        val contractTypeFilter = if (selectedTab == 0) ContractType.LUZ else ContractType.GAS
+
+        val categoryInvoices = allInvoices.filter { it.contractType == contractTypeFilter }
+
+        if (categoryInvoices.isEmpty()) {
             state = InvoiceListState.NODATA
             return
         }
 
-        val contractTypeFilter = if (selectedTab == 0) ContractType.LUZ else ContractType.GAS
+        val lastInvoice = categoryInvoices.maxByOrNull { DateMapper.toLocalDate(it.issueDate) }
 
-        val filteredInvoices = allInvoices.filter { invoice ->
-            val matchesType = invoice.contractType == contractTypeFilter
-
-            val matchesPrice = invoice.amount >= currentFilterState.minPrice &&
-                    invoice.amount <= currentFilterState.maxPrice
+        val filteredInvoices = categoryInvoices.filter { invoice ->
+            val amountFloat = invoice.amount.toFloat()
+            val matchesPrice = amountFloat >= currentFilterState.minPrice &&
+                    amountFloat <= currentFilterState.maxPrice
 
             val matchesStatus = currentFilterState.selectedStatuses.isEmpty() ||
                     currentFilterState.selectedStatuses.contains(invoice.status.description)
 
             val matchesDate = checkDateRange(invoice.issueDate)
 
-            matchesType && matchesPrice && matchesStatus && matchesDate
+            matchesPrice && matchesStatus && matchesDate
         }
 
-        val groupedByYear = filteredInvoices.groupBy { invoice ->
+        val sortedInvoices = when (currentSortOption) {
+            SortOption.DATE -> filteredInvoices.sortedByDescending { DateMapper.toLocalDate(it.issueDate) }
+            SortOption.PRICE -> filteredInvoices.sortedByDescending { it.amount }
+            SortOption.TYPE -> filteredInvoices.sortedBy { it.status.description }
+        }
+
+        val groupedByYear = sortedInvoices.groupBy { invoice ->
             try {
                 DateMapper.toLocalDate(invoice.issueDate).year.toString()
             } catch (e: Exception) {
@@ -164,7 +185,7 @@ class InvoiceListViewModel @Inject constructor(
             }
         }
 
-        state = InvoiceListState.SUCCESS(groupedByYear)
+        state = InvoiceListState.SUCCESS(groupedByYear, lastInvoice)
 
     }
 
@@ -203,8 +224,44 @@ class InvoiceListViewModel @Inject constructor(
         updateFilteredInvoices()
     }
 
+    fun setSortOption(option: SortOption) {
+        currentSortOption = option
+        updateFilteredInvoices()
+    }
+
     fun selectInvoice(invoice: Invoice) {
         selectedInvoice = invoice
+    }
+
+    fun clearFilters() {
+        currentFilterState = FilterState(
+            minPrice = minInvoiceAmount,
+            maxPrice = maxInvoiceAmount
+        )
+        updateFilteredInvoices()
+    }
+
+    fun hasActiveFilters(): Boolean {
+        val isDefaultPrice = Math.abs(currentFilterState.minPrice - minInvoiceAmount) < 0.01f &&
+                Math.abs(currentFilterState.maxPrice - maxInvoiceAmount) < 0.01f
+        
+        return currentFilterState.selectedStatuses.isNotEmpty() ||
+                currentFilterState.dateFrom.isNotEmpty() ||
+                currentFilterState.dateTo.isNotEmpty() ||
+                !isDefaultPrice
+    }
+
+    fun openSingleInvoiceDialog() {
+        showSingleInvoiceDialog = true
+    }
+
+    fun closeSingleInvoiceDialog() {
+        showSingleInvoiceDialog = false
+    }
+
+    fun getCategoryInvoicesCount(): Int {
+        val contractTypeFilter = if (selectedTab == 0) ContractType.LUZ else ContractType.GAS
+        return allInvoices.count { it.contractType == contractTypeFilter }
     }
 
     private fun checkDateRange(invoiceDateStr: String): Boolean {

@@ -2,6 +2,7 @@ package com.iberdrola.practicas2026.MarPG.ui.factura_list
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -17,7 +18,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -25,7 +28,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
@@ -33,11 +40,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -141,6 +150,36 @@ fun InvoiceListScreen(
         }
     }
 
+    if (viewModel.showSingleInvoiceDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.closeSingleInvoiceDialog() },
+            icon = { Icon(Icons.Outlined.Info, null, tint = GreenIberdrola) },
+            title = {
+                Text(
+                    text = "Información",
+                    fontFamily = IberPangeaFamily,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Solo tienes una factura disponible, por lo que no es necesario aplicar filtros.",
+                    fontFamily = IberPangeaFamily
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.closeSingleInvoiceDialog() }) {
+                    Text("Aceptar", color = GreenIberdrola, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp),
+            iconContentColor = GreenIberdrola,
+            titleContentColor = GreenIberdrola,
+            textContentColor = Color.Black,
+        )
+    }
+
     Scaffold(
         containerColor = WhiteApp,
         topBar = {
@@ -179,9 +218,14 @@ fun InvoiceListScreen(
                     is InvoiceListState.SUCCESS -> {
                         InvoiceListContent(
                             groupedInvoices = currentState.groupedInvoices,
+                            lastInvoice = currentState.lastInvoice,
+                            hasFilters = viewModel.hasActiveFilters(),
+                            currentSort = viewModel.currentSortOption,
                             events = InvoiceListEvents(
                                 onFilter = {
-                                    if (!isNavigating) {
+                                    if (viewModel.getCategoryInvoicesCount() <= 1) {
+                                        viewModel.openSingleInvoiceDialog()
+                                    } else if (!isNavigating) {
                                         isNavigating = true
                                         onNavigateToFilters()
                                     }
@@ -192,7 +236,9 @@ fun InvoiceListScreen(
                                         viewModel.selectInvoice(invoice)
                                         onNavigateToInvoiceDetail(invoice)
                                     }
-                                }
+                                },
+                                onClearFilters = { viewModel.clearFilters() },
+                                onSort = { viewModel.setSortOption(it) }
                             )
                         )
                     }
@@ -270,10 +316,11 @@ fun InvoiceListHeader(
 @Composable
 fun InvoiceListContent(
     groupedInvoices: Map<String, List<Invoice>>,
+    lastInvoice: Invoice?,
+    hasFilters: Boolean,
+    currentSort: SortOption,
     events: InvoiceListEvents
 ) {
-    val lastInvoice = groupedInvoices.values.flatten().firstOrNull()
-
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 16.dp)
@@ -283,21 +330,88 @@ fun InvoiceListContent(
         }
 
         stickyHeader {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(WhiteApp)
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    stringResource(R.string.invoice_list_historic_title),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontFamily = IberPangeaFamily
-                )
-                FilterButton(onClick = { events.onFilter() })
+            Column(modifier = Modifier.background(WhiteApp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.animateContentSize()
+                    ) {
+                        Text(
+                            stringResource(R.string.invoice_list_historic_title),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFamily = IberPangeaFamily
+                        )
+                        if (hasFilters) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Surface(
+                                onClick = { events.onClearFilters() },
+                                shape = RoundedCornerShape(50),
+                                color = GreenIberdrola.copy(alpha = 0.08f),
+                                border = BorderStroke(1.dp, GreenIberdrola.copy(alpha = 0.2f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        "Limpiar",
+                                        color = GreenIberdrola,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = IberPangeaFamily
+                                    )
+                                    Icon(
+                                        Icons.Outlined.Close,
+                                        contentDescription = null,
+                                        tint = GreenIberdrola,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    FilterButton(onClick = { events.onFilter() })
+                }
+                
+                // Barra de Ordenación
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    item {
+                        SortChip(
+                            text = "Fecha",
+                            isSelected = currentSort == SortOption.DATE,
+                            onClick = { events.onSort(SortOption.DATE) }
+                        )
+                    }
+                    item {
+                        SortChip(
+                            text = "Importe",
+                            isSelected = currentSort == SortOption.PRICE,
+                            onClick = { events.onSort(SortOption.PRICE) }
+                        )
+                    }
+                    item {
+                        SortChip(
+                            text = "Estados",
+                            isSelected = currentSort == SortOption.TYPE,
+                            onClick = { events.onSort(SortOption.TYPE) }
+                        )
+                    }
+                }
+                HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
             }
         }
 
@@ -327,6 +441,30 @@ fun InvoiceListContent(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SortChip(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) GreenIberdrola else Color.Transparent,
+        border = if (isSelected) null else BorderStroke(1.dp, Color.LightGray),
+        modifier = Modifier.animateContentSize()
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            color = if (isSelected) Color.White else Color.Gray,
+            fontSize = 12.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            fontFamily = IberPangeaFamily
+        )
     }
 }
 
@@ -493,7 +631,15 @@ fun InvoiceListScreenPreview() {
             Box(modifier = Modifier.padding(padding)) {
                 InvoiceListContent(
                     groupedInvoices = groupedMock,
-                    events = InvoiceListEvents(),
+                    lastInvoice = mockFacturas.first(),
+                    hasFilters = false,
+                    currentSort = SortOption.DATE,
+                    events = InvoiceListEvents(
+                        onFilter = {},
+                        onDetail = {},
+                        onClearFilters = {},
+                        onSort = {}
+                    ),
                 )
             }
         }

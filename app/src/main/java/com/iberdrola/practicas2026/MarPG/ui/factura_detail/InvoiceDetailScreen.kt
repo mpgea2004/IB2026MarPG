@@ -157,24 +157,25 @@ fun InvoiceDetailContent(
                     .padding(padding)
             ) {
                 stickyHeader {
-                    Box(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(WhiteApp)
                             .padding(horizontal = 20.dp)
-                            .height(56.dp)
+                            .height(56.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
                             text = "Detalle de factura",
                             fontFamily = IberPangeaFamily,
-                            fontWeight = FontWeight.ExtraBold,
+                            fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
                             color = Color.Black,
-                            modifier = Modifier.align(Alignment.Center)
                         )
                         
                         Box(
-                            modifier = Modifier.size(48.dp).align(Alignment.CenterEnd),
+                            modifier = Modifier.size(48.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             if (state.isDownloadingPdf) {
@@ -316,8 +317,8 @@ private fun InvoiceDetailHeader(amount: Double, date: String) {
             Text(text = "Importe total", fontFamily = IberPangeaFamily, fontSize = 14.sp, color = TextGrey)
             Text(
                 text = amount.toAnnotatedCurrencyFormat(42.sp),
-                fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF333333),
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
                 fontFamily = IberPangeaFamily
             )
             Spacer(modifier = Modifier.height(8.dp))

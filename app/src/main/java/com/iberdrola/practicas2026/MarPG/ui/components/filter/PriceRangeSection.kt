@@ -57,7 +57,7 @@ fun PriceRangeSection(
                     maxPrice.toInt()
                 ),
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
+                fontSize = 12.sp,
                 fontFamily = IberPangeaFamily
             )
         }
