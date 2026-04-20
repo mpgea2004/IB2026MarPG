@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +27,10 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +48,7 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Electr
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.LoadingOverlay
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
+import kotlinx.coroutines.delay
 
 
 @Composable
@@ -54,9 +59,33 @@ fun ElectronicInvoiceOtpScreen(
     onNext: () -> Unit
 ) {
     val state = viewModel.state
+    
+    var isNavigating by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        delay(100)
+        isNavigating = false
+    }
+
+    val handleBack = {
+        if (!isNavigating) {
+            isNavigating = true
+            onBack()
+        }
+    }
+
+    val handleClose = {
+        if (!isNavigating) {
+            isNavigating = true
+            onCloseToHome()
+        }
+    }
+
+    BackHandler(enabled = true) { handleBack() }
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
+            isNavigating = true
             onNext()
         }
     }
@@ -74,11 +103,13 @@ fun ElectronicInvoiceOtpScreen(
         onOtpChange = { viewModel.onOtpChanged(it) },
         onResendOtp = { viewModel.onResendOtp() },
         onCloseBanner = { viewModel.closeResendBanner() },
-        onBack = onBack,
-        onClose = onCloseToHome,
-        onNext = { if (state.otpInput.length == 6) {
-            viewModel.performUpdate()
-        } }
+        onBack = handleBack,
+        onClose = handleClose,
+        onNext = { 
+            if (state.otpInput.length == 6 && !isNavigating && !state.isLoading) {
+                viewModel.performUpdate()
+            }
+        }
     )
 
     ElectronicInvoiceOtpContent(

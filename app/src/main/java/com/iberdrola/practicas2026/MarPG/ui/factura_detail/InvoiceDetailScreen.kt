@@ -1,6 +1,8 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_detail
 
-import androidx.compose.foundation.BorderStroke
+import android.util.Log
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,16 +16,29 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Receipt
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,7 +50,12 @@ import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
 import com.iberdrola.practicas2026.MarPG.ui.components.list.StatusBadge
-import com.iberdrola.practicas2026.MarPG.ui.theme.*
+import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
+import com.iberdrola.practicas2026.MarPG.ui.theme.BackgroundApp
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
+import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
+import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
 
 @Composable
@@ -45,9 +65,19 @@ fun InvoiceDetailScreen(
     onBack: () -> Unit
 ) {
     val state = viewModel.state
-    
+
+    var isNavigating by remember { mutableStateOf(false) }
+
+    val handleBack = {
+        if (!isNavigating) {
+            isNavigating = true
+            onBack()
+        }
+    }
+    BackHandler(enabled = true) { handleBack() }
+
     val events = InvoiceDetailEvents(
-        onBack = onBack,
+        onBack = handleBack,
         onDownloadPdf = { viewModel.downloadPdf() },
         onPay = { viewModel.payInvoice(isCloudEnabled) }
     )
@@ -58,83 +88,55 @@ fun InvoiceDetailScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun InvoiceDetailContent(
     state: InvoiceDetailState,
     events: InvoiceDetailEvents
 ) {
-    val invoice = state.invoice ?: return
+    val invoice = state.invoice
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        "Detalle de factura",
-                        fontFamily = IberPangeaFamily,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 20.sp
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = events.onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = GreenIberdrola)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = WhiteApp,
-                    scrolledContainerColor = Color.Unspecified ,
-                    navigationIconContentColor = GreenIberdrola,
-                    titleContentColor = Color.Black,
-                    actionIconContentColor = Color.Unspecified
-                ),
-                actions = {
-                    Box(
-                        modifier = Modifier.size(48.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (state.isDownloadingPdf) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = GreenIberdrola,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            IconButton(onClick = events.onDownloadPdf) {
-                                Icon(
-                                    imageVector = Icons.Outlined.CloudDownload,
-                                    contentDescription = "Descargar PDF",
-                                    tint = GreenIberdrola
-                                )
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                },
-            )
+            FilterTopBar(onBack = events.onBack)
         },
 
         bottomBar = {
-            if (invoice.status != InvoiceStatus.PAGADAS && invoice.status != InvoiceStatus.ANULADAS) {
-                Surface(
-                    color = WhiteApp,
-                    shadowElevation = 8.dp
-                ) {
-                    Button(
-                        onClick = events.onPay,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                            .height(56.dp),
-                        shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = GreenIberdrola, contentColor = Color.White, disabledContainerColor = Color.Gray, disabledContentColor = Color.White),
-                        enabled = !state.isLoading
+            if(invoice!= null) {
+                if (invoice.status != InvoiceStatus.PAGADAS && invoice.status != InvoiceStatus.ANULADAS) {
+                    Surface(
+                        color = WhiteApp,
+                        shadowElevation = 8.dp
                     ) {
-                        if (state.isLoading) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                        } else {
-                            Text("PAGAR FACTURA AHORA", fontFamily = IberPangeaFamily, fontWeight = FontWeight.ExtraBold, color = WhiteApp)
+                        Button(
+                            onClick = events.onPay,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(28.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = GreenIberdrola,
+                                contentColor = Color.White,
+                                disabledContainerColor = Color.Gray,
+                                disabledContentColor = Color.White
+                            ),
+                            enabled = !state.isLoading
+                        ) {
+                            if (state.isLoading) {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    modifier = Modifier.size(24.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(
+                                    "PAGAR FACTURA AHORA",
+                                    fontFamily = IberPangeaFamily,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = WhiteApp
+                                )
+                            }
                         }
                     }
                 }
@@ -142,86 +144,136 @@ fun InvoiceDetailContent(
         },
         containerColor = BackgroundApp
     ) { padding ->
-        Column(
-            modifier = Modifier
+        if (invoice == null) {
+            Box(Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-        ) {
-            InvoiceDetailHeader(
-                amount = invoice.amount,
-                date = DateMapper.formatToDisplay(invoice.issueDate)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Column(
-                modifier = Modifier.padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = GreenIberdrola)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
             ) {
-                if (state.paymentSuccess) {
-                    StatusMessage(message = "¡Factura pagada correctamente!", color = GreenIberdrola)
-                }
-
-                if (state.paymentError) {
-                    StatusMessage(message = "No se ha podido realizar el pago. Inténtalo de nuevo.", color = Color.Red)
-                }
-
-                if (state.pdfDownloaded) {
-                    StatusMessage(message = "Factura descargada correctamente", color = GreenIberdrola)
-                }
-
-                InfoCard(
-                    title = "Datos del suministro",
-                    icon =Icons.Outlined.Receipt
-                ) {
-                    DetailRow(
-                        label = "Tipo de contrato",
-                        value = if (invoice.contractType == ContractType.LUZ) "Suministro de Luz" else "Suministro de Gas"
-                    )
-                    DetailRow(
-                        label = "Número de factura",
-                        value = invoice.id
-                    )
-                }
-
-                InfoCard(
-                    title = "Periodo de facturación",
-                    icon = Icons.Outlined.Info
-                ) {
-                    val range = "${DateMapper.formatToShortDisplay(invoice.startDate)} - ${DateMapper.formatToShortDisplay(invoice.endDate)}"
-                    Text(
-                        text = range,
-                        fontFamily = IberPangeaFamily,
-                        fontSize =15.sp,
-                        color = Color(0xFF333333),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
-                InfoCard(
-                    title = "Estado del pago",
-                    icon = Icons.Outlined.Info
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                stickyHeader {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(WhiteApp)
+                            .padding(horizontal = 20.dp)
+                            .height(56.dp)
                     ) {
                         Text(
-                            text = if (invoice.status == InvoiceStatus.PAGADAS) "Factura cobrada" else
-                            {
-                                if (invoice.status == InvoiceStatus.ANULADAS) "Factura en anulación" else "Pendiente de cobro"
-                            },
-                            fontFamily =IberPangeaFamily,
-                            fontSize = 14.sp,
-                            color = TextGrey
+                            text = "Detalle de factura",
+                            fontFamily = IberPangeaFamily,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 20.sp,
+                            color = Color.Black,
+                            modifier = Modifier.align(Alignment.Center)
                         )
-                        StatusBadge(invoice.status)
+                        
+                        Box(
+                            modifier = Modifier.size(48.dp).align(Alignment.CenterEnd),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (state.isDownloadingPdf) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = GreenIberdrola,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                IconButton(onClick = events.onDownloadPdf) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.CloudDownload,
+                                        contentDescription = "Descargar PDF",
+                                        tint = GreenIberdrola
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
+
+                item {
+                    InvoiceDetailHeader(
+                        amount = invoice.amount,
+                        date = DateMapper.formatToDisplay(invoice.issueDate)
+                    )
+                }
+
+                item { Spacer(modifier = Modifier.height(16.dp)) }
+
+                item {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        if (state.paymentSuccess) {
+                            StatusMessage(message = "¡Factura pagada correctamente!", color = GreenIberdrola)
+                        }
+
+                        if (state.paymentError) {
+                            StatusMessage(message = "No se ha podido realizar el pago. Inténtalo de nuevo.", color = Color.Red)
+                        }
+
+                        if (state.pdfDownloaded) {
+                            StatusMessage(message = "Factura descargada correctamente", color = GreenIberdrola)
+                        }
+
+                        InfoCard(
+                            title = "Datos del suministro",
+                            icon = Icons.Outlined.Receipt
+                        ) {
+                            DetailRow(
+                                label = "Tipo de contrato",
+                                value = if (invoice.contractType == ContractType.LUZ) "Suministro de Luz" else "Suministro de Gas"
+                            )
+                            DetailRow(
+                                label = "Número de factura",
+                                value = invoice.id
+                            )
+                        }
+
+                        InfoCard(
+                            title = "Periodo de facturación",
+                            icon = Icons.Outlined.Info
+                        ) {
+                            val range = "${DateMapper.formatToShortDisplay(invoice.startDate)} - ${DateMapper.formatToShortDisplay(invoice.endDate)}"
+                            Text(
+                                text = range,
+                                fontFamily = IberPangeaFamily,
+                                fontSize = 15.sp,
+                                color = Color(0xFF333333),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
+                        InfoCard(
+                            title = "Estado del pago",
+                            icon = Icons.Outlined.Info
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = if (invoice.status == InvoiceStatus.PAGADAS) "Factura cobrada" else {
+                                        if (invoice.status == InvoiceStatus.ANULADAS) "Factura en anulación" else "Pendiente de cobro"
+                                    },
+                                    fontFamily = IberPangeaFamily,
+                                    fontSize = 14.sp,
+                                    color = TextGrey
+                                )
+                                StatusBadge(invoice.status)
+                            }
+                        }
+                    }
+                }
+                item { Spacer(modifier = Modifier.height(32.dp)) }
             }
-            Spacer(modifier =Modifier.height(32.dp))
         }
     }
 }
@@ -233,14 +285,21 @@ private fun StatusMessage(message: String, color: Color) {
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(
-            text = message,
-            color = color,
-            fontSize = 14.sp,
+        Row(
             modifier = Modifier.padding(16.dp),
-            fontWeight = FontWeight.Bold,
-            fontFamily = IberPangeaFamily
-        )
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Outlined.Info, null, tint = color, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = message,
+                color = color,
+                fontSize = 14.sp,
+                modifier = Modifier.weight(1f),
+                fontWeight = FontWeight.Bold,
+                fontFamily = IberPangeaFamily
+            )
+        }
     }
 }
 
@@ -254,17 +313,12 @@ private fun InvoiceDetailHeader(amount: Double, date: String) {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "Importe total",
-                fontFamily = IberPangeaFamily,
-                fontSize = 14.sp,
-                color = TextGrey
-            )
+            Text(text = "Importe total", fontFamily = IberPangeaFamily, fontSize = 14.sp, color = TextGrey)
             Text(
                 text = amount.toAnnotatedCurrencyFormat(42.sp),
                 fontWeight = FontWeight.ExtraBold,
                 color = Color(0xFF333333),
-                fontFamily = IberPangeaFamily,
+                fontFamily = IberPangeaFamily
             )
             Spacer(modifier = Modifier.height(8.dp))
             Surface(color = BackgroundApp, shape = RoundedCornerShape(16.dp)) {
@@ -285,17 +339,17 @@ private fun InvoiceDetailHeader(amount: Double, date: String) {
 private fun InfoCard(title: String, icon: ImageVector, content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(24.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(icon, null, tint = GreenIberdrola, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(title, fontFamily = IberPangeaFamily, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF333333))
             }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
             content()
         }
     }
@@ -304,7 +358,9 @@ private fun InfoCard(title: String, icon: ImageVector, content: @Composable Colu
 @Composable
 private fun DetailRow(label: String, value: String) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(label, fontSize = 14.sp, color = TextGrey, fontFamily = IberPangeaFamily)

@@ -31,6 +31,6 @@ interface InvoiceDao {
         insertInvoices(invoices)
     }
 
-    @Query("UPDATE invoices SET status = 'PAGADAS' WHERE id = :id")
+    @Query("UPDATE invoices SET status = 'Pagadas' WHERE id = :id")
     suspend fun updateInvoiceToPaid(id: String)
 }

@@ -1,5 +1,7 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_list
 
+import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -45,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
@@ -60,6 +63,7 @@ import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
+import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper.formatToShortDisplay
 import com.iberdrola.practicas2026.MarPG.ui.components.ErrorBanner
 import com.iberdrola.practicas2026.MarPG.ui.components.FilterEmptyState
 import com.iberdrola.practicas2026.MarPG.ui.components.InvoiceEmptyState
@@ -69,16 +73,14 @@ import com.iberdrola.practicas2026.MarPG.ui.components.list.FilterButton
 import com.iberdrola.practicas2026.MarPG.ui.components.list.InvoiceTabItem
 import com.iberdrola.practicas2026.MarPG.ui.components.list.StatusBadge
 import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
+import com.iberdrola.practicas2026.MarPG.ui.theme.BorderLight
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
-import androidx.activity.compose.BackHandler
-import androidx.compose.ui.draw.clip
-import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper.formatToShortDisplay
-import com.iberdrola.practicas2026.MarPG.ui.theme.BorderLight
-import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
+import kotlinx.coroutines.delay
 
 /** Pantalla principal del listado de facturas con filtrado por tipo y estados de carga */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,13 +88,27 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 fun InvoiceListScreen(
     viewModel: InvoiceListViewModel,
     onBack: () -> Unit,
-    onNavigateToFilters:() -> Unit,
-    onNavigateToInvoiceDetail: () -> Unit
+    onNavigateToFilters: () -> Unit,
+    onNavigateToInvoiceDetail: (Invoice) -> Unit
 ) {
 
-    BackHandler {
+    var isNavigating by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        delay(100)
+        isNavigating = false
+    }
+
+    val handleBack = {
+        if (!isNavigating) {
+            isNavigating = true
+            onBack()
+        }
+    }
+
+    BackHandler(enabled = true) { 
         viewModel.registerBackNavigation()
-        onBack()
+        handleBack() 
     }
 
     val currentState = viewModel.state
@@ -132,10 +148,7 @@ fun InvoiceListScreen(
                 selectedTab = selectedTab,
                 onTabSelected = { viewModel.selectTab(it) },
                 address = userAddress,
-                onBack = {
-                    viewModel.registerBackNavigation()
-                    onBack()
-                },
+                onBack = handleBack,
                 errorMessage = errorMessage?.let { stringResource(it) },
                 showErrorBanner = currentState is InvoiceListState.SUCCESS && errorMessage != null            )
         }
@@ -167,10 +180,18 @@ fun InvoiceListScreen(
                         InvoiceListContent(
                             groupedInvoices = currentState.groupedInvoices,
                             events = InvoiceListEvents(
-                                onFilter = { onNavigateToFilters() },
+                                onFilter = {
+                                    if (!isNavigating) {
+                                        isNavigating = true
+                                        onNavigateToFilters()
+                                    }
+                                },
                                 onDetail = { invoice ->
-                                    viewModel.selectInvoice(invoice)
-                                    onNavigateToInvoiceDetail()
+                                    if (!isNavigating) {
+                                        isNavigating = true
+                                        viewModel.selectInvoice(invoice)
+                                        onNavigateToInvoiceDetail(invoice)
+                                    }
                                 }
                             )
                         )

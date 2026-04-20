@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -27,6 +33,7 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Securi
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.WarningSameEmailDialog
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import kotlinx.coroutines.delay
 
 @Composable
 fun ElectronicInvoiceEditEmailScreen(
@@ -36,6 +43,29 @@ fun ElectronicInvoiceEditEmailScreen(
     onNext: () -> Unit
 ) {
     val state = viewModel.state
+    
+    var isNavigating by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        delay(100)
+        isNavigating = false
+    }
+
+    val handleBack = {
+        if (!isNavigating) {
+            isNavigating = true
+            onBack()
+        }
+    }
+
+    val handleClose = {
+        if (!isNavigating) {
+            isNavigating = true
+            onCloseToHome()
+        }
+    }
+
+    BackHandler(enabled = true) { handleBack() }
 
     if (state.showNoPhoneDialog) {
         SecurityPhoneDialog(state, viewModel, onNext)
@@ -47,11 +77,17 @@ fun ElectronicInvoiceEditEmailScreen(
 
     val events = ElectronicInvoiceEvents(
         onEmailChange = { viewModel.onEmailChanged(it) },
-        onBack = onBack,
+        onBack = handleBack,
         onNext = {
-            viewModel.onContinueClick(onNext)
+            if (!isNavigating) {
+                isNavigating = true
+                viewModel.onContinueClick {
+                    isNavigating = false
+                    onNext()
+                }
+            }
         },
-        onClose = onCloseToHome
+        onClose = handleClose
     )
 
     ElectronicInvoiceEditEmailContent(

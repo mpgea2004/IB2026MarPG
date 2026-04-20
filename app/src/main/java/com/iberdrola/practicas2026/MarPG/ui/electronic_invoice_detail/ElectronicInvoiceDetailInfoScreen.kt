@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,6 +49,7 @@ import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import kotlinx.coroutines.delay
 
 @Composable
 fun ElectronicInvoiceDetailInfoScreen(
@@ -59,6 +62,22 @@ fun ElectronicInvoiceDetailInfoScreen(
     if (electronicInvoice == null) return
 
     val state = viewModel.state
+    
+    var isNavigating by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        delay(100)
+        isNavigating = false
+    }
+
+    val handleBack = {
+        if (!isNavigating) {
+            isNavigating = true
+            onBack()
+        }
+    }
+
+    BackHandler(enabled = true) { handleBack() }
 
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -73,10 +92,13 @@ fun ElectronicInvoiceDetailInfoScreen(
     }
 
     val events = ElectronicInvoiceEvents(
-        onBack = onBack,
+        onBack = handleBack,
         onNext = {
-            viewModel.onEmailChanged(electronicInvoice.email!!)
-            onNavigateToEdit()
+            if (!isNavigating) {
+                isNavigating = true
+                viewModel.onEmailChanged(electronicInvoice.email!!)
+                onNavigateToEdit()
+            }
         },
         onConfirmDeactivate = { showDeleteDialog = true }
     )

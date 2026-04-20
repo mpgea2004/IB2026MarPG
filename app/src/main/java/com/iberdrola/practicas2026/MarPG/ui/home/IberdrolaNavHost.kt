@@ -34,7 +34,7 @@ object Routes {
     const val HOME = "home"
     const val INVOICE_LIST = "invoice_list/{isCloud}"
     const val FILTER = "filter"
-    const val INVOICE_DETAIL = "invoice_detail"
+    const val INVOICE_DETAIL = "invoice_detail/{invoiceId}"
     const val ELECTRONIC_INVOICE_SELECTION = "electronic_invoice_selection"
     const val ELECTRONIC_INVOICE_DETAIL = "electronic_invoice_detail"
     const val ELECTRONIC_INVOICE_FORM = "electronic_invoice_form"
@@ -62,7 +62,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
         }
         composable(Routes.USER_PROFILE) {
             ProfileScreen(
-                onBack = { navController.popBackStack() }
+                onBack = {
+                    if (navController.currentDestination?.route == Routes.USER_PROFILE) {
+                        navController.popBackStack()
+                    }
+                }
             )
         }
 
@@ -74,43 +78,59 @@ fun IberdrolaNavHost(navController: NavHostController) {
             InvoiceListScreen(
                 viewModel = invoiceListViewModel,
                 onBack = {
-                    navController.popBackStack()
+                    if (navController.currentDestination?.route == Routes.INVOICE_LIST) {
+                        navController.popBackStack()
+                    }
                 },
                 onNavigateToFilters = { navController.navigate(Routes.FILTER) },
-                onNavigateToInvoiceDetail = {
-                    navController.navigate(Routes.INVOICE_DETAIL)
+                onNavigateToInvoiceDetail = { invoice ->
+                    navController.navigate("invoice_detail/${invoice.id}")
                 }
             )
         }
 
         composable(Routes.FILTER) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Routes.INVOICE_LIST)
+                navController.getBackStackEntry("invoice_list/{isCloud}")
             }
             val invoiceListViewModel: InvoiceListViewModel = hiltViewModel(parentEntry)
 
             FilterScreen(
                 listViewModel = invoiceListViewModel,
                 filterViewModel = hiltViewModel(),
-                onBack = { navController.popBackStack() }
+                onBack = {
+                    if (navController.currentDestination?.route == Routes.FILTER) {
+                        navController.popBackStack()
+                    }
+                }
             )
         }
 
-        composable(Routes.INVOICE_DETAIL) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Routes.INVOICE_LIST)
-            }
-            val listViewModel: InvoiceListViewModel = hiltViewModel(parentEntry)
-            val detailViewModel: InvoiceDetailViewModel = hiltViewModel()
+        composable(
+            Routes.INVOICE_DETAIL,
+            arguments = listOf(navArgument("invoiceId") { type = NavType.StringType })
+        ) { backStackEntry ->
 
-            LaunchedEffect(listViewModel.selectedInvoice) {
-                listViewModel.selectedInvoice?.let { detailViewModel.setInvoice(it) }
+            val invoiceId = backStackEntry.arguments?.getString("invoiceId") ?: ""
+
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry("invoice_list/{isCloud}")
+            }
+
+            val detailViewModel: InvoiceDetailViewModel = hiltViewModel(parentEntry)
+
+            LaunchedEffect(invoiceId) {
+                detailViewModel.loadInvoice(invoiceId)
             }
 
             InvoiceDetailScreen(
                 viewModel = detailViewModel,
                 isCloudEnabled = isCloudEnabled,
-                onBack = { navController.popBackStack() }
+                onBack = {
+                    if (navController.currentDestination?.route == Routes.INVOICE_DETAIL) {
+                        navController.popBackStack()
+                    }
+                }
             )
         }
 
@@ -130,7 +150,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
                         navController.navigate(Routes.ELECTRONIC_INVOICE_FORM)
                     }
                 },
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_SELECTION) {
+                        navController.popBackStack()
+                    }
+                },
             )
         }
 
@@ -143,7 +167,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
             ElectronicInvoiceDetailInfoScreen(
                 viewModel = sharedViewModel,
                 electronicInvoice = sharedViewModel.state.selectedContract,
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_DETAIL) {
+                        navController.popBackStack()
+                    }
+                },
                 onNavigateToEdit = { navController.navigate(Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) },
                 onNavigateToSuccess = { navController.navigate(Routes.ELECTRONIC_INVOICE_SUCCESS) }
             )
@@ -155,7 +183,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
             }
             ElectronicInvoiceDetailFormScreen(
                 viewModel = hiltViewModel(parentEntry),
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_FORM) {
+                        navController.popBackStack()
+                    }
+                },
                 onNext = { navController.navigate(Routes.ELECTRONIC_INVOICE_OTP) },
                 onCloseToHome = {
                     navController.popBackStack(Routes.HOME, false)
@@ -169,7 +201,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
             }
             ElectronicInvoiceEditEmailScreen(
                 viewModel = hiltViewModel(parentEntry),
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) {
+                        navController.popBackStack()
+                    }
+                },
                 onNext = { navController.navigate(Routes.ELECTRONIC_INVOICE_OTP) },
                 onCloseToHome = {
                     navController.popBackStack(Routes.HOME, false)
@@ -183,7 +219,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
             }
             ElectronicInvoiceOtpScreen(
                 viewModel = hiltViewModel(parentEntry),
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_OTP) {
+                        navController.popBackStack()
+                    }
+                },
                 onNext = {
                     navController.navigate(Routes.ELECTRONIC_INVOICE_SUCCESS)
                 },

@@ -158,7 +158,7 @@
     <string name="profile_label_password">* Contraseña de seguridad</string>
     <string name="profile_button_save">Guardar cambios</string>
     <string name="profile_empty_address">Sin dirección asignada</string>
-    <string name="feedback_thanks_title">¡Gracias por validar!</string>
+    <string name="feedback_thanks_title">¡Gracias por opinar!</string>
     <string name="error_field_required">Este campo es obligatorio</string>
 
     <string name="warning_same_email_title">¡Cuidado!</string>

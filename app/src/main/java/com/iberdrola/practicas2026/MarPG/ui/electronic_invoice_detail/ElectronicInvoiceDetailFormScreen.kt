@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,6 +51,7 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Warnin
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,6 +62,29 @@ fun ElectronicInvoiceDetailFormScreen(
     onCloseToHome: () -> Unit,
 ) {
     val state = viewModel.state
+    
+    var isNavigating by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        delay(100)
+        isNavigating = false
+    }
+
+    val handleBack = {
+        if (!isNavigating) {
+            isNavigating = true
+            onBack()
+        }
+    }
+
+    val handleClose = {
+        if (!isNavigating) {
+            isNavigating = true
+            onCloseToHome()
+        }
+    }
+
+    BackHandler(enabled = true) { handleBack() }
 
     val isButtonEnabled = viewModel.canContinue()
 
@@ -71,10 +101,16 @@ fun ElectronicInvoiceDetailFormScreen(
     val events = ElectronicInvoiceEvents(
         onEmailChange = { viewModel.onEmailChanged(it) },
         onLegalCheckChange = { viewModel.onLegalAccepted(it) },
-        onBack = onBack,
-        onClose = onCloseToHome,
+        onBack = handleBack,
+        onClose = handleClose,
         onNext = {
-            viewModel.onContinueClick(onNext)
+            if (!isNavigating) {
+                isNavigating = true
+                viewModel.onContinueClick {
+                    isNavigating = false
+                    onNext()
+                }
+            }
         },
         onShowLegal = { title, content -> viewModel.onShowLegalDetail(title, content) },
         onDismissLegal = { viewModel.onDismissLegalSheet() }
