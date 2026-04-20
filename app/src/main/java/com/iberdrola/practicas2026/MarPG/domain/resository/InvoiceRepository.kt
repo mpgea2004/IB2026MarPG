@@ -13,4 +13,6 @@ interface InvoiceRepository {
      * @param isCloud si es true, usa la api(Mockoon), y si es falso usa el json que tengo en assets
      */
     fun getAllInvoices(isCloud: Boolean): Flow<List<Invoice>>
+
+    suspend fun payInvoice(id: String, isCloud: Boolean)
 }

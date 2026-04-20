@@ -5,12 +5,14 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,19 +30,18 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -59,11 +61,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
-import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.BackgroundApp
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
-import com.iberdrola.practicas2026.MarPG.ui.theme.Typography
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
+import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,22 +77,38 @@ fun ProfileScreen(
 
     val events = ProfileEvents(
         onNameChanged = { viewModel.onNameChange(it) },
-        onEmailChanged = { viewModel.onEmailChange(it)  },
-        onPhoneChanged = { viewModel.onPhoneChange(it)  },
-        onAddressChanged = {viewModel.onAddressChanged(it)},
+        onEmailChanged = { viewModel.onEmailChange(it) },
+        onPhoneChanged = { viewModel.onPhoneChange(it) },
+        onAddressChanged = { viewModel.onAddressChanged(it) },
         onSaveClick = { onSuccess -> viewModel.saveChanges(onSuccess) },
         onBackClick = onBack,
-        onPasswordChanged = {viewModel.onPasswordChanged(it)},
-        onLogout = {viewModel.logout { onBack() }}
+        onPasswordChanged = { viewModel.onPasswordChanged(it) },
+        onLogout = { viewModel.logout { onBack() } }
     )
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.profile_header_title), fontWeight = FontWeight.Bold, style = Typography.titleLarge, color = Color.Black) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.profile_header_title),
+                        fontWeight = FontWeight.ExtraBold,
+                        fontFamily = IberPangeaFamily,
+                        fontSize = 22.sp,
+                        color = Color(0xFF333333)
+                    )
+                },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.profile_header_back), tint = Color.Black)
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.profile_header_back),
+                            tint = GreenIberdrola,
+                            modifier = Modifier.size(28.dp)
+                        )
                     }
                 },
                 actions = {
@@ -99,27 +117,38 @@ fun ProfileScreen(
 
                     IconButton(
                         onClick = events.onLogout,
-                        enabled = canLogout
+                        enabled = canLogout,
+                        modifier = Modifier.padding(end = 8.dp)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout,
                             contentDescription = "Cerrar sesión",
-                            tint = if (canLogout) Color.Red else Color.LightGray.copy(alpha = 0.5f)
+                            tint = if (canLogout) Color(0xFFD32F2F) else Color.LightGray.copy(alpha = 0.5f),
+                            modifier = Modifier.size(26.dp)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = WhiteApp
+                    containerColor = Color.Transparent
                 )
             )
         },
-        containerColor = WhiteApp
+        containerColor = BackgroundApp
     ) { padding ->
-        ProfileContent(
-            state = state,
-            events = events,
-            modifier = Modifier.padding(padding)
-        )
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(WhiteApp, BackgroundApp)
+                )
+            )
+        ) {
+            ProfileContent(
+                state = state,
+                events = events,
+                modifier = Modifier.padding(padding)
+            )
+        }
     }
 }
 
@@ -129,111 +158,152 @@ fun ProfileContent(
     events: ProfileEvents,
     modifier: Modifier = Modifier
 ) {
-
     var passwordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         ProfileAvatar()
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = WhiteApp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(4.dp, 18.dp)
+                            .background(GreenIberdrola, RoundedCornerShape(2.dp))
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = stringResource(R.string.profile_section_account),
+                        fontFamily = IberPangeaFamily,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = GreenIberdrola
+                    )
+                }
 
-        Text(
-            text = stringResource(R.string.profile_section_account),
-            style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
-            fontWeight = FontWeight.Bold,
-            color = Color.DarkGray
-        )
+                ProfileField(
+                    value = state.name,
+                    errorMessage = state.nameError,
+                    label = stringResource(R.string.profile_label_name),
+                    icon = Icons.Default.Person,
+                    onValueChange = events.onNameChanged
+                )
+
+                ProfileField(
+                    value = state.email,
+                    errorMessage = state.emailError,
+                    label = stringResource(R.string.profile_label_email),
+                    icon = Icons.Default.Email,
+                    keyboardType = KeyboardType.Email,
+                    onValueChange = events.onEmailChanged
+                )
+
+                ProfileField(
+                    value = state.phone,
+                    errorMessage = state.phoneError,
+                    label = stringResource(R.string.profile_label_phone),
+                    icon = Icons.Default.Phone,
+                    keyboardType = KeyboardType.Phone,
+                    onValueChange = events.onPhoneChanged
+                )
+
+                ProfileField(
+                    value = state.address,
+                    label = stringResource(R.string.profile_label_address),
+                    icon = Icons.Default.Home,
+                    onValueChange = events.onAddressChanged
+                )
+                PasswordField(
+                    value = state.password,
+                    errorMessage = state.passwordError,
+                    isVisible = passwordVisible,
+                    onValueChange = events.onPasswordChanged,
+                    onToggleVisibility = { passwordVisible = !passwordVisible }
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            ProfileField(
-                value = state.name,
-                errorMessage = state.nameError,
-                label = stringResource(R.string.profile_label_name),
-                icon = Icons.Default.Person,
-                onValueChange = events.onNameChanged
+        Button(
+            onClick = { events.onSaveClick {
+                events.onBackClick()
+            } },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .height(56.dp),
+            shape = RoundedCornerShape(28.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = GreenIberdrola,
+                contentColor = WhiteApp
+            ),
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 4.dp,
+                pressedElevation = 8.dp
             )
-
-            ProfileField(
-                value = state.email,
-                errorMessage = state.emailError,
-                label = stringResource(R.string.profile_label_email),
-                icon = Icons.Default.Email,
-                keyboardType = KeyboardType.Email,
-                onValueChange = events.onEmailChanged
-            )
-
-            ProfileField(
-                value = state.phone,
-                errorMessage = state.phoneError,
-                label = stringResource(R.string.profile_label_phone),
-                icon = Icons.Default.Phone,
-                keyboardType = KeyboardType.Phone,
-                onValueChange = events.onPhoneChanged
-            )
-
-            ProfileField(
-                value = state.address,
-                label = stringResource(R.string.profile_label_address),
-                icon = Icons.Default.Home,
-                onValueChange = events.onAddressChanged
-            )
-
-            PasswordField(
-                value = state.password,
-                errorMessage = state.passwordError,
-                isVisible = passwordVisible,
-                onValueChange = events.onPasswordChanged,
-                onToggleVisibility = { passwordVisible = !passwordVisible }
+        ) {
+            Text(
+                text = stringResource(R.string.profile_button_save), fontSize = 16.sp,
+                fontWeight = FontWeight.ExtraBold,
+                fontFamily = IberPangeaFamily,
+                letterSpacing = 1.sp
             )
         }
 
         Spacer(modifier = Modifier.height(48.dp))
-
-        Button(
-            onClick = {
-                events.onSaveClick {
-                    events.onBackClick()
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
-        ) {
-            Text(stringResource(R.string.profile_button_save), fontSize = 16.sp, style = MaterialTheme.typography.labelSmall, color = WhiteApp)
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
 @Composable
 fun ProfileAvatar() {
-    Box(
-        modifier = Modifier
-            .size(100.dp)
-            .background(GreenDarkIberdrola.copy(alpha = 0.1f), CircleShape)
-            .border(2.dp, GreenDarkIberdrola.copy(alpha = 0.1f), CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = null,
-            modifier = Modifier.size(56.dp),
-            tint = GreenDarkIberdrola
+    Box(contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.size(110.dp)
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(GreenIberdrola.copy(alpha = 0.2f), Color.Transparent)
+                    ),
+                    shape = CircleShape
+                )
+                .border(1.dp, GreenIberdrola.copy(alpha = 0.1f), CircleShape)
         )
+        Card(
+            modifier = Modifier.size(90.dp) ,
+            shape = CircleShape,
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(containerColor = WhiteApp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(50.dp),
+                    tint = GreenIberdrola
+                )
+            }
+        }
     }
 }
 
@@ -249,13 +319,23 @@ fun PasswordField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.Black),
-            label = { Text(stringResource(R.string.profile_label_password), style = MaterialTheme.typography.bodyMedium) },
-            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = GreenDarkIberdrola) },
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                fontFamily = IberPangeaFamily,
+                color = Color(0xFF333333)
+            ),
+            label = { 
+                Text(
+                    text = stringResource(R.string.profile_label_password),
+                    fontFamily = IberPangeaFamily,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium
+                ) 
+            },
+            leadingIcon = { Icon(Icons.Default.Lock, null, tint = GreenIberdrola.copy(alpha = 0.7f), modifier = Modifier.size(20.dp)) },
             trailingIcon = {
                 val image = if (isVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                 IconButton(onClick = onToggleVisibility) {
-                    Icon(imageVector = image, contentDescription = null, tint = GreenIberdrola)
+                    Icon(imageVector = image, null, tint = TextGrey, modifier = Modifier.size(20.dp))
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -265,28 +345,27 @@ fun PasswordField(
             visualTransformation = if (isVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             colors = OutlinedTextFieldDefaults.colors(
-                cursorColor = GreenDarkIberdrola,
-                focusedBorderColor = GreenDarkIberdrola,
-                focusedLabelColor = GreenDarkIberdrola,
-                unfocusedBorderColor = Color.Gray,
-                unfocusedLabelColor = Color.Gray,
-                errorBorderColor = Color.Red,
-                errorLabelColor = Color.Red,
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black
+                focusedContainerColor = Color(0xFFF9FBF9),
+                unfocusedContainerColor = Color.Transparent,
+                cursorColor = GreenIberdrola,
+                focusedBorderColor = GreenIberdrola,
+                unfocusedBorderColor = Color(0xFFE0E0E0),
+                focusedLabelColor = GreenIberdrola,
+                unfocusedLabelColor = TextGrey,
+                errorBorderColor = Color(0xFFD32F2F)
             )
         )
         if (errorMessage != null) {
             Text(
                 text = stringResource(errorMessage),
-                color = Color.Red,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                color = Color(0xFFD32F2F),
+                fontFamily = IberPangeaFamily,
+                fontSize = 11.sp,
+                modifier = Modifier.padding(start = 12.dp, top = 4.dp)
             )
         }
     }
 }
-
 
 @Composable
 fun ProfileField(
@@ -301,37 +380,42 @@ fun ProfileField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            textStyle = MaterialTheme.typography.bodyMedium,
-            label = { Text(label, style = MaterialTheme.typography.bodyMedium) },
-            leadingIcon = { Icon(icon, contentDescription = null, tint = GreenDarkIberdrola) },
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                fontFamily = IberPangeaFamily,
+                color = Color(0xFF333333)
+            ),
+            label = { 
+                Text(
+                    text = label,
+                    fontFamily = IberPangeaFamily,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium
+                ) 
+            },
+            leadingIcon = { Icon(icon, null, tint = GreenIberdrola.copy(alpha = 0.7f), modifier = Modifier.size(20.dp)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             isError = errorMessage != null,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             colors = OutlinedTextFieldDefaults.colors(
-                cursorColor = GreenDarkIberdrola,
-                errorCursorColor = Color.Red,
-                focusedBorderColor = GreenDarkIberdrola,
-                focusedLabelColor = GreenDarkIberdrola,
-                errorBorderColor = Color.Red,
-                errorLabelColor = Color.Red,
-                errorTextColor = Color.Black,
-                errorLeadingIconColor = Color.Red,
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Gray,
-                unfocusedBorderColor = Color.Gray,
-                unfocusedLabelColor = Color.Gray,
-                focusedLeadingIconColor = GreenDarkIberdrola,
-                unfocusedLeadingIconColor = Color.Gray
+                focusedContainerColor = Color(0xFFF9FBF9),
+                unfocusedContainerColor = Color.Transparent,
+                cursorColor = GreenIberdrola,
+                focusedBorderColor = GreenIberdrola,
+                unfocusedBorderColor = Color(0xFFE0E0E0),
+                focusedLabelColor = GreenIberdrola,
+                unfocusedLabelColor = TextGrey,
+                errorBorderColor = Color(0xFFD32F2F)
             )
         )
         if (errorMessage != null) {
             Text(
                 text = stringResource(errorMessage),
-                color = Color.Red,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                color = Color(0xFFD32F2F),
+                fontFamily = IberPangeaFamily,
+                fontSize = 11.sp,
+                modifier = Modifier.padding(start = 12.dp, top = 4.dp)
             )
         }
     }

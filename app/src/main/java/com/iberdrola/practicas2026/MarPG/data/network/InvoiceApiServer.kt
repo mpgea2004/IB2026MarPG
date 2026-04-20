@@ -2,10 +2,11 @@ package com.iberdrola.practicas2026.MarPG.data.network
 
 import com.iberdrola.practicas2026.MarPG.data.model.InvoiceResponse
 import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.Path
 
 /**
  * Interfaz de Retrofit para el acceso a servicios externos (Mockoon)
- * Gestiona las peticiones de red relacionadas con las facturas
  */
 interface InvoiceApiServer {
     /**
@@ -14,4 +15,7 @@ interface InvoiceApiServer {
      */
     @GET("invoices")
     suspend fun getInvoices(): InvoiceResponse
+
+    @POST("invoices/{id}/pay")
+    suspend fun payInvoice(@Path("id") id: String)
 }

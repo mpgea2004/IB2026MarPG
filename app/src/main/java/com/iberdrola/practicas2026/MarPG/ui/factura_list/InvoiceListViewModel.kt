@@ -24,7 +24,6 @@ import javax.inject.Inject
 import kotlin.math.ceil
 
 
-/** Lógica de carga, filtrado y agrupación de facturas por tipo y año */
 @HiltViewModel
 class InvoiceListViewModel @Inject constructor(
     private val checkFeedbackUseCase: CheckFeedbackUseCase,
@@ -56,6 +55,9 @@ class InvoiceListViewModel @Inject constructor(
         private set
 
     var isRefreshing by mutableStateOf(false)
+        private set
+
+    var selectedInvoice by mutableStateOf<Invoice?>(null)
         private set
 
     val minInvoiceAmount: Float
@@ -199,6 +201,10 @@ class InvoiceListViewModel @Inject constructor(
     fun applyFilters(newFilters: FilterState) {
         currentFilterState = newFilters
         updateFilteredInvoices()
+    }
+
+    fun selectInvoice(invoice: Invoice) {
+        selectedInvoice = invoice
     }
 
     private fun checkDateRange(invoiceDateStr: String): Boolean {

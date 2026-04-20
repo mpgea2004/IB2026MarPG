@@ -86,7 +86,8 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 fun InvoiceListScreen(
     viewModel: InvoiceListViewModel,
     onBack: () -> Unit,
-    onNavigateToFilters:() -> Unit
+    onNavigateToFilters:() -> Unit,
+    onNavigateToInvoiceDetail: () -> Unit
 ) {
 
     BackHandler {
@@ -110,12 +111,6 @@ fun InvoiceListScreen(
             )
             viewModel.clearErrorMessage()
         }
-    }
-
-    var showNotAvailableDialog by remember { mutableStateOf(false) }
-
-    if (showNotAvailableDialog) {
-        InvoiceNotAvailableDialog(onDismiss = { showNotAvailableDialog = false })
     }
 
     val pagerState = rememberPagerState(pageCount = { 2 })
@@ -174,7 +169,8 @@ fun InvoiceListScreen(
                             events = InvoiceListEvents(
                                 onFilter = { onNavigateToFilters() },
                                 onDetail = { invoice ->
-                                    showNotAvailableDialog = true
+                                    viewModel.selectInvoice(invoice)
+                                    onNavigateToInvoiceDetail()
                                 }
                             )
                         )
@@ -185,7 +181,6 @@ fun InvoiceListScreen(
     }
 }
 
-/** Componente de cabecera que contiene el botón de atrás, títulos y pestañas de selección */
 @Composable
 fun InvoiceListHeader(
     selectedTab: Int,
@@ -263,7 +258,7 @@ fun InvoiceListContent(
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         lastInvoice?.let {
-            item { LastInvoiceItem(it) }
+            item { LastInvoiceItem(it, onClick = { events.onDetail(it) }) }
         }
 
         stickyHeader {
@@ -316,7 +311,7 @@ fun InvoiceListContent(
 
 /** Tarjeta destacada para la factura más reciente, esta también se ve afectada por el filtrado */
 @Composable
-fun LastInvoiceItem(invoice: Invoice) {
+fun LastInvoiceItem(invoice: Invoice, onClick: () -> Unit) {
 
     val startDateFormatted = formatToShortDisplay(invoice.startDate)
     val endDateFormatted = formatToShortDisplay(invoice.endDate)
@@ -324,7 +319,9 @@ fun LastInvoiceItem(invoice: Invoice) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(16.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = WhiteApp),
         border = BorderStroke(1.5.dp, GreenIberdrola)

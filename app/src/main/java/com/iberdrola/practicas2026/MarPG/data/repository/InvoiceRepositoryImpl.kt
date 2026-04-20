@@ -29,6 +29,7 @@ import java.net.UnknownHostException
  * Implementación del repositorio de facturas.
  * Centraliza la lógica de datos mediante el patrón Single Source of Truth (SSOT),
  * priorizando la base de datos local (Room) sobre la red (Retrofit).
+ * Ahora el modo local también usa Room como fuente de verdad para permitir persistencia de cambios.
  */
 class InvoiceRepositoryImpl @Inject constructor(
     private val invoiceApiServer: InvoiceApiServer,
@@ -39,7 +40,7 @@ class InvoiceRepositoryImpl @Inject constructor(
 
     /**
      * Obtiene el listado de facturas.
-     * @param isCloud True: Sincroniza API con Room. False: Lee un archivo estático de Assets.
+     * @param isCloud True: Sincroniza API con Room. False: Sincroniza JSON con Room.
      */
     override fun getAllInvoices(isCloud: Boolean): Flow<List<Invoice>> = flow {
         if(isCloud){
@@ -70,29 +71,25 @@ class InvoiceRepositoryImpl @Inject constructor(
             emitAll(databaseFlow)
 
         }else {
-            // Modo Local (Assets)
+            val databaseFlow = getInvoicesFromDatabase()
             try {
-                //Simulo tiempo de carga entre 1 y 3 segundos
-                delay((1000..3000).random().toLong())
+                val currentLocal = getInvoicesFromDatabaseOnce()
+                if (currentLocal.isEmpty()) {
+                    delay((1000..3000).random().toLong())
 
-                //Intento leer el archivo de assets
-                val jsonText = context.assets.open("invoice.json").bufferedReader().use {
-                    it.readText()
+                    val jsonText = context.assets.open("invoice.json").bufferedReader().use {
+                        it.readText()
+                    }
+
+                    val response = gson.fromJson(jsonText, InvoiceResponse::class.java)
+
+                    invoiceDao.insertInvoices(response.invoices.toEntityList())
                 }
-
-                //Intento convertir el texto en objeto
-                val response = gson.fromJson(jsonText, InvoiceResponse::class.java)
-
-                //transformo y emito
-                val invoiceList = response.invoices.toDomainList()
-                emit(invoiceList)
-
             } catch (e: Exception) {
-                //Si el archivo no existe, el JSON es inválido o falla el mapeo,
-                //lanzo la excepción personalizada para que el ViewModel la capture.
                 e.printStackTrace()
                 throw InvoiceException.LocalDataError
             }
+            emitAll(databaseFlow)
         }
     }
 
@@ -118,5 +115,17 @@ class InvoiceRepositoryImpl @Inject constructor(
         return invoiceDao.getAllInvoices().map { entities ->
             entities.map { it.toDomain() }
         }
+    }
+
+    override suspend fun payInvoice(id: String, isCloud: Boolean) {
+        if (isCloud) {
+            try {
+                invoiceApiServer.payInvoice(id)
+            } catch (e: Exception) {
+                // En prácticas, si falla el servidor, seguimos para actualizar Room
+            }
+        }
+        // Actualizamos Room. Como getAllInvoices emite un Flow de Room, la UI reaccionará sola.
+        invoiceDao.updateInvoiceToPaid(id)
     }
 }

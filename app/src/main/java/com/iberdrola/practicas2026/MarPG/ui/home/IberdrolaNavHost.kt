@@ -2,6 +2,7 @@ package com.iberdrola.practicas2026.MarPG.ui.home
 
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,6 +21,8 @@ import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.Electronic
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.ElectronicInvoiceViewModel
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_selection.ElectronicInvoiceListViewModel
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_selection.ElectronicInvoiceSelectionScreen
+import com.iberdrola.practicas2026.MarPG.ui.factura_detail.InvoiceDetailScreen
+import com.iberdrola.practicas2026.MarPG.ui.factura_detail.InvoiceDetailViewModel
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_home.HomeScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListScreen
@@ -31,6 +34,7 @@ object Routes {
     const val HOME = "home"
     const val INVOICE_LIST = "invoice_list/{isCloud}"
     const val FILTER = "filter"
+    const val INVOICE_DETAIL = "invoice_detail"
     const val ELECTRONIC_INVOICE_SELECTION = "electronic_invoice_selection"
     const val ELECTRONIC_INVOICE_DETAIL = "electronic_invoice_detail"
     const val ELECTRONIC_INVOICE_FORM = "electronic_invoice_form"
@@ -72,7 +76,10 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 onBack = {
                     navController.popBackStack()
                 },
-                onNavigateToFilters = { navController.navigate(Routes.FILTER) }
+                onNavigateToFilters = { navController.navigate(Routes.FILTER) },
+                onNavigateToInvoiceDetail = {
+                    navController.navigate(Routes.INVOICE_DETAIL)
+                }
             )
         }
 
@@ -85,6 +92,24 @@ fun IberdrolaNavHost(navController: NavHostController) {
             FilterScreen(
                 listViewModel = invoiceListViewModel,
                 filterViewModel = hiltViewModel(),
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.INVOICE_DETAIL) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Routes.INVOICE_LIST)
+            }
+            val listViewModel: InvoiceListViewModel = hiltViewModel(parentEntry)
+            val detailViewModel: InvoiceDetailViewModel = hiltViewModel()
+
+            LaunchedEffect(listViewModel.selectedInvoice) {
+                listViewModel.selectedInvoice?.let { detailViewModel.setInvoice(it) }
+            }
+
+            InvoiceDetailScreen(
+                viewModel = detailViewModel,
+                isCloudEnabled = isCloudEnabled,
                 onBack = { navController.popBackStack() }
             )
         }
