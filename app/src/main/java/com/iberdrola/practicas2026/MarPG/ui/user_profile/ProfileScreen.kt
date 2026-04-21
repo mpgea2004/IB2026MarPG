@@ -111,13 +111,52 @@ fun ProfileScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = onBack) {
+                TextButton(onClick = {
+                    showDiscardDialog = false
+                    onBack()
+                }) {
                     Text("Descartar", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDiscardDialog = false }) {
                     Text("Cancelar", color = GreenIberdrola)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    if (state.showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.onDismissLogoutDialog() },
+            title = {
+                Text(
+                    text = "¿Cerrar sesión?",
+                    fontFamily = IberPangeaFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = GreenDarkIberdrola
+                )
+            },
+            text = {
+                Text(
+                    text = "¿Seguro que quieres cerrar sesión? Tendrás que volver a configurar tus datos la próxima vez.",
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Black
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { 
+                    viewModel.onDismissLogoutDialog()
+                    viewModel.logout { onBack() } 
+                }) {
+                    Text("Cerrar sesión", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.onDismissLogoutDialog() }) {
+                    Text("Cancelar", color = Color.Gray)
                 }
             },
             containerColor = WhiteApp,
@@ -133,7 +172,7 @@ fun ProfileScreen(
         onSaveClick = { onSuccess -> viewModel.saveChanges(onSuccess) },
         onBackClick = onBack,
         onPasswordChanged = { viewModel.onPasswordChanged(it) },
-        onLogout = { viewModel.logout { onBack() } }
+        onLogout = { viewModel.onLogoutClick() }
     )
 
     Scaffold(
@@ -295,6 +334,7 @@ fun ProfileContent(
 
         Button(
             onClick = { events.onSaveClick {
+                // Navegamos atrás tras guardar con éxito
                 events.onBackClick()
             } },
             modifier = Modifier

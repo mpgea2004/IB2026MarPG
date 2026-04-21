@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,12 +23,14 @@ class ProfileViewModel @Inject constructor(
     private val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,}\$")
 
     init {
+        loadSavedProfile()
+    }
+
+    private fun loadSavedProfile() {
         viewModelScope.launch {
-            userPrefs.userProfileFlow.collect { savedState ->
-                if (state.name.isEmpty() && savedState.name.isNotEmpty()) {
-                    state = savedState.copy(isSaved = true)
-                }
-            }
+            // Obtenemos el primer valor del flujo para inicializar el estado
+            val savedState = userPrefs.userProfileFlow.first()
+            state = savedState.copy(isSaved = true)
         }
     }
 
@@ -61,7 +64,8 @@ class ProfileViewModel @Inject constructor(
         val isNameEmpty = state.name.trim().isEmpty()
         val isEmailInvalid = !isEmailValid(state.email)
         val isEmailEmpty = state.email.trim().isEmpty()
-        val isPasswordInvalid = state.password.trim().length < 4
+        val isPasswordEmpty = state.password.trim().isEmpty()
+        val isPasswordTooShort = state.password.trim().isNotEmpty() && state.password.trim().length < 6
         val isPhoneInvalid = state.phone.isNotEmpty() && state.phone.length != 9
 
         var hasError = false
@@ -80,10 +84,14 @@ class ProfileViewModel @Inject constructor(
             }
         }
 
-        if (isPasswordInvalid) {
+        if (isPasswordEmpty) {
             state = state.copy(passwordError = R.string.error_field_required)
             hasError = true
+        } else if (isPasswordTooShort) {
+            state = state.copy(passwordError = R.string.error_password_too_short)
+            hasError = true
         }
+
         if (isPhoneInvalid) {
             state = state.copy(phoneError = R.string.error_invalid_phone_format)
             hasError = true
@@ -96,6 +104,14 @@ class ProfileViewModel @Inject constructor(
                 onSuccess()
             }
         }
+    }
+
+    fun onLogoutClick() {
+        state = state.copy(showLogoutDialog = true)
+    }
+
+    fun onDismissLogoutDialog() {
+        state = state.copy(showLogoutDialog = false)
     }
 
     fun logout(onSuccess: () -> Unit) {

@@ -173,5 +173,6 @@
     <string name="error_unknown">Error desconocido</string>
     <string name="invoice_list_last_invoice_date_range_short">%1$s - %2$s</string>
     <string name="invoice_list_only_one_invoice">Solo tienes una factura</string>
+    <string name="error_password_too_short">La contraseña debe tener al menos 6 caracteres</string>
 
 </resources>

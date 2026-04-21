@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -464,7 +465,7 @@ fun ActiveFiltersRow(
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp)
+                .padding(top=12.dp)
                 .animateContentSize(),
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -493,7 +494,6 @@ fun ActiveFiltersRow(
                 }
             }
         }
-        HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
     }
 }
 
@@ -526,6 +526,7 @@ fun ActiveFilterChip(
                 tint = GreenIberdrola,
                 modifier = Modifier
                     .size(14.dp)
+                    .clip(CircleShape)
                     .clickable { onRemove() }
             )
         }
