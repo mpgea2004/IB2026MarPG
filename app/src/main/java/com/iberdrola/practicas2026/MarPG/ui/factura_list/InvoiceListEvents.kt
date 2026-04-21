@@ -8,5 +8,8 @@ data class InvoiceListEvents(
     val onFilter: () -> Unit = {},
     val onTabSelected: (Int) -> Unit = {},
     val onClearFilters: () -> Unit = {},
-    val onSort: (SortOption) -> Unit = {}
+    val onSort: (SortOption) -> Unit = {},
+    val onRemoveStatus: (String) -> Unit = {},
+    val onRemoveDate: () -> Unit = {},
+    val onRemovePrice: () -> Unit = {}
 )

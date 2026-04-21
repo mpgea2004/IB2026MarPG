@@ -82,6 +82,7 @@ import com.iberdrola.practicas2026.MarPG.ui.components.list.FilterButton
 import com.iberdrola.practicas2026.MarPG.ui.components.list.InvoiceTabItem
 import com.iberdrola.practicas2026.MarPG.ui.components.list.StatusBadge
 import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
+import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterState
 import com.iberdrola.practicas2026.MarPG.ui.theme.BorderLight
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
@@ -90,8 +91,8 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
 import kotlinx.coroutines.delay
+import kotlin.math.abs
 
-/** Pantalla principal del listado de facturas con filtrado por tipo y estados de carga */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InvoiceListScreen(
@@ -218,8 +219,11 @@ fun InvoiceListScreen(
                         InvoiceListContent(
                             groupedInvoices = currentState.groupedInvoices,
                             lastInvoice = currentState.lastInvoice,
-                            hasFilters = viewModel.hasActiveFilters(),
                             currentSort = viewModel.currentSortOption,
+                            filterState = viewModel.currentFilterState,
+                            minLimit = viewModel.minInvoiceAmount,
+                            maxLimit = viewModel.maxInvoiceAmount,
+                            hasFilters = viewModel.hasActiveFilters(),
                             events = InvoiceListEvents(
                                 onFilter = {
                                     if (viewModel.getCategoryInvoicesCount() <= 1) {
@@ -237,7 +241,10 @@ fun InvoiceListScreen(
                                     }
                                 },
                                 onClearFilters = { viewModel.clearFilters() },
-                                onSort = { viewModel.setSortOption(it) }
+                                onSort = { viewModel.setSortOption(it) },
+                                onRemoveStatus = { viewModel.removeStatusFilter(it) },
+                                onRemoveDate = { viewModel.removeDateFilter() },
+                                onRemovePrice = { viewModel.removePriceFilter() }
                             )
                         )
                     }
@@ -280,7 +287,9 @@ fun InvoiceListHeader(
             if (showErrorBanner && errorMessage != null) {
                 ErrorBanner(message = errorMessage)
             }
-            Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
+            
+            Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily, color = Color.Black)
+            
             Text(
                 address.ifEmpty { stringResource(R.string.profile_empty_address) },
                 color = Color.Black,
@@ -288,6 +297,7 @@ fun InvoiceListHeader(
                 fontWeight = FontWeight.Bold,
                 fontFamily = IberPangeaFamily
             )
+
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier
@@ -316,12 +326,13 @@ fun InvoiceListHeader(
 fun InvoiceListContent(
     groupedInvoices: Map<String, List<Invoice>>,
     lastInvoice: Invoice?,
-    hasFilters: Boolean,
     currentSort: SortOption,
+    filterState: FilterState,
+    minLimit: Float,
+    maxLimit: Float,
+    hasFilters: Boolean,
     events: InvoiceListEvents
 ) {
-    val lastInvoice = groupedInvoices.values.flatten().firstOrNull()
-
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 16.dp)
@@ -335,59 +346,51 @@ fun InvoiceListContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.animateContentSize()
-                    ) {
-                        Text(
-                            stringResource(R.string.invoice_list_historic_title),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontFamily = IberPangeaFamily
-                        )
+                    Text(
+                        stringResource(R.string.invoice_list_historic_title),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontFamily = IberPangeaFamily,
+                        modifier = Modifier.weight(1f)
+                    )
+                    
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         if (hasFilters) {
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Surface(
-                                onClick = { events.onClearFilters() },
-                                shape = RoundedCornerShape(50),
-                                color = GreenIberdrola.copy(alpha = 0.08f),
-                                border = BorderStroke(1.dp, GreenIberdrola.copy(alpha = 0.2f))
+                            OutlinedButton(
+                                onClick = events.onClearFilters,
+                                shape = RoundedCornerShape(20.dp),
+                                border = BorderStroke(1.5.dp, GreenIberdrola),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                modifier = Modifier.height(32.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = GreenIberdrola, containerColor = GreenIberdrola.copy(alpha = 0.1f))
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Text(
-                                        "Limpiar",
-                                        color = GreenIberdrola,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        fontFamily = IberPangeaFamily
-                                    )
-                                    Icon(
-                                        Icons.Outlined.Close,
-                                        contentDescription = null,
-                                        tint = GreenIberdrola,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                }
+                                Text("Limpiar", fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
+                                Spacer(modifier = Modifier.width(2.dp))
+                                Icon(Icons.Outlined.Close, null, modifier = Modifier.size(16.dp))
                             }
+                            Spacer(modifier = Modifier.width(4.dp))
                         }
+                        FilterButton(onClick = { events.onFilter() })
                     }
-                    Spacer(modifier = Modifier.width(2.dp))
-                    FilterButton(onClick = { events.onFilter() })
                 }
                 
+                ActiveFiltersRow(
+                    state = filterState,
+                    minLimit = minLimit,
+                    maxLimit = maxLimit,
+                    onRemoveStatus = events.onRemoveStatus,
+                    onRemoveDate = events.onRemoveDate,
+                    onRemovePrice = events.onRemovePrice
+                )
+
                 LazyRow(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
+                        .padding(start = 16.dp, end = 16.dp, bottom = 12.dp,top = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     item {
@@ -446,6 +449,90 @@ fun InvoiceListContent(
 }
 
 @Composable
+fun ActiveFiltersRow(
+    state: FilterState,
+    minLimit: Float,
+    maxLimit: Float,
+    onRemoveStatus: (String) -> Unit,
+    onRemoveDate: () -> Unit,
+    onRemovePrice: () -> Unit
+) {
+    val isDefaultPrice = abs(state.minPrice - minLimit) < 0.01f && abs(state.maxPrice - maxLimit) < 0.01f
+    val hasDate = state.dateFrom.isNotEmpty() || state.dateTo.isNotEmpty()
+
+    if (state.selectedStatuses.isNotEmpty() || hasDate || !isDefaultPrice) {
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
+                .animateContentSize(),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(state.selectedStatuses.toList()) { status ->
+                ActiveFilterChip(text = status, onRemove = { onRemoveStatus(status) })
+            }
+
+            if (hasDate) {
+                val dateText = if (state.dateFrom.isNotEmpty() && state.dateTo.isNotEmpty()) {
+                    "${state.dateFrom} - ${state.dateTo}"
+                } else if (state.dateFrom.isNotEmpty()) {
+                    "Desde ${state.dateFrom}"
+                } else {
+                    "Hasta ${state.dateTo}"
+                }
+                item { ActiveFilterChip(text = dateText, onRemove = onRemoveDate) }
+            }
+
+            if (!isDefaultPrice) {
+                item { 
+                    ActiveFilterChip(
+                        text = "${state.minPrice.toInt()}€ - ${state.maxPrice.toInt()}€", 
+                        onRemove = onRemovePrice
+                    ) 
+                }
+            }
+        }
+        HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
+    }
+}
+
+@Composable
+fun ActiveFilterChip(
+    text: String,
+    onRemove: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.height(28.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = GreenIberdrola.copy(alpha = 0.1f),
+        border = BorderStroke(0.5.dp, GreenIberdrola.copy(alpha = 0.5f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = text,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = GreenIberdrola,
+                fontFamily = IberPangeaFamily
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Icon(
+                imageVector = Icons.Outlined.Close,
+                contentDescription = "Quitar filtro",
+                tint = GreenIberdrola,
+                modifier = Modifier
+                    .size(14.dp)
+                    .clickable { onRemove() }
+            )
+        }
+    }
+}
+
+@Composable
 fun SortChip(
     text: String,
     isSelected: Boolean,
@@ -453,19 +540,23 @@ fun SortChip(
 ) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(20.dp),
         color = if (isSelected) GreenIberdrola else Color.Transparent,
         border = if (isSelected) null else BorderStroke(1.dp, Color.LightGray),
-        modifier = Modifier.animateContentSize()
+        modifier = Modifier.height(32.dp)
     ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            color = if (isSelected) Color.White else Color.Gray,
-            fontSize = 12.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            fontFamily = IberPangeaFamily
-        )
+        Box(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                color = if (isSelected) Color.White else Color.Gray,
+                fontSize = 12.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                fontFamily = IberPangeaFamily
+            )
+        }
     }
 }
 
@@ -625,7 +716,7 @@ fun InvoiceListScreenPreview() {
                     showErrorBanner = false,
                     onTabSelected = {},
                     onBack = {},
-                    address = stringResource(R.string.invoice_list_subtitle)
+                    address = "Calle falsa 123",
                 )
             }
         ){ padding ->
@@ -635,11 +726,17 @@ fun InvoiceListScreenPreview() {
                     lastInvoice = mockFacturas.first(),
                     hasFilters = false,
                     currentSort = SortOption.DATE,
+                    filterState = FilterState(),
+                    minLimit = 0f,
+                    maxLimit = 500f,
                     events = InvoiceListEvents(
                         onFilter = {},
                         onDetail = {},
                         onClearFilters = {},
-                        onSort = {}
+                        onSort = {},
+                        onRemoveStatus = {},
+                        onRemoveDate = {},
+                        onRemovePrice = {}
                     ),
                 )
             }
@@ -659,7 +756,7 @@ fun InvoiceListNoDataPreview() {
                     showErrorBanner = false,
                     onTabSelected = {},
                     onBack = {},
-                    address = stringResource(R.string.invoice_list_subtitle)
+                    address = "Sin dirección",
                 )
             }
         ) { padding ->

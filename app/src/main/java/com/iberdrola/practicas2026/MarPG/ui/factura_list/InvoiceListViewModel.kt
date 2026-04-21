@@ -21,6 +21,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -241,9 +242,28 @@ class InvoiceListViewModel @Inject constructor(
         updateFilteredInvoices()
     }
 
+    fun removeStatusFilter(status: String) {
+        val newStatuses = currentFilterState.selectedStatuses - status
+        currentFilterState = currentFilterState.copy(selectedStatuses = newStatuses)
+        updateFilteredInvoices()
+    }
+
+    fun removeDateFilter() {
+        currentFilterState = currentFilterState.copy(dateFrom = "", dateTo = "")
+        updateFilteredInvoices()
+    }
+
+    fun removePriceFilter() {
+        currentFilterState = currentFilterState.copy(
+            minPrice = minInvoiceAmount,
+            maxPrice = maxInvoiceAmount
+        )
+        updateFilteredInvoices()
+    }
+
     fun hasActiveFilters(): Boolean {
-        val isDefaultPrice = Math.abs(currentFilterState.minPrice - minInvoiceAmount) < 0.01f &&
-                Math.abs(currentFilterState.maxPrice - maxInvoiceAmount) < 0.01f
+        val isDefaultPrice = abs(currentFilterState.minPrice - minInvoiceAmount) < 0.01f &&
+                abs(currentFilterState.maxPrice - maxInvoiceAmount) < 0.01f
         
         return currentFilterState.selectedStatuses.isNotEmpty() ||
                 currentFilterState.dateFrom.isNotEmpty() ||

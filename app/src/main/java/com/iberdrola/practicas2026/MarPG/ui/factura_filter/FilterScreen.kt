@@ -303,7 +303,10 @@ fun MyDatePickerDialog(
                 TextButton(onClick = { onDismiss() }) {
                     Text("Cancelar", color = GreenIberdrola, fontFamily = IberPangeaFamily)
                 }
-            }
+            },
+            colors = DatePickerDefaults.colors(
+                    containerColor = Color.White
+            )
         ) {
             DatePicker(
                 state = datePickerState,
