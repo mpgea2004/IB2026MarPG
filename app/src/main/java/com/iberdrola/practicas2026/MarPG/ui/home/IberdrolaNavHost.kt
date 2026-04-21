@@ -1,6 +1,10 @@
 package com.iberdrola.practicas2026.MarPG.ui.home
 
-
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,13 +49,19 @@ object Routes {
 
 @Composable
 fun IberdrolaNavHost(navController: NavHostController) {
+    var isCloudEnabled by remember { mutableStateOf(false) }
 
-    var isCloudEnabled by remember{ mutableStateOf(false)}
-
-    NavHost(navController = navController, startDestination = Routes.HOME) {
-
-
-        composable(Routes.HOME) {
+    NavHost(
+        navController = navController,
+        startDestination = Routes.HOME
+    ) {
+        composable(
+            route = Routes.HOME,
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) {
             HomeScreen(
                 onNavigateToInvoices = { navController.navigate("invoice_list/$isCloudEnabled") },
                 isCloudEnabled = isCloudEnabled,
@@ -60,7 +70,14 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 onNavigateToProfile = { navController.navigate(Routes.USER_PROFILE) }
             )
         }
-        composable(Routes.USER_PROFILE) {
+
+        composable(
+            route = Routes.USER_PROFILE,
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) {
             ProfileScreen(
                 onBack = {
                     if (navController.currentDestination?.route == Routes.USER_PROFILE) {
@@ -71,8 +88,12 @@ fun IberdrolaNavHost(navController: NavHostController) {
         }
 
         composable(
-            Routes.INVOICE_LIST,
-            arguments = listOf(navArgument("isCloud") { type = NavType.BoolType })
+            route = Routes.INVOICE_LIST,
+            arguments = listOf(navArgument("isCloud") { type = NavType.BoolType }),
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
         ) { backStackEntry ->
             val invoiceListViewModel: InvoiceListViewModel = hiltViewModel(backStackEntry)
             InvoiceListScreen(
@@ -89,7 +110,13 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        composable(Routes.FILTER) { backStackEntry ->
+        composable(
+            route = Routes.FILTER,
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry("invoice_list/{isCloud}")
             }
@@ -107,16 +134,17 @@ fun IberdrolaNavHost(navController: NavHostController) {
         }
 
         composable(
-            Routes.INVOICE_DETAIL,
-            arguments = listOf(navArgument("invoiceId") { type = NavType.StringType })
+            route = Routes.INVOICE_DETAIL,
+            arguments = listOf(navArgument("invoiceId") { type = NavType.StringType }),
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
         ) { backStackEntry ->
-
             val invoiceId = backStackEntry.arguments?.getString("invoiceId") ?: ""
-
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry("invoice_list/{isCloud}")
             }
-
             val detailViewModel: InvoiceDetailViewModel = hiltViewModel(parentEntry)
 
             LaunchedEffect(invoiceId) {
@@ -134,16 +162,20 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        composable(Routes.ELECTRONIC_INVOICE_SELECTION) { backStackEntry ->
+        composable(
+            route = Routes.ELECTRONIC_INVOICE_SELECTION,
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) { backStackEntry ->
             val listViewModel: ElectronicInvoiceListViewModel = hiltViewModel()
-
             val sharedViewModel: ElectronicInvoiceViewModel = hiltViewModel(backStackEntry)
 
             ElectronicInvoiceSelectionScreen(
                 viewModel = listViewModel,
                 onNavigate = { contrato ->
                     sharedViewModel.selectContract(contrato)
-
                     if (contrato.isEnabled) {
                         navController.navigate(Routes.ELECTRONIC_INVOICE_DETAIL)
                     } else {
@@ -158,7 +190,13 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        composable(Routes.ELECTRONIC_INVOICE_DETAIL) { backStackEntry ->
+        composable(
+            route = Routes.ELECTRONIC_INVOICE_DETAIL,
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
             }
@@ -177,7 +215,13 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        composable(Routes.ELECTRONIC_INVOICE_FORM) { backStackEntry ->
+        composable(
+            route = Routes.ELECTRONIC_INVOICE_FORM,
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
             }
@@ -195,7 +239,13 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        composable(Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) { backStackEntry ->
+        composable(
+            route = Routes.ELECTRONIC_INVOICE_EDIT_EMAIL,
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
             }
@@ -213,7 +263,13 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        composable(Routes.ELECTRONIC_INVOICE_OTP) { backStackEntry ->
+        composable(
+            route = Routes.ELECTRONIC_INVOICE_OTP,
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
             }
@@ -233,7 +289,13 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
 
-        composable(Routes.ELECTRONIC_INVOICE_SUCCESS) { backStackEntry ->
+        composable(
+            route = Routes.ELECTRONIC_INVOICE_SUCCESS,
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
             }
@@ -247,5 +309,4 @@ fun IberdrolaNavHost(navController: NavHostController) {
             )
         }
     }
-
 }

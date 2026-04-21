@@ -55,6 +55,9 @@ dependencies {
     implementation(libs.androidx.material3)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
+    // Navigation Compose (Necesaria para animaciones en NavHost)
+    implementation(libs.androidx.navigation.compose)
+
     // Hilt
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
