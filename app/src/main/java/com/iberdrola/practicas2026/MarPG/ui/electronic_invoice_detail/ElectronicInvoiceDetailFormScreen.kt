@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,6 +21,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -31,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
@@ -49,6 +53,7 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Electr
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.SecurityPhoneDialog
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.WarningSameEmailDialog
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
 import kotlinx.coroutines.delay
@@ -62,6 +67,7 @@ fun ElectronicInvoiceDetailFormScreen(
     onCloseToHome: () -> Unit,
 ) {
     val state = viewModel.state
+    var showDiscardDialog by remember { mutableStateOf(false) }
     
     var isNavigating by remember { mutableStateOf(true) }
 
@@ -70,24 +76,54 @@ fun ElectronicInvoiceDetailFormScreen(
         isNavigating = false
     }
 
-    val handleBack = {
-        if (!isNavigating) {
+    val handleBackAction = {
+        val hasChanges = state.emailInput.isNotEmpty() || state.isLegalAccepted
+        if (hasChanges) {
+            showDiscardDialog = true
+        } else if (!isNavigating) {
             isNavigating = true
             onBack()
         }
     }
 
     val handleClose = {
-        if (!isNavigating) {
+        val hasChanges = state.emailInput.isNotEmpty() || state.isLegalAccepted
+        if (hasChanges) {
+            showDiscardDialog = true
+        } else if (!isNavigating) {
             isNavigating = true
             onCloseToHome()
         }
     }
 
-    BackHandler(enabled = !state.showSameEmailWarning && !state.showNoPhoneDialog) { handleBack() }
+    BackHandler(enabled = !showDiscardDialog && !state.showSameEmailWarning && !state.showNoPhoneDialog) {
+        handleBackAction() 
+    }
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text("¿Descartar cambios?", color = GreenDarkIberdrola, fontFamily = IberPangeaFamily, fontWeight = FontWeight.Bold) },
+            text = { Text("Has empezado a completar los datos. ¿Estás seguro de que quieres salir y perder el progreso?", color = Color.Black, fontFamily = IberPangeaFamily) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDiscardDialog = false
+                    onCloseToHome()
+                }) {
+                    Text("Descartar", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text("Cancelar", color = GreenDarkIberdrola)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     val isButtonEnabled = viewModel.canContinue()
-
     val sheetState = rememberModalBottomSheetState()
 
     if (state.showNoPhoneDialog) {
@@ -98,6 +134,7 @@ fun ElectronicInvoiceDetailFormScreen(
             }
         })
     }
+
     
     if (state.showSameEmailWarning) {
         WarningSameEmailDialog(viewModel = viewModel)
@@ -106,7 +143,7 @@ fun ElectronicInvoiceDetailFormScreen(
     val events = ElectronicInvoiceEvents(
         onEmailChange = { viewModel.onEmailChanged(it) },
         onLegalCheckChange = { viewModel.onLegalAccepted(it) },
-        onBack = handleBack,
+        onBack = handleBackAction,
         onClose = handleClose,
         onNext = {
             viewModel.onContinueClick {
@@ -186,21 +223,20 @@ fun ElectronicInvoiceDetailFormContent(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(stringResource(R.string.form_linked_email_label), fontSize = 12.sp)
-            Text(emailActualOfuscado, fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
+            Text(stringResource(R.string.form_linked_email_label), fontSize = 12.sp, color = Color.Black)
+            Text(emailActualOfuscado, fontWeight = FontWeight.ExtraBold, fontSize = 12.sp, color = Color.Black)
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
+            Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, color = Color.Black)
 
             TextField(
                 value = state.emailInput,
                 onValueChange = events.onEmailChange,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                textStyle = TextStyle(
-                    color = Color.Black,
-                    fontSize = 14.sp
-                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                textStyle = TextStyle(color = Color.Black, fontSize = 14.sp),
                 placeholder = { Text(stringResource(R.string.form_email_placeholder), fontSize = 14.sp, color = Color.Gray)},
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
@@ -219,35 +255,27 @@ fun ElectronicInvoiceDetailFormContent(
             Text(
                 text = stringResource(R.string.form_data_protection_title),
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                color = Color.Black
             )
 
             val proteccionDatosText = buildAnnotatedString {
                 append(stringResource(R.string.form_legal_responsable))
                 append(" ")
                 appendLink(moreInfo) {
-                    events.onShowLegal(
-                        legalTitleResp,
-                        legalContentResp
-                    )
+                    events.onShowLegal(legalTitleResp, legalContentResp)
                 }
 
                 append(stringResource(R.string.form_legal_finalidad))
                 append(" ")
                 appendLink(moreInfo) {
-                    events.onShowLegal(
-                        legalTitleFin,
-                        legalContentFin
-                    )
+                    events.onShowLegal(legalTitleFin, legalContentFin)
                 }
 
                 append(stringResource(R.string.form_legal_derechos))
                 append(" ")
                 appendLink(moreInfo) {
-                    events.onShowLegal(
-                        legalTitleDer,
-                        legalContentDer
-                    )
+                    events.onShowLegal(legalTitleDer, legalContentDer)
                 }
             }
 
@@ -264,28 +292,21 @@ fun ElectronicInvoiceDetailFormContent(
             val checkboxText = buildAnnotatedString {
                 append(stringResource(R.string.form_checkbox_prefix))
                 append(" ")
-
                 appendLink(stringResource(R.string.form_condiciones_generales)) {
-                    events.onShowLegal(
-                        legalTitleGen,
-                        legalContentGen
-                    )
+                    events.onShowLegal(legalTitleGen, legalContentGen)
                 }
                 append(" ")
-
                 appendLink(stringResource(R.string.form_condiciones_particulares)) {
-                    events.onShowLegal(
-                        legalTitlePart,
-                        legalContentPart
-                    )
+                    events.onShowLegal(legalTitlePart, legalContentPart)
                 }
                 append(" ")
-
                 append(stringResource(R.string.form_checkbox_suffix))
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
                 verticalAlignment = Alignment.Top
             ) {
                 Checkbox(
@@ -300,6 +321,7 @@ fun ElectronicInvoiceDetailFormContent(
                 Text(
                     text = checkboxText,
                     fontSize = 14.sp,
+                    color = Color.Black,
                     modifier = Modifier.padding(start = 4.dp, top = 10.dp)
                 )
             }
@@ -327,6 +349,7 @@ fun ElectronicInvoiceDetailFormContent(
                         Text(
                             text = state.selectedLegalContent ?: "",
                             style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Black,
                             lineHeight = 22.sp
                         )
                     }

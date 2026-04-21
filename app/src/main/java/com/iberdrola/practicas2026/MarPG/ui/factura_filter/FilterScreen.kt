@@ -22,6 +22,7 @@ import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
@@ -152,7 +153,6 @@ fun FilterContent(
     minLimit: Float = 0f,
     maxLimit: Float = 500f
 ) {
-    val context = LocalContext.current
     var showFromPicker by remember { mutableStateOf(false) }
     var showToPicker by remember { mutableStateOf(false) }
 
@@ -280,31 +280,53 @@ fun MyDatePickerDialog(
         dateFormatter.format(Date(it))
     } ?: ""
 
-    DatePickerDialog(
-        onDismissRequest = { onDismiss() },
-        confirmButton = {
-            TextButton(onClick = {
-                if (selectedDate.isNotEmpty()) onDateSelected(selectedDate)
-                onDismiss()
-            }) {
-                Text("OK", color = GreenIberdrola, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = { onDismiss() }) {
-                Text("Cancelar", color = GreenIberdrola,fontFamily = IberPangeaFamily)
-            }
-        }
-    ) {
-        DatePicker(
-            state = datePickerState,
-            colors = DatePickerDefaults.colors(
-                todayContentColor = GreenIberdrola,
-                todayDateBorderColor = GreenIberdrola,
-                selectedDayContainerColor = GreenIberdrola,
-                selectedDayContentColor = Color.White
-            )
+    MaterialTheme(
+        colorScheme = MaterialTheme.colorScheme.copy(
+            surface = Color.White,
+            onSurface = Color.Black,
+            onSurfaceVariant = Color.DarkGray,
+            primary = GreenIberdrola,
+            onPrimary = Color.White
         )
+    ) {
+        DatePickerDialog(
+            onDismissRequest = { onDismiss() },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (selectedDate.isNotEmpty()) onDateSelected(selectedDate)
+                    onDismiss()
+                }) {
+                    Text("OK", color = GreenIberdrola, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onDismiss() }) {
+                    Text("Cancelar", color = GreenIberdrola, fontFamily = IberPangeaFamily)
+                }
+            }
+        ) {
+            DatePicker(
+                state = datePickerState,
+                colors = DatePickerDefaults.colors(
+                    containerColor = Color.White,
+                    titleContentColor = Color.Black,
+                    headlineContentColor = Color.Black,
+                    weekdayContentColor = Color.Gray,
+                    subheadContentColor = Color.Black,
+                    navigationContentColor = GreenIberdrola,
+                    yearContentColor = Color.Black,
+                    currentYearContentColor = GreenIberdrola,
+                    selectedYearContentColor = Color.White,
+                    selectedYearContainerColor = GreenIberdrola,
+                    dayContentColor = Color.Black,
+                    disabledDayContentColor = Color.LightGray,
+                    selectedDayContainerColor = GreenIberdrola,
+                    selectedDayContentColor = Color.White,
+                    todayContentColor = GreenIberdrola,
+                    todayDateBorderColor = GreenIberdrola
+                )
+            )
+        }
     }
 }
 

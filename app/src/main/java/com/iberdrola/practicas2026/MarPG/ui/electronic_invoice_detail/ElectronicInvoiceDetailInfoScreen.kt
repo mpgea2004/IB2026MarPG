@@ -38,11 +38,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -73,6 +74,7 @@ fun ElectronicInvoiceDetailInfoScreen(
     if (electronicInvoice == null) return
 
     val state = viewModel.state
+    val haptic = LocalHapticFeedback.current
     
     var isNavigating by remember { mutableStateOf(true) }
 
@@ -96,6 +98,7 @@ fun ElectronicInvoiceDetailInfoScreen(
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             onNavigateToSuccess()
         }
     }
@@ -224,7 +227,7 @@ fun ElectronicInvoiceDetailInfoScreen(
         )
     }
 
-    ElectronicInvoiceDetailInfoContent(
+    ElectronicInvoiceDetailInfoScreenContent(
         state = state,
         events = events,
         email = electronicInvoice.email
@@ -232,7 +235,7 @@ fun ElectronicInvoiceDetailInfoScreen(
 }
 
 @Composable
-fun ElectronicInvoiceDetailInfoContent(
+fun ElectronicInvoiceDetailInfoScreenContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
     email: String?
@@ -380,7 +383,7 @@ fun ElectronicInvoiceDetailInfoPreview() {
     val mockState = ElectronicInvoiceState(selectedContract = mockContract)
 
     MaterialTheme {
-        ElectronicInvoiceDetailInfoContent(
+        ElectronicInvoiceDetailInfoScreenContent(
             state = mockState,
             events = ElectronicInvoiceEvents(),
             email = "pepe2@gmail.com"

@@ -24,7 +24,7 @@ fun WarningSameEmailDialog(
     AlertDialog(
         onDismissRequest = { viewModel.dismissSameEmailWarning() },
         containerColor = WhiteApp,
-        title = { 
+        title = {
             Text(
                 text = stringResource(R.string.warning_same_email_title), 
                 fontWeight = FontWeight.Bold,

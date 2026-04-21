@@ -35,6 +35,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -59,6 +61,7 @@ fun ElectronicInvoiceOtpScreen(
     onNext: () -> Unit
 ) {
     val state = viewModel.state
+    val haptic = LocalHapticFeedback.current
     
     var isNavigating by remember { mutableStateOf(true) }
 
@@ -85,6 +88,7 @@ fun ElectronicInvoiceOtpScreen(
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             isNavigating = true
             onNext()
         }

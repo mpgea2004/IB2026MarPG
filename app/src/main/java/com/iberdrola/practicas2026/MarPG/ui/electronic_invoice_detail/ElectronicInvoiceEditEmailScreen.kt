@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -32,6 +35,7 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Electr
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.SecurityPhoneDialog
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.WarningSameEmailDialog
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import kotlinx.coroutines.delay
 
@@ -43,6 +47,7 @@ fun ElectronicInvoiceEditEmailScreen(
     onNext: () -> Unit
 ) {
     val state = viewModel.state
+    var showDiscardDialog by remember { mutableStateOf(false) }
     
     var isNavigating by remember { mutableStateOf(true) }
 
@@ -51,8 +56,11 @@ fun ElectronicInvoiceEditEmailScreen(
         isNavigating = false
     }
 
-    val handleBack = {
-        if (!isNavigating) {
+    val handleBackAction = {
+        val hasChanges = state.emailInput != (state.selectedContract?.email ?: "")
+        if (hasChanges) {
+            showDiscardDialog = true
+        } else if (!isNavigating) {
             isNavigating = true
             onBack()
         }
@@ -65,7 +73,27 @@ fun ElectronicInvoiceEditEmailScreen(
         }
     }
 
-    BackHandler(enabled = true) { handleBack() }
+    BackHandler(enabled = true) { handleBackAction() }
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text("¿Descartar cambios?", fontFamily = IberPangeaFamily, fontWeight = FontWeight.Bold, color = GreenDarkIberdrola) },
+            text = { Text("Has modificado el email. ¿Estás seguro de que quieres volver atrás y perder los cambios?", fontFamily = IberPangeaFamily, color = Color.Black) },
+            confirmButton = {
+                TextButton(onClick = onBack) {
+                    Text("Descartar", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text("Cancelar", color = GreenDarkIberdrola)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     if (state.showNoPhoneDialog) {
         SecurityPhoneDialog(state, viewModel, onNext)
@@ -77,12 +105,11 @@ fun ElectronicInvoiceEditEmailScreen(
 
     val events = ElectronicInvoiceEvents(
         onEmailChange = { viewModel.onEmailChanged(it) },
-        onBack = handleBack,
+        onBack = handleBackAction,
         onNext = {
-            if (!isNavigating) {
-                isNavigating = true
-                viewModel.onContinueClick {
-                    isNavigating = false
+            viewModel.onContinueClick {
+                if (!isNavigating) {
+                    isNavigating = true
                     onNext()
                 }
             }

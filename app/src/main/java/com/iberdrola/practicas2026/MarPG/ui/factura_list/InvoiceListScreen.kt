@@ -158,13 +158,15 @@ fun InvoiceListScreen(
                 Text(
                     text = "Información",
                     fontFamily = IberPangeaFamily,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
                 )
             },
             text = {
                 Text(
                     text = "Solo tienes una factura disponible, por lo que no es necesario aplicar filtros.",
-                    fontFamily = IberPangeaFamily
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Black
                 )
             },
             confirmButton = {
@@ -173,10 +175,7 @@ fun InvoiceListScreen(
                 }
             },
             containerColor = WhiteApp,
-            shape = RoundedCornerShape(16.dp),
-            iconContentColor = GreenIberdrola,
-            titleContentColor = GreenIberdrola,
-            textContentColor = Color.Black,
+            shape = RoundedCornerShape(16.dp)
         )
     }
 
@@ -321,6 +320,8 @@ fun InvoiceListContent(
     currentSort: SortOption,
     events: InvoiceListEvents
 ) {
+    val lastInvoice = groupedInvoices.values.flatten().firstOrNull()
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 16.dp)
@@ -349,7 +350,7 @@ fun InvoiceListContent(
                             fontFamily = IberPangeaFamily
                         )
                         if (hasFilters) {
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
                             Surface(
                                 onClick = { events.onClearFilters() },
                                 shape = RoundedCornerShape(50),

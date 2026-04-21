@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.user_profile
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -41,6 +43,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -62,6 +65,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.BackgroundApp
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
@@ -74,6 +78,52 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state = viewModel.state
+    var showDiscardDialog by remember { mutableStateOf(false) }
+
+    val handleBackAction = {
+        if (!state.isSaved) {
+            showDiscardDialog = true
+        } else {
+            onBack()
+        }
+    }
+
+    BackHandler(enabled = true) {
+        handleBackAction()
+    }
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = {
+                Text(
+                    text = "¿Descartar cambios?",
+                    fontFamily = IberPangeaFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = GreenDarkIberdrola
+                )
+            },
+            text = {
+                Text(
+                    text = "Tienes cambios sin guardar. ¿Estás seguro de que quieres salir y perder la información?",
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Black
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = onBack) {
+                    Text("Descartar", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text("Cancelar", color = GreenIberdrola)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     val events = ProfileEvents(
         onNameChanged = { viewModel.onNameChange(it) },
@@ -100,7 +150,7 @@ fun ProfileScreen(
                 },
                 navigationIcon = {
                     IconButton(
-                        onClick = onBack,
+                        onClick = handleBackAction,
                         modifier = Modifier.padding(start = 8.dp)
                     ) {
                         Icon(
