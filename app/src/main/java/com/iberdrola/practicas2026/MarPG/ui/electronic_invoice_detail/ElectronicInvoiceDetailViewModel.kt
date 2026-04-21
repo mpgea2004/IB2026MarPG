@@ -73,13 +73,9 @@ class ElectronicInvoiceViewModel @Inject constructor(
     fun canContinue(): Boolean {
         val email = state.emailInput.trim()
         val isEmailValid = emailPattern.matches(email)
-        val contract = state.selectedContract
+        val contract = state.selectedContract ?: return false
 
-        if (contract == null) {
-            return false
-        }
-
-        val result = if (contract.isEnabled == false) {
+        val result = if (!contract.isEnabled) {
             isEmailValid && state.isLegalAccepted
         } else {
             isEmailValid
@@ -204,6 +200,10 @@ class ElectronicInvoiceViewModel @Inject constructor(
         state = state.copy(passwordInput = nuevaPass)
     }
 
+    fun togglePasswordVisibility() {
+        state = state.copy(isPasswordVisible = !state.isPasswordVisible)
+    }
+
     fun savePhoneAndContinue(onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
@@ -243,5 +243,53 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun closePhoneDialog() {
         state = state.copy(showNoPhoneDialog = false, error = null, passwordInput = "")
+    }
+
+    fun onDeactivateClick() {
+        if (state.userProfile.address.isEmpty()) {
+            state = state.copy(showNoAddressDialog = true)
+        } else {
+            state = state.copy(showDeactivationConfirmDialog = true)
+        }
+    }
+
+    fun onDeactivateWithAddress(address: String) {
+        viewModelScope.launch {
+            try {
+                state = state.copy(isLoading = true, error = null)
+                delay(1000)
+                
+                val userSavedPassword = state.userProfile.password
+                val isPasswordCorrect = if (userSavedPassword.isEmpty()) {
+                    state.passwordInput == "1234"
+                } else {
+                    state.passwordInput == userSavedPassword
+                }
+
+                if (isPasswordCorrect) {
+                    userPrefs.updateAddress(address)
+                    state = state.copy(showNoAddressDialog = false, passwordInput = "")
+                    performDeactivate()
+                } else {
+                    state = state.copy(error = R.string.error_incorrect_password)
+                }
+            } catch (e: Exception) {
+                state = state.copy(error = R.string.error_unexpected)
+            } finally {
+                state = state.copy(isLoading = false)
+            }
+        }
+    }
+    
+    fun onNewAddressChanged(newAddress: String) {
+        state = state.copy(newAddressInput = newAddress)
+    }
+
+    fun closeAddressDialog() {
+        state = state.copy(showNoAddressDialog = false, error = null, passwordInput = "", newAddressInput = "")
+    }
+
+    fun closeDeactivationDialog() {
+        state = state.copy(showDeactivationConfirmDialog = false)
     }
 }

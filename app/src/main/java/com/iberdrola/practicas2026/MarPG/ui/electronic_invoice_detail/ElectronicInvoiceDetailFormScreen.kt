@@ -84,14 +84,19 @@ fun ElectronicInvoiceDetailFormScreen(
         }
     }
 
-    BackHandler(enabled = true) { handleBack() }
+    BackHandler(enabled = !state.showSameEmailWarning && !state.showNoPhoneDialog) { handleBack() }
 
     val isButtonEnabled = viewModel.canContinue()
 
     val sheetState = rememberModalBottomSheetState()
 
     if (state.showNoPhoneDialog) {
-        SecurityPhoneDialog(state, viewModel, onNext)
+        SecurityPhoneDialog(state, viewModel, {
+            if (!isNavigating) {
+                isNavigating = true
+                onNext()
+            }
+        })
     }
     
     if (state.showSameEmailWarning) {
@@ -104,10 +109,9 @@ fun ElectronicInvoiceDetailFormScreen(
         onBack = handleBack,
         onClose = handleClose,
         onNext = {
-            if (!isNavigating) {
-                isNavigating = true
-                viewModel.onContinueClick {
-                    isNavigating = false
+            viewModel.onContinueClick {
+                if (!isNavigating) {
+                    isNavigating = true
                     onNext()
                 }
             }
@@ -194,13 +198,13 @@ fun ElectronicInvoiceDetailFormContent(
                 onValueChange = events.onEmailChange,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 textStyle = TextStyle(
-                    color = Color.Gray,
+                    color = Color.Black,
                     fontSize = 14.sp
                 ),
                 placeholder = { Text(stringResource(R.string.form_email_placeholder), fontSize = 14.sp, color = Color.Gray)},
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Gray,
+                    unfocusedTextColor = Color.Black,
                     unfocusedContainerColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.LightGray,
                     focusedContainerColor = Color.Transparent,

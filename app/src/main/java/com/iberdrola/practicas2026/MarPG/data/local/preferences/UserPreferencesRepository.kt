@@ -60,4 +60,10 @@ class UserPreferencesRepository @Inject constructor(
             prefs[PreferencesKeys.PASSWORD] = newPass
         }
     }
+
+    suspend fun updateAddress(newAddress: String) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.ADDRESS] = newAddress
+        }
+    }
 }

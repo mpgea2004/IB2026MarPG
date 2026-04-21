@@ -349,7 +349,7 @@ fun InvoiceListContent(
                             fontFamily = IberPangeaFamily
                         )
                         if (hasFilters) {
-                            Spacer(modifier = Modifier.width(12.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Surface(
                                 onClick = { events.onClearFilters() },
                                 shape = RoundedCornerShape(50),
@@ -378,10 +378,10 @@ fun InvoiceListContent(
                             }
                         }
                     }
+                    Spacer(modifier = Modifier.width(2.dp))
                     FilterButton(onClick = { events.onFilter() })
                 }
                 
-                // Barra de Ordenación
                 LazyRow(
                     modifier = Modifier
                         .fillMaxWidth()

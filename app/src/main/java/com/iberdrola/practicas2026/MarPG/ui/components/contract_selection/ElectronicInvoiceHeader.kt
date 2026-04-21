@@ -70,22 +70,20 @@ fun ElectronicInvoiceHeader(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Row(
+        val progress = step.toFloat() / totalSteps.toFloat()
+
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(4.dp)
+                .background(Color(0xFFD9E0DB))
         ) {
-            for (i in 1..totalSteps) {
-                val color = if (i <= step) Color(0xFF00833E) else Color(0xFFD9E0DB)
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .background(color)
-                )
-
-                if (i < totalSteps) Spacer(modifier = Modifier.width(2.dp))
-            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(progress)
+                    .fillMaxHeight()
+                    .background(Color(0xFF00833E))
+            )
         }
     }
 }

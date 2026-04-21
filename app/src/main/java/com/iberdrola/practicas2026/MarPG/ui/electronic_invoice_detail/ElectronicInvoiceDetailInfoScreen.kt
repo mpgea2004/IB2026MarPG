@@ -13,20 +13,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,8 +43,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -79,8 +90,6 @@ fun ElectronicInvoiceDetailInfoScreen(
 
     BackHandler(enabled = true) { handleBack() }
 
-    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
-
     LaunchedEffect(electronicInvoice.id) {
         viewModel.selectContract(electronicInvoice)
     }
@@ -100,51 +109,114 @@ fun ElectronicInvoiceDetailInfoScreen(
                 onNavigateToEdit()
             }
         },
-        onConfirmDeactivate = { showDeleteDialog = true }
+        onConfirmDeactivate = { viewModel.onDeactivateClick() }
     )
 
-    if (showDeleteDialog) {
+    if (state.showDeactivationConfirmDialog) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = { viewModel.closeDeactivationDialog() },
             icon = {
-                Icon(
-                    imageVector = Icons.Outlined.Info,
-                    contentDescription = null,
-                    tint = GreenDarkIberdrola,
-                    modifier = Modifier.size(32.dp)
-                )
+                Icon(imageVector = Icons.Outlined.Info, contentDescription = null, tint = GreenDarkIberdrola, modifier = Modifier.size(32.dp))
             },
             title = {
-                Text(
-                    text = stringResource(R.string.invoice_detail_dialog_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = GreenDarkIberdrola
-                )
+                Text(text = stringResource(R.string.invoice_detail_dialog_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = GreenDarkIberdrola)
             },
             text = {
-                Text(
-                    text = stringResource(R.string.invoice_detail_dialog_text),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
+                Text(text = stringResource(R.string.invoice_detail_dialog_text), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
             },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        viewModel.performDeactivate()
-                    }
-                ) {
+                TextButton(onClick = { 
+                    viewModel.closeDeactivationDialog()
+                    viewModel.performDeactivate() 
+                }) {
                     Text(stringResource(R.string.invoice_detail_dialog_confirm), color = Color.Red, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showDeleteDialog = false }
-                ) {
+                TextButton(onClick = { viewModel.closeDeactivationDialog() }) {
                     Text(stringResource(R.string.invoice_detail_dialog_cancel), color = GreenDarkIberdrola)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    if (state.showNoAddressDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.closeAddressDialog() },
+            icon = { Icon(imageVector = Icons.Outlined.Info, contentDescription = null, tint = GreenDarkIberdrola, modifier = Modifier.size(32.dp)) },
+            title = { Text(text = "Dirección de envío", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = GreenDarkIberdrola) },
+            text = {
+                Column {
+                    Text(text = "Introduce la dirección donde deseas recibir tus facturas en papel y confirma con tu contraseña:", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    TextField(
+                        value = state.newAddressInput,
+                        onValueChange = { viewModel.onNewAddressChanged(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Dirección completa", fontSize = 14.sp) },
+                        colors = TextFieldDefaults.colors(
+                            focusedTextColor = Color.Black  ,
+                            unfocusedTextColor = if (state.newAddressInput.isEmpty()) Color.Gray else Color.Black,
+
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+
+                            focusedIndicatorColor = GreenDarkIberdrola,
+                            unfocusedIndicatorColor = Color.Gray.copy(alpha = 0.5f),
+                            cursorColor = GreenDarkIberdrola,
+
+                            focusedPlaceholderColor = Color.Gray,
+                            unfocusedPlaceholderColor = Color.Gray
+                        ),
+                        singleLine = true
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    TextField(
+                        value = state.passwordInput,
+                        onValueChange = { viewModel.onPasswordChanged(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(stringResource(R.string.security_dialog_password_label), fontSize = 14.sp) },
+                        visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        trailingIcon = {
+                            IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
+                                Icon(imageVector = if (state.isPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility, null, modifier = Modifier.size(24.dp))
+                            }
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedTextColor = Color.Black  ,
+                            unfocusedTextColor = if (state.newAddressInput.isEmpty()) Color.Gray else Color.Black,
+
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+
+                            focusedIndicatorColor = GreenDarkIberdrola,
+                            unfocusedIndicatorColor = Color.Gray.copy(alpha = 0.5f),
+                            cursorColor = GreenDarkIberdrola,
+
+                            focusedPlaceholderColor = Color.Gray,
+                            unfocusedPlaceholderColor = Color.Gray
+                        ),
+                        singleLine = true
+                    )
+                    if (state.error != null) {
+                        Text(text = stringResource(state.error), color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { viewModel.onDeactivateWithAddress(state.newAddressInput) },
+                    enabled = state.newAddressInput.isNotEmpty() && state.passwordInput.isNotEmpty() && !state.isLoading
+                ) {
+                    Text("Confirmar", color = GreenDarkIberdrola, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.closeAddressDialog() }) {
+                    Text(stringResource(R.string.security_dialog_cancel), color = Color.Gray)
                 }
             },
             containerColor = WhiteApp,

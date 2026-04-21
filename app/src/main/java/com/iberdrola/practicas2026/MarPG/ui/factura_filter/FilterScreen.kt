@@ -106,6 +106,7 @@ fun FilterScreen(
                 minLimit = listViewModel.minInvoiceAmount,
                 maxLimit = listViewModel.maxInvoiceAmount
             )
+            listViewModel.applyFilters(filterViewModel.state)
         },
         onApply = {
             //Paso el paquete de datos final al ViewModel de la lista
