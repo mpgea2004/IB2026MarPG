@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,16 +24,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
+import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 
 /**
  * Pantalla de estado vacío o error para el listado de facturas
  * Se muestra cuando no hay datos disponibles o cuando ocurre una excepción de red/local
  * * @param message Mensaje personalizado a mostrar (opcional). Si es nulo, usa el recurso por defecto
+ * * @param onRefresh Acción a realizar al pulsar el botón de reintentar/refrescar
  */
 @Composable
-fun InvoiceEmptyState(message: String? = null) {
+fun InvoiceEmptyState(
+    message: String? = null,
+    onRefresh: (() -> Unit)? = null
+) {
 
 
     Column(
@@ -48,7 +57,6 @@ fun InvoiceEmptyState(message: String? = null) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            //Si el mensaje viene de la excepción, lo usamos. Si no, el por defecto
             text = message ?: stringResource(id = R.string.invoice_empty_state_message),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
@@ -64,5 +72,23 @@ fun InvoiceEmptyState(message: String? = null) {
             textAlign = TextAlign.Center,
             fontFamily = IberPangeaFamily
         )
+
+        if (onRefresh != null) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(
+                onClick = onRefresh,
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = GreenIberdrola,
+                    contentColor = WhiteApp
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.error_button_retry),
+                    fontFamily = IberPangeaFamily,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }

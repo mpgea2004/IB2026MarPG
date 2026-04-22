@@ -72,6 +72,8 @@ class InvoiceListViewModel @Inject constructor(
 
     var showSingleInvoiceDialog by mutableStateOf(false)
         private set
+    private var lastMinLimit: Float = 0f
+    private var lastMaxLimit: Float = 500f
 
     val minInvoiceAmount: Float
         get() = allInvoices.minOfOrNull { it.amount.toFloat() }?.let { floor(it) } ?: 0f
@@ -101,7 +103,7 @@ class InvoiceListViewModel @Inject constructor(
                 .collect { invoices ->
                     allInvoices = invoices
 
-                    setupInitialFilterPrices(invoices)
+                    setupDynamicFilterPrices(invoices)
 
                     if (invoices.isNotEmpty()) {
                         errorMessage = null
@@ -121,26 +123,41 @@ class InvoiceListViewModel @Inject constructor(
 
     private fun handleLoadError(e: Throwable) {
         errorMessage = when(e) {
-            is InvoiceException.NetworkError -> R.string.error_unexpected
-            is InvoiceException.ServerError -> R.string.error_unexpected
-            is InvoiceException.LocalDataError -> R.string.error_unknown
+            is InvoiceException.NetworkError -> R.string.error_network_connection
+            is InvoiceException.NotFoundError -> R.string.error_data_not_found
+            is InvoiceException.ServerError -> {
+                if (e.code == 404) R.string.error_data_not_found
+                else R.string.error_server_maintenance
+            }
+            is InvoiceException.LocalDataError -> R.string.error_local_data
             else -> R.string.error_unknown
         }
-        
+
         if (allInvoices.isEmpty()) {
             state = InvoiceListState.NODATA
         }
     }
 
-    private fun setupInitialFilterPrices(invoices: List<Invoice>) {
-        val isFilterDefault = currentFilterState.minPrice == 0f && currentFilterState.maxPrice == 500f
+    private fun setupDynamicFilterPrices(invoices: List<Invoice>) {
+        if (invoices.isEmpty()) return
 
-        if (invoices.isNotEmpty() && isFilterDefault) {
+        val newMin = minInvoiceAmount
+        val newMax = maxInvoiceAmount
+
+        val isAtFullRange = abs(currentFilterState.minPrice - lastMinLimit) < 0.1f &&
+                            abs(currentFilterState.maxPrice - lastMaxLimit) < 0.1f
+        
+        val isFirstLoad = lastMinLimit == 0f && lastMaxLimit == 500f
+
+        if (isFirstLoad || isAtFullRange) {
             currentFilterState = currentFilterState.copy(
-                minPrice = minInvoiceAmount,
-                maxPrice = maxInvoiceAmount
+                minPrice = newMin,
+                maxPrice = newMax
             )
         }
+        
+        lastMinLimit = newMin
+        lastMaxLimit = newMax
     }
 
     private fun updateFilteredInvoices() {

@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Receipt
+import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -59,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
+import com.iberdrola.practicas2026.MarPG.ui.components.detail.InvoiceStepper
 import com.iberdrola.practicas2026.MarPG.ui.components.list.StatusBadge
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
 import com.iberdrola.practicas2026.MarPG.ui.theme.BackgroundApp
@@ -113,6 +115,7 @@ fun InvoiceDetailContent(
 ) {
     val invoice = state.invoice
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
 
     Scaffold(
         topBar = {
@@ -121,7 +124,7 @@ fun InvoiceDetailContent(
 
         bottomBar = {
             if(invoice!= null) {
-                if (invoice.status != InvoiceStatus.PAGADAS && invoice.status != InvoiceStatus.ANULADAS) {
+                if (invoice.status != InvoiceStatus.PAGADAS && invoice.status != InvoiceStatus.ANULADAS && invoice.status != InvoiceStatus.CUOTA_FIJA ) {
                     Surface(
                         color = WhiteApp,
                         shadowElevation = 8.dp
@@ -222,6 +225,18 @@ fun InvoiceDetailContent(
                     )
                 }
 
+                item {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = WhiteApp
+                    ) {
+                        InvoiceStepper(
+                            status = invoice.status,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                        )
+                    }
+                }
+
                 item { Spacer(modifier = Modifier.height(16.dp)) }
 
                 item {
@@ -229,6 +244,10 @@ fun InvoiceDetailContent(
                         modifier = Modifier.padding(horizontal = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+                        if (invoice.status == InvoiceStatus.CUOTA_FIJA) {
+                            FixedQuotaBanner()
+                        }
+
                         if (state.paymentSuccess) {
                             StatusMessage(message = "¡Factura pagada correctamente!", color = GreenIberdrola)
                         }
@@ -268,6 +287,7 @@ fun InvoiceDetailContent(
                                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                                 val clip = ClipData.newPlainText("ID Factura", invoice.id)
                                                 clipboard.setPrimaryClip(clip)
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 Toast.makeText(context, "ID copiado al portapapeles", Toast.LENGTH_SHORT).show()
                                             }
                                     )
@@ -299,7 +319,7 @@ fun InvoiceDetailContent(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (invoice.status == InvoiceStatus.PAGADAS) "Factura cobrada" else {
+                                    text = if (invoice.status == InvoiceStatus.PAGADAS || invoice.status == InvoiceStatus.CUOTA_FIJA) "Factura cobrada" else {
                                         if (invoice.status == InvoiceStatus.ANULADAS) "Factura en anulación" else "Pendiente de cobro"
                                     },
                                     fontFamily = IberPangeaFamily,
@@ -313,6 +333,31 @@ fun InvoiceDetailContent(
                 }
                 item { Spacer(modifier = Modifier.height(32.dp)) }
             }
+        }
+    }
+}
+
+@Composable
+private fun FixedQuotaBanner() {
+    Surface(
+        color = Color(0xFFE3F2FD),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Outlined.Sync, null, tint = Color(0xFF1976D2), modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "Esta factura pertenece al Plan Cuota Fija. El importe se regularizará según tu consumo real.",
+                color = Color(0xFF1976D2),
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = IberPangeaFamily
+            )
         }
     }
 }

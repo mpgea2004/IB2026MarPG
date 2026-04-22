@@ -57,7 +57,7 @@ class InvoiceDetailViewModel @Inject constructor(
             state = state.copy(isDownloadingPdf = true)
             delay(2000)
             state = state.copy(isDownloadingPdf = false, pdfDownloaded = true)
-            delay(3000)
+            delay(5000)
             state = state.copy(pdfDownloaded = false)
         }
     }
@@ -78,14 +78,14 @@ class InvoiceDetailViewModel @Inject constructor(
                         isLoading = false,
                         paymentSuccess = true
                     )
-                    delay(3000)
+                    delay(5000)
                     state = state.copy(paymentSuccess = false)
                 } catch (e: Exception) {
                     state = state.copy(isLoading = false, paymentError = true)
                 }
             } else {
                 state = state.copy(isLoading = false, paymentError = true)
-                delay(3000)
+                delay(5000)
                 state = state.copy(paymentError = false)
             }
         }

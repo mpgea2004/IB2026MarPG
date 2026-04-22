@@ -175,4 +175,10 @@
     <string name="invoice_list_only_one_invoice">Solo tienes una factura</string>
     <string name="error_password_too_short">La contraseña debe tener al menos 6 caracteres</string>
 
+    <!-- Errores Personalizados de Red -->
+    <string name="error_network_connection">No se ha podido conectar con el servidor. Comprueba tu conexión a internet o Mockoon.</string>
+    <string name="error_server_maintenance">El servidor de Iberdrola está temporalmente fuera de servicio (500). Inténtalo más tarde.</string>
+    <string name="error_data_not_found">No se han encontrado facturas vinculadas a tu cuenta en el sistema (404).</string>
+    <string name="error_local_data">Error al leer los datos de la memoria interna. Prueba a refrescar.</string>
+
 </resources>

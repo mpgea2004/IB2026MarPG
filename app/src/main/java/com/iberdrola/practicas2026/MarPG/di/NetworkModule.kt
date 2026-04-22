@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.di
 
+import android.os.Build
 import com.iberdrola.practicas2026.MarPG.data.network.ElectronicInvoiceApiService
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceApiServer
 import dagger.Module
@@ -11,22 +12,33 @@ import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 /**
- * Módulo de red para la configuración de Retrofit
- * Centraliza la comunicación con los servicios externos (Mockoon)
+ * Módulo de red para la configuración de Retrofit.
+ * Soporta tanto emulador como móvil físico automáticamente.
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
     /**
-     * Configura y provee el cliente de Retrofit
-     * URL base: http://10.0.2.2:3000/ (Referencia al localhost desde el emulador)
+     * Provee la URL base dinámica.
+     * Móvil Físico: usa localhost (requiere adb reverse tcp:3000 tcp:3000)
+     * Emulador: usa 10.0.2.2
      */
+    private fun getBaseUrl(): String {
+        return if (Build.FINGERPRINT.contains("generic") || 
+                   Build.MODEL.contains("Emulator") || 
+                   Build.MODEL.contains("Android SDK built for x86")) {
+            "http://10.0.2.2:3000/"
+        } else {
+            "http://localhost:3000/"
+        }
+    }
+
     @Provides
     @Singleton
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/") // IP para el emulador hacia tu PC
+            .baseUrl(getBaseUrl())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

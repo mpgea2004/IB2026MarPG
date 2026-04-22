@@ -213,7 +213,10 @@ fun InvoiceListScreen(
                     }
 
                     InvoiceListState.NODATA -> {
-                        InvoiceEmptyState(message = errorMessage?.let { stringResource(it) })
+                        InvoiceEmptyState(
+                            message = errorMessage?.let { stringResource(it)},
+                            onRefresh = { viewModel.refreshInvoices() }
+                        )
                     }
 
                     is InvoiceListState.SUCCESS -> {
