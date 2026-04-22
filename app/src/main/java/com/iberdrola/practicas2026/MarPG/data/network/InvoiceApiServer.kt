@@ -3,6 +3,7 @@ package com.iberdrola.practicas2026.MarPG.data.network
 import com.iberdrola.practicas2026.MarPG.data.model.InvoiceResponse
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -19,6 +20,6 @@ interface InvoiceApiServer {
 
     ): InvoiceResponse
 
-    @POST("invoices/{id}/pay")
+    @PUT("invoices/pay/{id}")
     suspend fun payInvoice(@Path("id") id: String)
 }

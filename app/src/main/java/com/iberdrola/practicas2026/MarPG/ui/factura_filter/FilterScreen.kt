@@ -95,6 +95,12 @@ fun FilterScreen(
         containerColor = WhiteApp,
         topBar = {
             FilterTopBar(onBack)
+        },
+        bottomBar = {
+            FilterActionButtons(
+                onApply = { events.onApply() },
+                onClear = { events.onClear() }
+            )
         }
     ) { padding ->
         FilterContent(
@@ -231,11 +237,6 @@ fun FilterContent(
             )
 
             Spacer(modifier = Modifier.height(48.dp))
-
-            FilterActionButtons(
-                onApply = { events.onApply() },
-                onClear = { events.onClear() }
-            )
         }
     }
 }

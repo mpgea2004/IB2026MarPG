@@ -36,12 +36,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -222,6 +224,40 @@ fun ProfileScreen(
                 )
             )
         },
+        bottomBar = {
+            Surface(
+                color = WhiteApp,
+                shadowElevation = 8.dp
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    HorizontalDivider(thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
+                    Button(
+                        onClick = { events.onSaveClick { events.onBackClick() } },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = GreenIberdrola,
+                            contentColor = WhiteApp
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 8.dp
+                        )
+                    ) {
+                        Text(
+                            text = stringResource(R.string.profile_button_save),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFamily = IberPangeaFamily,
+                            letterSpacing = 1.sp
+                        )
+                    }
+                }
+            }
+        },
         containerColor = BackgroundApp
     ) { padding ->
         Box(modifier = Modifier
@@ -329,37 +365,7 @@ fun ProfileContent(
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = { events.onSaveClick {
-                // Navegamos atrás tras guardar con éxito
-                events.onBackClick()
-            } },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .height(56.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = GreenIberdrola,
-                contentColor = WhiteApp
-            ),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 4.dp,
-                pressedElevation = 8.dp
-            )
-        ) {
-            Text(
-                text = stringResource(R.string.profile_button_save), fontSize = 16.sp,
-                fontWeight = FontWeight.ExtraBold,
-                fontFamily = IberPangeaFamily,
-                letterSpacing = 1.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(48.dp))
     }
 }
 
