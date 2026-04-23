@@ -87,6 +87,13 @@ fun ElectronicInvoiceSuccessFullGreenContent(
 
     Scaffold(
         containerColor = GreenDarkIberdrola,
+        bottomBar = {
+            SuccessWhiteButton(
+                text = stringResource(R.string.success_button_accept), 
+                onClick = onAccept,
+                modifier = Modifier.padding(24.dp).padding(bottom = 8.dp)
+            )
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -113,17 +120,12 @@ fun ElectronicInvoiceSuccessFullGreenContent(
             SuccessText(title = title, subtitle = subTitle)
 
             Spacer(modifier = Modifier.weight(1.2f))
-
-            SuccessWhiteButton(text = stringResource(R.string.success_button_accept), onClick = onAccept)
-
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
 @Composable
 fun SuccessIcon(iconResId: Int) {
-
     Icon(
         painter = painterResource(iconResId),
         contentDescription = null,
@@ -157,10 +159,10 @@ fun SuccessText(title: String,subtitle: String) {
 }
 
 @Composable
-fun SuccessWhiteButton(text: String, onClick: () -> Unit) {
+fun SuccessWhiteButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Button(
         onClick = onClick,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(52.dp),
         shape = RoundedCornerShape(26.dp),

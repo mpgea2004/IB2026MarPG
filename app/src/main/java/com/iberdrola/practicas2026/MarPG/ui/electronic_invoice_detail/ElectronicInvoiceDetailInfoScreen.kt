@@ -152,7 +152,7 @@ fun ElectronicInvoiceDetailInfoScreen(
             title = { Text(text = "Dirección de envío", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = GreenDarkIberdrola) },
             text = {
                 Column {
-                    Text(text = "Introduce la dirección donde deseas recibir tus facturas en papel y confirma con tu contraseña:", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    Text(text = "No tienes una dirección en tu cuenta, introduce la dirección donde deseas recibir tus facturas en papel y confirma con tu contraseña:", style = MaterialTheme.typography.bodyMedium, color = Color.Black)
                     Spacer(modifier = Modifier.height(16.dp))
                     TextField(
                         value = state.newAddressInput,
@@ -200,7 +200,9 @@ fun ElectronicInvoiceDetailInfoScreen(
                             cursorColor = GreenDarkIberdrola,
 
                             focusedPlaceholderColor = Color.Gray,
-                            unfocusedPlaceholderColor = Color.Gray
+                            unfocusedPlaceholderColor = Color.Gray,
+                            focusedTrailingIconColor = Color.Black,
+                            unfocusedTrailingIconColor = Color.Gray
                         ),
                         singleLine = true
                     )
@@ -278,6 +280,7 @@ fun ElectronicInvoiceDetailInfoScreenContent(
                     Text(text = stringResource(R.string.invoice_detail_btn_deactivate), fontSize = 15.sp, color = GreenDarkIberdrola)
                 }
 
+                Spacer(modifier = Modifier.height(4.dp))
                 Button(
                     onClick = events.onNext,
                     modifier = Modifier

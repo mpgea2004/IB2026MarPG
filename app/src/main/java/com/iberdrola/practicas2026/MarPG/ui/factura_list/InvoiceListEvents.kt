@@ -11,5 +11,6 @@ data class InvoiceListEvents(
     val onSort: (SortOption) -> Unit = {},
     val onRemoveStatus: (String) -> Unit = {},
     val onRemoveDate: () -> Unit = {},
-    val onRemovePrice: () -> Unit = {}
+    val onRemovePrice: () -> Unit = {},
+    val onSearchQueryChange: (String) -> Unit = {}
 )

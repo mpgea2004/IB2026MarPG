@@ -9,6 +9,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudDownload
@@ -41,14 +43,18 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -69,6 +75,8 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
+import kotlinx.coroutines.launch
+import androidx.compose.material3.rememberTooltipState
 
 @Composable
 fun InvoiceDetailScreen(
@@ -116,6 +124,9 @@ fun InvoiceDetailContent(
     val invoice = state.invoice
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
+    val downloadTooltipState = rememberTooltipState(isPersistent = false)
+    val copyTooltipState = rememberTooltipState(isPersistent = false)
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -206,12 +217,41 @@ fun InvoiceDetailContent(
                                     strokeWidth = 2.dp
                                 )
                             } else {
-                                IconButton(onClick = events.onDownloadPdf) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.CloudDownload,
-                                        contentDescription = "Descargar PDF",
-                                        tint = GreenIberdrola
-                                    )
+                                TooltipBox(
+                                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                                    tooltip = {
+                                        Surface(
+                                            color = Color.DarkGray,
+                                            shape = RoundedCornerShape(4.dp)
+                                        ) {
+                                            Text(
+                                                text = "Descargar factura",
+                                                color = Color.White,
+                                                modifier = Modifier.padding(8.dp),
+                                                fontSize = 12.sp
+                                            )
+                                        }
+                                    },
+                                    state = downloadTooltipState
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .clip(CircleShape)
+                                            .combinedClickable(
+                                                onClick = { events.onDownloadPdf() },
+                                                onLongClick = {
+                                                    scope.launch { downloadTooltipState.show() }
+                                                }
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.CloudDownload,
+                                            contentDescription = "Descargar PDF",
+                                            tint = GreenIberdrola
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -276,21 +316,51 @@ fun InvoiceDetailContent(
                                 Text("Número de factura", fontSize = 14.sp, color = TextGrey, fontFamily = IberPangeaFamily)
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(invoice.id, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF333333), fontFamily = IberPangeaFamily)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Icon(
-                                        imageVector = Icons.Outlined.ContentCopy,
-                                        contentDescription = "Copiar ID",
-                                        tint = GreenIberdrola,
-                                        modifier = Modifier
-                                            .size(18.dp)
-                                            .clickable {
-                                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                                val clip = ClipData.newPlainText("ID Factura", invoice.id)
-                                                clipboard.setPrimaryClip(clip)
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                Toast.makeText(context, "ID copiado al portapapeles", Toast.LENGTH_SHORT).show()
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    
+                                    TooltipBox(
+                                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                                        tooltip = {
+                                            Surface(
+                                                color = Color.DarkGray,
+                                                shape = RoundedCornerShape(4.dp)
+                                            ) {
+                                                Text(
+                                                    text = "Copiar número de factura",
+                                                    color = Color.White,
+                                                    modifier = Modifier.padding(8.dp),
+                                                    fontSize = 12.sp
+                                                )
                                             }
-                                    )
+                                        },
+                                        state = copyTooltipState
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                                .combinedClickable(
+                                                    onClick = {
+                                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                                        val clip = ClipData.newPlainText("ID Factura", invoice.id)
+                                                        clipboard.setPrimaryClip(clip)
+                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        Toast.makeText(context, "ID copiado al portapapeles", Toast.LENGTH_SHORT).show()
+                                                    },
+                                                    onLongClick = {
+                                                        scope.launch { copyTooltipState.show() }
+                                                    }
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.ContentCopy,
+                                                contentDescription = "Copiar ID",
+                                                tint = GreenIberdrola,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

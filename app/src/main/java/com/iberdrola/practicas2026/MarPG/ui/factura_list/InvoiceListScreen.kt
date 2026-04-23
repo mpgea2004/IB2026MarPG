@@ -7,6 +7,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -40,6 +42,7 @@ import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -48,12 +51,18 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,6 +101,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -225,6 +235,7 @@ fun InvoiceListScreen(
                             lastInvoice = currentState.lastInvoice,
                             currentSort = viewModel.currentSortOption,
                             filterState = viewModel.currentFilterState,
+                            searchQuery = viewModel.searchQuery,
                             minLimit = viewModel.minInvoiceAmount,
                             maxLimit = viewModel.maxInvoiceAmount,
                             hasFilters = viewModel.hasActiveFilters(),
@@ -248,7 +259,8 @@ fun InvoiceListScreen(
                                 onSort = { viewModel.setSortOption(it) },
                                 onRemoveStatus = { viewModel.removeStatusFilter(it) },
                                 onRemoveDate = { viewModel.removeDateFilter() },
-                                onRemovePrice = { viewModel.removePriceFilter() }
+                                onRemovePrice = { viewModel.removePriceFilter() },
+                                onSearchQueryChange = { viewModel.onSearchQueryChange(it) }
                             )
                         )
                     }
@@ -325,18 +337,22 @@ fun InvoiceListHeader(
 }
 
 /** Contenido scrolleable: última factura, cabecera fija e histórico */
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun InvoiceListContent(
     groupedInvoices: Map<String, List<Invoice>>,
     lastInvoice: Invoice?,
     currentSort: SortOption,
     filterState: FilterState,
+    searchQuery: String,
     minLimit: Float,
     maxLimit: Float,
     hasFilters: Boolean,
     events: InvoiceListEvents
 ) {
+    val searchTooltipState = rememberTooltipState(isPersistent = false)
+    val scope = rememberCoroutineScope()
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 16.dp)
@@ -350,7 +366,74 @@ fun InvoiceListContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 4.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = events.onSearchQueryChange,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(52.dp),
+                        placeholder = { Text("Buscar...", fontSize = 14.sp) },
+                        leadingIcon = {
+                            TooltipBox(
+                                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                                tooltip = {
+                                    Surface(
+                                        color = Color.DarkGray,
+                                        shape = RoundedCornerShape(4.dp)
+                                    ) {
+                                        Text(
+                                            text = "Buscar por número de factura",
+                                            color = Color.White,
+                                            modifier = Modifier.padding(8.dp),
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                },
+                                state = searchTooltipState
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Search,
+                                    contentDescription = "Buscar",
+                                    tint = GreenIberdrola,
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .combinedClickable(
+                                            onClick = {  },
+                                            onLongClick = {
+                                                scope.launch { searchTooltipState.show() }
+                                            }
+                                        )
+                                )
+                            }
+                        },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { events.onSearchQueryChange("") }) {
+                                    Icon(Icons.Outlined.Close, null, modifier = Modifier.size(20.dp))
+                                }
+                            }
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.LightGray.copy(alpha = 0.2f),
+                            unfocusedContainerColor = Color.LightGray.copy(alpha = 0.1f),
+                            focusedIndicatorColor = GreenIberdrola,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            cursorColor = GreenIberdrola,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Gray
+                        ),
+                        shape = RoundedCornerShape(26.dp),
+                        singleLine = true
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -384,11 +467,13 @@ fun InvoiceListContent(
                 
                 ActiveFiltersRow(
                     state = filterState,
+                    searchQuery = searchQuery,
                     minLimit = minLimit,
                     maxLimit = maxLimit,
                     onRemoveStatus = events.onRemoveStatus,
                     onRemoveDate = events.onRemoveDate,
-                    onRemovePrice = events.onRemovePrice
+                    onRemovePrice = events.onRemovePrice,
+                    onRemoveSearch = { events.onSearchQueryChange("") }
                 )
 
                 LazyRow(
@@ -455,16 +540,18 @@ fun InvoiceListContent(
 @Composable
 fun ActiveFiltersRow(
     state: FilterState,
+    searchQuery: String,
     minLimit: Float,
     maxLimit: Float,
     onRemoveStatus: (String) -> Unit,
     onRemoveDate: () -> Unit,
-    onRemovePrice: () -> Unit
+    onRemovePrice: () -> Unit,
+    onRemoveSearch: () -> Unit
 ) {
     val isDefaultPrice = abs(state.minPrice - minLimit) < 0.01f && abs(state.maxPrice - maxLimit) < 0.01f
     val hasDate = state.dateFrom.isNotEmpty() || state.dateTo.isNotEmpty()
 
-    if (state.selectedStatuses.isNotEmpty() || hasDate || !isDefaultPrice) {
+    if (state.selectedStatuses.isNotEmpty() || hasDate || !isDefaultPrice || searchQuery.isNotEmpty()) {
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -473,6 +560,9 @@ fun ActiveFiltersRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            if (searchQuery.isNotEmpty()) {
+                item { ActiveFilterChip(text = "ID: $searchQuery", onRemove = onRemoveSearch) }
+            }
             items(state.selectedStatuses.toList()) { status ->
                 ActiveFilterChip(text = status, onRemove = { onRemoveStatus(status) })
             }
@@ -536,30 +626,58 @@ fun ActiveFilterChip(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SortChip(
     text: String,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        color = if (isSelected) GreenIberdrola else Color.Transparent,
-        border = if (isSelected) null else BorderStroke(1.dp, Color.LightGray),
-        modifier = Modifier.height(32.dp)
+    val tooltipState = rememberTooltipState(isPersistent = false)
+    val scope = rememberCoroutineScope()
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        tooltip = {
+            Surface(
+                color = Color.DarkGray,
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Text(
+                    text = "Ordenar por: $text",
+                    color = Color.White,
+                    modifier = Modifier.padding(8.dp),
+                    fontSize = 12.sp
+                )
+            }
+        },
+        state = tooltipState
     ) {
-        Box(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            contentAlignment = Alignment.Center
+        Surface(
+            modifier = Modifier
+                .height(32.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = {
+                        scope.launch { tooltipState.show() }
+                    }
+                ),
+            shape = RoundedCornerShape(20.dp),
+            color = if (isSelected) GreenIberdrola else Color.Transparent,
+            border = if (isSelected) null else BorderStroke(1.dp, Color.LightGray)
         ) {
-            Text(
-                text = text,
-                color = if (isSelected) Color.White else Color.Gray,
-                fontSize = 12.sp,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                fontFamily = IberPangeaFamily
-            )
+            Box(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = text,
+                    color = if (isSelected) Color.White else Color.Gray,
+                    fontSize = 12.sp,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                    fontFamily = IberPangeaFamily
+                )
+            }
         }
     }
 }
@@ -731,6 +849,7 @@ fun InvoiceListScreenPreview() {
                     hasFilters = false,
                     currentSort = SortOption.DATE,
                     filterState = FilterState(),
+                    searchQuery = "",
                     minLimit = 0f,
                     maxLimit = 500f,
                     events = InvoiceListEvents(
@@ -740,7 +859,8 @@ fun InvoiceListScreenPreview() {
                         onSort = {},
                         onRemoveStatus = {},
                         onRemoveDate = {},
-                        onRemovePrice = {}
+                        onRemovePrice = {},
+                        onSearchQueryChange = {}
                     ),
                 )
             }

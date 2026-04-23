@@ -72,6 +72,8 @@ class InvoiceListViewModel @Inject constructor(
 
     var showSingleInvoiceDialog by mutableStateOf(false)
         private set
+    var searchQuery by mutableStateOf("")
+        private set
     private var lastMinLimit: Float = 0f
     private var lastMaxLimit: Float = 500f
 
@@ -159,6 +161,10 @@ class InvoiceListViewModel @Inject constructor(
         lastMinLimit = newMin
         lastMaxLimit = newMax
     }
+    fun onSearchQueryChange(query: String) {
+        searchQuery = query
+        updateFilteredInvoices()
+    }
 
     private fun updateFilteredInvoices() {
         if (allInvoices.isEmpty() && state is InvoiceListState.LOADING) {
@@ -177,6 +183,7 @@ class InvoiceListViewModel @Inject constructor(
         val lastInvoice = categoryInvoices.maxByOrNull { DateMapper.toLocalDate(it.issueDate) }
 
         val filteredInvoices = categoryInvoices.filter { invoice ->
+            val matchesSearch = searchQuery.isEmpty() || invoice.id.startsWith(searchQuery, ignoreCase = true)
             val amountFloat = invoice.amount.toFloat()
             val matchesPrice = amountFloat >= currentFilterState.minPrice &&
                     amountFloat <= currentFilterState.maxPrice
@@ -186,7 +193,7 @@ class InvoiceListViewModel @Inject constructor(
 
             val matchesDate = checkDateRange(invoice.issueDate)
 
-            matchesPrice && matchesStatus && matchesDate
+            matchesSearch && matchesPrice && matchesStatus && matchesDate
         }
 
         val sortedInvoices = when (currentSortOption) {
@@ -256,6 +263,7 @@ class InvoiceListViewModel @Inject constructor(
             minPrice = minInvoiceAmount,
             maxPrice = maxInvoiceAmount
         )
+        searchQuery = ""
         updateFilteredInvoices()
     }
 
@@ -285,6 +293,7 @@ class InvoiceListViewModel @Inject constructor(
         return currentFilterState.selectedStatuses.isNotEmpty() ||
                 currentFilterState.dateFrom.isNotEmpty() ||
                 currentFilterState.dateTo.isNotEmpty() ||
+                searchQuery.isNotEmpty() ||
                 !isDefaultPrice
     }
 

@@ -1,8 +1,10 @@
 package com.iberdrola.practicas2026.MarPG.ui.user_profile
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,14 +48,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -72,8 +79,9 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
@@ -81,6 +89,8 @@ fun ProfileScreen(
 ) {
     val state = viewModel.state
     var showDiscardDialog by remember { mutableStateOf(false) }
+    val logoutTooltipState = rememberTooltipState(isPersistent = false)
+    val scope = rememberCoroutineScope()
 
     val handleBackAction = {
         if (!state.isSaved) {
@@ -206,17 +216,45 @@ fun ProfileScreen(
                     val isLoggedIn = state.name.isNotEmpty() || state.email.isNotEmpty() || state.password.isNotEmpty()
                     val canLogout = isLoggedIn && state.isSaved
 
-                    IconButton(
-                        onClick = events.onLogout,
-                        enabled = canLogout,
-                        modifier = Modifier.padding(end = 8.dp)
+                    TooltipBox(
+                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                        tooltip = {
+                            Surface(
+                                color = Color.DarkGray,
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = "Cerrar sesión",
+                                    color = Color.White,
+                                    modifier = Modifier.padding(8.dp),
+                                    fontSize = 12.sp
+                                )
+                            }
+                        },
+                        state = logoutTooltipState
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Logout,
-                            contentDescription = "Cerrar sesión",
-                            tint = if (canLogout) Color(0xFFD32F2F) else Color.LightGray.copy(alpha = 0.5f),
-                            modifier = Modifier.size(26.dp)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .combinedClickable(
+                                    onClick = { if (canLogout) events.onLogout() },
+                                    onLongClick = {
+                                        if (canLogout) {
+                                            scope.launch { logoutTooltipState.show() }
+                                        }
+                                    }
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Logout,
+                                contentDescription = "Cerrar sesión",
+                                tint = if (canLogout) Color(0xFFD32F2F) else Color.LightGray.copy(alpha = 0.5f),
+                                modifier = Modifier.size(26.dp)
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
