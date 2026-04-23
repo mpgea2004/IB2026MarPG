@@ -3,10 +3,15 @@ package com.iberdrola.practicas2026.MarPG.ui.factura_detail
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Bitmap.createBitmap
+import android.graphics.pdf.PdfRenderer
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -16,6 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +32,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Info
@@ -45,6 +52,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,30 +63,39 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Brush.Companion.horizontalGradient
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
+import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper.formatToShortDisplay
 import com.iberdrola.practicas2026.MarPG.ui.components.detail.InvoiceStepper
 import com.iberdrola.practicas2026.MarPG.ui.components.detail.ShimmerInvoiceDetail
 import com.iberdrola.practicas2026.MarPG.ui.components.list.StatusBadge
 import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
 import com.iberdrola.practicas2026.MarPG.ui.theme.BackgroundApp
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import androidx.compose.material3.rememberTooltipState
+import kotlinx.coroutines.withContext
 
 @Composable
 fun InvoiceDetailScreen(
@@ -86,6 +103,7 @@ fun InvoiceDetailScreen(
     isCloudEnabled: Boolean,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val state = viewModel.state
     val haptic = LocalHapticFeedback.current
 
@@ -107,8 +125,9 @@ fun InvoiceDetailScreen(
 
     val events = InvoiceDetailEvents(
         onBack = handleBack,
-        onDownloadPdf = { viewModel.downloadPdf() },
-        onPay = { viewModel.payInvoice(isCloudEnabled) }
+        onDownloadPdf = { viewModel.downloadPdf(context) },
+        onPay = { viewModel.payInvoice(isCloudEnabled) },
+        onDismissPdf = { viewModel.dismissPdfViewer() }
     )
 
     InvoiceDetailContent(
@@ -129,6 +148,13 @@ fun InvoiceDetailContent(
     val downloadTooltipState = rememberTooltipState(isPersistent = false)
     val copyTooltipState = rememberTooltipState(isPersistent = false)
     val scope = rememberCoroutineScope()
+
+    if (state.showPdfViewer && state.pdfUri != null) {
+        PdfViewerDialog(
+            uri = state.pdfUri,
+            onDismiss = events.onDismissPdf
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -371,7 +397,7 @@ fun InvoiceDetailContent(
                             title = "Periodo de facturación",
                             icon = Icons.Outlined.Info
                         ) {
-                            val range = "${DateMapper.formatToShortDisplay(invoice.startDate)} - ${DateMapper.formatToShortDisplay(invoice.endDate)}"
+                            val range = "${formatToShortDisplay(invoice.startDate)} - ${formatToShortDisplay(invoice.endDate)}"
                             Text(
                                 text = range,
                                 fontFamily = IberPangeaFamily,
@@ -404,6 +430,162 @@ fun InvoiceDetailContent(
                     }
                 }
                 item { Spacer(modifier = Modifier.height(32.dp)) }
+            }
+        }
+    }
+}
+
+@Composable
+fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    var pdfBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    LaunchedEffect(uri) {
+        withContext(Dispatchers.IO) {
+            try {
+                val pfd = context.contentResolver.openFileDescriptor(uri, "r")
+                if (pfd != null) {
+                    val renderer = PdfRenderer(pfd)
+                    val page = renderer.openPage(0)
+                    val bitmap = createBitmap(page.width * 2, page.height * 2,
+                        Bitmap.Config.ARGB_8888
+                    )
+                    page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                    pdfBitmap = bitmap
+                    page.close()
+                    renderer.close()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.85f))
+                .clickable { onDismiss() }, 
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.92f)
+                    .fillMaxHeight(0.88f)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(WhiteApp)
+                    .clickable(enabled = false) { } 
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            brush =horizontalGradient(
+                                colors = listOf(GreenDarkIberdrola, GreenIberdrola)
+                            )
+                        )
+                        .padding(horizontal = 20.dp, vertical = 14.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "Vista Previa de Factura",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White,
+                                fontFamily = IberPangeaFamily
+                            )
+                            Text(
+                                text = "Documento oficial generado",
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.8f),
+                                fontFamily = IberPangeaFamily
+                            )
+                        }
+                        
+                        IconButton(
+                            onClick = onDismiss,
+                            modifier = Modifier
+                                .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                                .size(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Cerrar",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .background(Color(0xFFF0F2F5)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (pdfBitmap != null) {
+                        Card(
+                            modifier = Modifier
+                                .padding(20.dp)
+                                .fillMaxSize(),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 15.dp),
+                            shape = RoundedCornerShape(2.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            border = BorderStroke(0.5.dp, Color.LightGray.copy(alpha = 0.5f))
+                        ) {
+                            Image(
+                                bitmap = pdfBitmap!!.asImageBitmap(),
+                                contentDescription = "Factura Iberdrola",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(color = GreenIberdrola, strokeWidth = 3.dp)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "Preparando documento...", 
+                                color = GreenDarkIberdrola, 
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+                
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Outlined.Info, 
+                        null, 
+                        tint = Color.Gray, 
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "El archivo se ha guardado en tu carpeta de descargas", 
+                        fontSize = 11.sp, 
+                        color = Color.Gray,
+                        fontFamily = IberPangeaFamily
+                    )
+                }
             }
         }
     }

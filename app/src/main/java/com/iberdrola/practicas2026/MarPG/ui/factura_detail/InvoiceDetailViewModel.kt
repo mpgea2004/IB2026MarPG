@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_detail
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.domain.resository.InvoiceRepository
+import com.iberdrola.practicas2026.MarPG.ui.utils.InvoicePdfGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -52,14 +54,26 @@ class InvoiceDetailViewModel @Inject constructor(
         state = state.copy(invoice = invoice, isLoading = false)
     }
 
-    fun downloadPdf() {
+    fun downloadPdf(context: Context) {
+        val invoice = state.invoice ?: return
         viewModelScope.launch {
             state = state.copy(isDownloadingPdf = true)
+            val uri = InvoicePdfGenerator.generateAndSaveInvoicePdf(context, invoice)
             delay(2000)
-            state = state.copy(isDownloadingPdf = false, pdfDownloaded = true)
+            
+            state = state.copy(
+                isDownloadingPdf = false, 
+                pdfDownloaded = uri != null,
+                pdfUri = uri,
+                showPdfViewer = uri != null
+            )
+
             delay(5000)
             state = state.copy(pdfDownloaded = false)
         }
+    }
+    fun dismissPdfViewer() {
+        state = state.copy(showPdfViewer = false)
     }
 
     fun payInvoice(isCloud: Boolean) {
