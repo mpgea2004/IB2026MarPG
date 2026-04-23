@@ -2,6 +2,7 @@ package com.iberdrola.practicas2026.MarPG.ui.utils
 
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -12,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.core.content.FileProvider
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
@@ -109,7 +111,6 @@ object InvoicePdfGenerator {
         val amountStr = String.format("%.2f €", invoice.amount)
         canvas.drawText(amountStr, 440f, 375f, paint)
 
-        // 8. Pie
         paint.color = Color.GRAY
         paint.textSize = 9f
         paint.isFakeBoldText = false
@@ -146,5 +147,14 @@ object InvoicePdfGenerator {
             pdfDocument.close()
             null
         }
+    }
+
+    fun shareInvoicePdf(context: Context, uri: Uri) {
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "application/pdf"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(Intent.createChooser(shareIntent, "Compartir factura con..."))
     }
 }

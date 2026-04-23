@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Bitmap.createBitmap
 import android.graphics.pdf.PdfRenderer
 import android.util.Log
 import android.widget.Toast
@@ -33,6 +32,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Info
@@ -47,6 +47,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -64,7 +65,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Brush.Companion.horizontalGradient
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -80,7 +80,6 @@ import androidx.compose.ui.window.DialogProperties
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
-import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper.formatToShortDisplay
 import com.iberdrola.practicas2026.MarPG.ui.components.detail.InvoiceStepper
 import com.iberdrola.practicas2026.MarPG.ui.components.detail.ShimmerInvoiceDetail
 import com.iberdrola.practicas2026.MarPG.ui.components.list.StatusBadge
@@ -92,6 +91,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import com.iberdrola.practicas2026.MarPG.ui.utils.InvoicePdfGenerator
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -397,7 +397,7 @@ fun InvoiceDetailContent(
                             title = "Periodo de facturación",
                             icon = Icons.Outlined.Info
                         ) {
-                            val range = "${formatToShortDisplay(invoice.startDate)} - ${formatToShortDisplay(invoice.endDate)}"
+                            val range = "${DateMapper.formatToShortDisplay(invoice.startDate)} - ${DateMapper.formatToShortDisplay(invoice.endDate)}"
                             Text(
                                 text = range,
                                 fontFamily = IberPangeaFamily,
@@ -447,13 +447,12 @@ fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
                 if (pfd != null) {
                     val renderer = PdfRenderer(pfd)
                     val page = renderer.openPage(0)
-                    val bitmap = createBitmap(page.width * 2, page.height * 2,
-                        Bitmap.Config.ARGB_8888
-                    )
+                    val bitmap = Bitmap.createBitmap(page.width * 2, page.height * 2, Bitmap.Config.ARGB_8888)
                     page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
                     pdfBitmap = bitmap
                     page.close()
                     renderer.close()
+                    pfd.close()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -480,11 +479,12 @@ fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
                     .background(WhiteApp)
                     .clickable(enabled = false) { } 
             ) {
+                // Cabecera Premium
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            brush =horizontalGradient(
+                            brush = Brush.horizontalGradient(
                                 colors = listOf(GreenDarkIberdrola, GreenIberdrola)
                             )
                         )
@@ -497,32 +497,48 @@ fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
                     ) {
                         Column {
                             Text(
-                                text = "Vista Previa de Factura",
+                                text = "Vista Previa",
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Color.White,
                                 fontFamily = IberPangeaFamily
                             )
                             Text(
-                                text = "Documento oficial generado",
+                                text = "Factura Iberdrola",
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.8f),
                                 fontFamily = IberPangeaFamily
                             )
                         }
                         
-                        IconButton(
-                            onClick = onDismiss,
-                            modifier = Modifier
-                                .background(Color.White.copy(alpha = 0.2f), CircleShape)
-                                .size(36.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Cerrar",
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = { InvoicePdfGenerator.shareInvoicePdf(context, uri) },
+                                modifier = Modifier
+                                    .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                                    .size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = "Compartir",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            IconButton(
+                                onClick = onDismiss,
+                                modifier = Modifier
+                                    .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                                    .size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Cerrar",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -537,7 +553,7 @@ fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
                     if (pdfBitmap != null) {
                         Card(
                             modifier = Modifier
-                                .padding(20.dp)
+                                .padding(24.dp)
                                 .fillMaxSize(),
                             elevation = CardDefaults.cardElevation(defaultElevation = 15.dp),
                             shape = RoundedCornerShape(2.dp),
@@ -552,36 +568,19 @@ fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
                             )
                         }
                     } else {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator(color = GreenIberdrola, strokeWidth = 3.dp)
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                "Preparando documento...", 
-                                color = GreenDarkIberdrola, 
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            )
-                        }
+                        CircularProgressIndicator(color = GreenIberdrola, strokeWidth = 3.dp)
                     }
                 }
                 
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.Outlined.Info, 
-                        null, 
-                        tint = Color.Gray, 
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "El archivo se ha guardado en tu carpeta de descargas", 
-                        fontSize = 11.sp, 
+                        text = "El archivo se encuentra en tu carpeta de descargas", 
+                        fontSize = 10.sp,
                         color = Color.Gray,
                         fontFamily = IberPangeaFamily
                     )
