@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,7 +18,7 @@ class ProfileViewModel @Inject constructor(
     private val userPrefs: UserPreferencesRepository
 ) : ViewModel() {
 
-    var state by mutableStateOf(ProfileState())
+    var state by mutableStateOf(ProfileState(isLoading = true))
         private set
 
     private val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,}\$")
@@ -28,9 +29,10 @@ class ProfileViewModel @Inject constructor(
 
     private fun loadSavedProfile() {
         viewModelScope.launch {
-            // Obtenemos el primer valor del flujo para inicializar el estado
+            state = state.copy(isLoading = true)
+            delay(800)
             val savedState = userPrefs.userProfileFlow.first()
-            state = savedState.copy(isSaved = true)
+            state = savedState.copy(isSaved = true, isLoading = false)
         }
     }
 

@@ -67,7 +67,9 @@ import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
 import com.iberdrola.practicas2026.MarPG.ui.components.detail.InvoiceStepper
+import com.iberdrola.practicas2026.MarPG.ui.components.detail.ShimmerInvoiceDetail
 import com.iberdrola.practicas2026.MarPG.ui.components.list.StatusBadge
+import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
 import com.iberdrola.practicas2026.MarPG.ui.theme.BackgroundApp
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
@@ -179,8 +181,8 @@ fun InvoiceDetailContent(
         if (invoice == null) {
             Box(Modifier
                 .fillMaxSize()
-                .padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = GreenIberdrola)
+                .padding(padding)) {
+                ShimmerInvoiceDetail(brush = shimmerBrush())
             }
         } else {
             LazyColumn(

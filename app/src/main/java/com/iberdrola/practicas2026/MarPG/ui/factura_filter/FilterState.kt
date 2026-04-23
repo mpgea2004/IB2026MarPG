@@ -8,5 +8,6 @@ data class FilterState(
     val dateTo: String = "",
     val minPrice: Float = 0f,   //Valor mínimo inicial
     val maxPrice: Float = 500f, //Valor máximo inicial
-    val selectedStatuses: Set<String> = emptySet()
+    val selectedStatuses: Set<String> = emptySet(),
+    val isLoading: Boolean = false
 )

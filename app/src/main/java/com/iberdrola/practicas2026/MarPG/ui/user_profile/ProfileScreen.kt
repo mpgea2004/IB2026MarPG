@@ -73,6 +73,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.components.profile.ShimmerProfile
+import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
 import com.iberdrola.practicas2026.MarPG.ui.theme.BackgroundApp
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
@@ -263,35 +265,37 @@ fun ProfileScreen(
             )
         },
         bottomBar = {
-            Surface(
-                color = WhiteApp,
-                shadowElevation = 8.dp
-            ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    HorizontalDivider(thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
-                    Button(
-                        onClick = { events.onSaveClick { events.onBackClick() } },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                            .height(56.dp),
-                        shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = GreenIberdrola,
-                            contentColor = WhiteApp
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 4.dp,
-                            pressedElevation = 8.dp
-                        )
-                    ) {
-                        Text(
-                            text = stringResource(R.string.profile_button_save),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontFamily = IberPangeaFamily,
-                            letterSpacing = 1.sp
-                        )
+            if (!state.isLoading) {
+                Surface(
+                    color = WhiteApp,
+                    shadowElevation = 8.dp
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        HorizontalDivider(thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
+                        Button(
+                            onClick = { events.onSaveClick { events.onBackClick() } },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(28.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = GreenIberdrola,
+                                contentColor = WhiteApp
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(
+                                defaultElevation = 4.dp,
+                                pressedElevation = 8.dp
+                            )
+                        ) {
+                            Text(
+                                text = stringResource(R.string.profile_button_save),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontFamily = IberPangeaFamily,
+                                letterSpacing = 1.sp
+                            )
+                        }
                     }
                 }
             }
@@ -306,11 +310,15 @@ fun ProfileScreen(
                 )
             )
         ) {
-            ProfileContent(
-                state = state,
-                events = events,
-                modifier = Modifier.padding(padding)
-            )
+            if (state.isLoading) {
+                ShimmerProfile(brush = shimmerBrush())
+            } else {
+                ProfileContent(
+                    state = state,
+                    events = events,
+                    modifier = Modifier.padding(padding)
+                )
+            }
         }
     }
 }

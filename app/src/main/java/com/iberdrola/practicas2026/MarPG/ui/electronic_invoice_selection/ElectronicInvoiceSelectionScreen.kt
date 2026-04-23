@@ -24,6 +24,8 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ContractCard
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ErrorComponent
+import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ShimmerElectronicInvoiceList
+import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
@@ -53,29 +55,27 @@ fun ElectronicInvoiceSelectionScreen(
     ) { padding ->
         Box(modifier = Modifier
             .fillMaxSize()
-            .padding(padding),
-            contentAlignment = Alignment.Center) {
+            .padding(padding)) {
             when (state) {
                 is ElectronicInvoiceListState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(48.dp),
-                        color = GreenDarkIberdrola,
-                        strokeWidth = 4.dp
+                    ShimmerElectronicInvoiceList(
+                        brush = shimmerBrush(),
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
 
                 is ElectronicInvoiceListState.Success -> {
                     ElectronicInvoiceSelectionContent(
                         invoices = state.contracts,
-                        events = events,
-                        modifier = Modifier.align(Alignment.TopStart)
+                        events = events
                     )
                 }
 
                 is ElectronicInvoiceListState.Error -> {
                     ErrorComponent(
                         message = state.message,
-                        onRetry = events.onRetry
+                        onRetry = events.onRetry,
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
             }

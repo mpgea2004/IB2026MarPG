@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -52,7 +53,9 @@ import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.ui.components.filter.DateRangeSection
 import com.iberdrola.practicas2026.MarPG.ui.components.filter.FilterActionButtons
 import com.iberdrola.practicas2026.MarPG.ui.components.filter.PriceRangeSection
+import com.iberdrola.practicas2026.MarPG.ui.components.filter.ShimmerFilter
 import com.iberdrola.practicas2026.MarPG.ui.components.filter.StatusFilterSection
+import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
@@ -69,6 +72,8 @@ fun FilterScreen(
     filterViewModel: FilterViewModel = hiltViewModel(),
     onBack: () -> Unit
 ) {
+    val state = filterViewModel.state
+
     LaunchedEffect(Unit) {
         filterViewModel.setInitialState(listViewModel.currentFilterState)
     }
@@ -97,19 +102,25 @@ fun FilterScreen(
             FilterTopBar(onBack)
         },
         bottomBar = {
-            FilterActionButtons(
-                onApply = { events.onApply() },
-                onClear = { events.onClear() }
-            )
+            if (!state.isLoading) {
+                FilterActionButtons(
+                    onApply = { events.onApply() },
+                    onClear = { events.onClear() }
+                )
+            }
         }
     ) { padding ->
-        FilterContent(
-            modifier = Modifier.padding(padding),
-            state = filterViewModel.state,
-            events = events,
-            minLimit = listViewModel.minInvoiceAmount,
-            maxLimit = listViewModel.maxInvoiceAmount
-        )
+        if (state.isLoading) {
+            ShimmerFilter(brush = shimmerBrush())
+        } else {
+            FilterContent(
+                modifier = Modifier.padding(padding),
+                state = state,
+                events = events,
+                minLimit = listViewModel.minInvoiceAmount,
+                maxLimit = listViewModel.maxInvoiceAmount
+            )
+        }
     }
 }
 

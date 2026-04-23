@@ -4,19 +4,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
  * Pantalla principal de filtrado de facturas
- * Se encarga de coordinar la sincronización entre el ViewModel de la lista y el de filtros,
- * además de gestionar la navegación de retorno
  */
 @HiltViewModel
 class FilterViewModel @Inject constructor() : ViewModel() {
 
-    // Estado del formulario de filtros
-    var state by mutableStateOf(FilterState())
+    var state by mutableStateOf(FilterState(isLoading = true))
         private set
 
     /**
@@ -24,7 +24,12 @@ class FilterViewModel @Inject constructor() : ViewModel() {
      * en la pantalla de la lista.
      */
     fun setInitialState(initialState: FilterState) {
-        state = initialState
+        viewModelScope.launch {
+            state = initialState.copy(isLoading = true)
+            // Simulación de carga para mostrar el shimmer
+            delay(600)
+            state = initialState.copy(isLoading = false)
+        }
     }
     // --- Métodos de actualización de estado (Events) ---
     fun onDateFromChange(date: String) {
@@ -34,37 +39,27 @@ class FilterViewModel @Inject constructor() : ViewModel() {
     fun onDateToChange(date: String) {
         state = state.copy(dateTo = date)
     }
-    /**
-     * Actualiza el rango de precios. Al usar .copy() aseguramos la inmutabilidad
-     * y notificamos a la UI del cambio.
-     */
+
     fun onPriceRangeChange(min: Float, max: Float) {
         val exactMin = min.toInt().toFloat()
         val exactMax = max.toInt().toFloat()
-
         state = state.copy(minPrice = exactMin, maxPrice = exactMax)
     }
 
-    /**
-     * Gestiona la selección/deselección múltiple de estados.
-     * Si el estado ya existe en el Set, lo elimina; si no, lo añade.
-     */
     fun onStatusToggle(status: String) {
         val current = state.selectedStatuses
         val updated = if (current.contains(status)) current - status else current + status
         state = state.copy(selectedStatuses = updated)
     }
-    /**
-     * Resetea todos los campos a sus valores iniciales.
-     * Los límites de precio son dinámicos para ajustarse a las facturas reales.
-     */
+
     fun clearFilters(minLimit: Float, maxLimit: Float) {
         state = FilterState(
             minPrice = minLimit,
             maxPrice = maxLimit,
             dateFrom = "",
             dateTo = "",
-            selectedStatuses = emptySet()
+            selectedStatuses = emptySet(),
+            isLoading = false
         )
     }
 }
