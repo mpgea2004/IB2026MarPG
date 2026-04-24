@@ -18,6 +18,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        buildConfigField("String", "SERVER_IP", "\"localhost\"")
     }
 
     buildTypes {
@@ -38,6 +40,24 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+}
+
+tasks.register<Exec>("adbReverse") {
+    group = "custom"
+    description = "Configura el túnel ADB para Mockoon"
+    
+    val adbPath = "${System.getenv("LOCALAPPDATA")}\\Android\\Sdk\\platform-tools\\adb.exe"
+    
+    commandLine(adbPath, "-s", "QWI7ZXDEDICYORXO", "reverse", "tcp:3000", "tcp:3000")
+    
+    isIgnoreExitValue = true
+}
+
+afterEvaluate {
+    tasks.named("preBuild") {
+        dependsOn("adbReverse")
     }
 }
 
@@ -55,7 +75,6 @@ dependencies {
     implementation(libs.androidx.material3)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
-    // Navigation Compose (Necesaria para animaciones en NavHost)
     implementation(libs.androidx.navigation.compose)
 
     // Hilt

@@ -18,19 +18,19 @@ import javax.inject.Singleton
 object NetworkModule {
 
     private fun getBaseUrl(): String {
-        val url = if (Build.FINGERPRINT.contains("generic") || 
+        val url = if (Build.FINGERPRINT.contains("generic") ||
                    Build.MODEL.contains("Emulator") || 
                    Build.MODEL.contains("Android SDK built for x86")) {
             "https://10.0.2.2:3000/"
         } else {
             "https://localhost:3000/"
         }
-        
+
         Log.d("NetworkModule", ">>> CONFIGURACIÓN DE RED <<<")
         Log.d("NetworkModule", "URL Base: $url")
         Log.d("NetworkModule", "Protocolo: ${if (url.startsWith("https")) "HTTPS (Seguro)" else "HTTP (No seguro)"}")
         Log.d("NetworkModule", "Dispositivo: ${if (url.contains("10.0.2.2")) "Emulador" else "Móvil Físico (localhost)"}")
-        
+
         return url
     }
 
