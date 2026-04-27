@@ -43,7 +43,7 @@ class InvoiceRepositoryImpl @Inject constructor(
         val modeChanged = lastModeIsCloud != isCloud
         lastModeIsCloud = isCloud
         if(isCloud){
-            emit(getInvoicesFromDatabaseOnce())
+            //emit(getInvoicesFromDatabaseOnce())
 
             try {
                 val response = invoiceApiServer.getInvoices()
