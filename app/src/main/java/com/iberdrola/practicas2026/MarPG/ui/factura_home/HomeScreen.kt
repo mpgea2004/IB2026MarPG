@@ -3,12 +3,20 @@ package com.iberdrola.practicas2026.MarPG.ui.factura_home
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType.Companion.LongPress
@@ -90,7 +99,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val currentUserName = viewModel.userName
     val isProfileComplete = viewModel.isProfileComplete
-
+    val isFullProfileComplete = viewModel.isFullProfileComplete
     var isNavigating by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -109,6 +118,7 @@ fun HomeScreen(
         isSheetVisible = viewModel.isSheetVisible,
         sheetState = sheetState,
         isProfileComplete = isProfileComplete,
+        isFullProfileComplete = isFullProfileComplete,
         onNavigateToInvoices = {
             if (!isNavigating) {
                 if (isProfileComplete) {
@@ -155,7 +165,6 @@ fun HomeScreen(
         currentUserName = currentUserName
     )
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
@@ -163,6 +172,7 @@ fun HomeContent(
     isSheetVisible: Boolean,
     sheetState: SheetState,
     isProfileComplete: Boolean,
+    isFullProfileComplete: Boolean,
     onNavigateToInvoices: () -> Unit,
     onNavigateToElectronicInvoice: () -> Unit,
     onNavigateToProfile: () -> Unit,
@@ -185,6 +195,8 @@ fun HomeContent(
             AnimateHomeItem(index = 0) {
                 HomeHeader(
                     userName = currentUserName,
+                    isProfileComplete = isProfileComplete,
+                    isFullProfileComplete = isFullProfileComplete,
                     onProfileClick = onNavigateToProfile
                 )
             }
@@ -279,6 +291,8 @@ fun AnimateHomeItem(
 @Composable
 private fun HomeHeader(
     userName: String,
+    isProfileComplete: Boolean,
+    isFullProfileComplete: Boolean,
     onProfileClick: () -> Unit
 ) {
 
@@ -302,6 +316,35 @@ private fun HomeHeader(
     val profileTooltipState = rememberTooltipState(isPersistent = false)
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
+
+    val infiniteTransition = rememberInfiniteTransition(label = "profilePulse")
+    val borderAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "borderAlpha"
+    )
+
+    val rotation by animateFloatAsState(
+        targetValue = if (isFullProfileComplete) 360f else 0f,
+        animationSpec = tween(durationMillis = 800),
+        label = "profileRotation"
+    )
+
+    val targetBorderColor = when {
+        isFullProfileComplete -> GreenIberdrola
+        isProfileComplete -> Color(0xFFFF9800)
+        else -> Color(0xFFF44336)
+    }
+
+    val borderColor by animateColorAsState(
+        targetValue = targetBorderColor,
+        animationSpec = tween(durationMillis = 500),
+        label = "borderColor"
+    )
 
     Row(
         modifier = Modifier
@@ -341,7 +384,11 @@ private fun HomeHeader(
                     shape = RoundedCornerShape(4.dp)
                 ) {
                     Text(
-                        text = "Perfil de usuario",
+                        text = when {
+                            isFullProfileComplete -> "Perfil completo"
+                            isProfileComplete -> "Faltan datos opcionales"
+                            else -> "Perfil incompleto"
+                        },
                         color = Color.White,
                         modifier = Modifier.padding(8.dp),
                         fontSize = 12.sp
@@ -352,7 +399,14 @@ private fun HomeHeader(
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(52.dp)
+                    .rotate(rotation)
+                    .border(
+                        width = 2.dp,
+                        color = if (isFullProfileComplete) borderColor else borderColor.copy(alpha = borderAlpha),
+                        shape = CircleShape
+                    )
+                    .padding(2.dp)
                     .clip(CircleShape)
                     .background(GreenIberdrola.copy(alpha = 0.1f))
                     .combinedClickable(

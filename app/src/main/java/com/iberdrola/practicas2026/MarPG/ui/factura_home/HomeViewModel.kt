@@ -11,14 +11,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** Gestión de estado para la Home y control de lógica de feedback con DataStore */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val checkFeedbackUseCase: CheckFeedbackUseCase,
     private val userPrefs: UserPreferencesRepository
 ) : ViewModel() {
 
-    /** Controla la visibilidad del BottomSheet de feedback */
     var isSheetVisible by mutableStateOf(false)
         private set
 
@@ -26,6 +24,9 @@ class HomeViewModel @Inject constructor(
         private set
 
     var isProfileComplete by mutableStateOf(false)
+        private set
+
+    var isFullProfileComplete by mutableStateOf(false)
         private set
 
     init {
@@ -40,12 +41,12 @@ class HomeViewModel @Inject constructor(
                 isProfileComplete = profile.name.isNotEmpty() &&
                         profile.email.isNotEmpty() &&
                         profile.password.isNotEmpty()
+                isFullProfileComplete = isProfileComplete &&
+                        profile.phone.isNotEmpty() &&
+                        profile.address.isNotEmpty()
             }
         }
     }
-    /** * Se suscribe al flujo de DataStore.
-     * Cuando el contador llega a 0 en disco, la UI reacciona automáticamente.
-     */
     private fun observeFeedback() {
         viewModelScope.launch {
             checkFeedbackUseCase.shouldShowFeedback().collect { shouldShow ->
@@ -53,12 +54,6 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-
-    /** * Aplica las reglas de Iberdrola según la opción elegida:
-     * - Valorar: 10
-     * - Luego: 3
-     * - Cerrar: 1
-     */
     fun onOptionSelected(target: Int) {
         viewModelScope.launch {
             checkFeedbackUseCase.setNextTregua(target)
