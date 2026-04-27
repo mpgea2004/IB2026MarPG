@@ -143,7 +143,7 @@ fun FaqContent(
                                 fontSize = 32.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 fontFamily = IberPangeaFamily,
-                                color = Color.Black,
+                                color = GreenIberdrola,
                                 lineHeight = 1.em,
                             )
                             Text(

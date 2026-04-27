@@ -66,8 +66,8 @@ fun DataSourceConfigSection(
         Text(
             text = stringResource(R.string.home_footer_title),
             fontSize = 16.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color.Black,
+            fontWeight = FontWeight.Bold,
+            color = Color.Gray,
             modifier = Modifier.padding(bottom = 12.dp, start = 4.dp),
             fontFamily = IberPangeaFamily
         )

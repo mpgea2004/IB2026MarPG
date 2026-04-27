@@ -2,9 +2,12 @@ package com.iberdrola.practicas2026.MarPG.ui.consumption_dashboard
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -114,49 +117,53 @@ fun ConsumptionDashboardScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp, vertical = 16.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Mi Consumo",
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontFamily = IberPangeaFamily,
-                            color = GreenIberdrola
-                        )
-                        Text(
-                            text = "Analiza tus gastos energéticos",
-                            fontSize = 16.sp,
-                            color = TextGrey,
-                            fontWeight = FontWeight.Medium,
-                            fontFamily = IberPangeaFamily
-                        )
-                    }
-                    
-                    Surface(
-                        color = GreenIberdrola.copy(alpha = 0.1f),
-                        shape = CircleShape,
-                        modifier = Modifier.size(56.dp)
+                AnimateConsumptionItem(index = 0) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = if (state.selectedType == ContractType.LUZ) Icons.Outlined.ElectricBolt else Icons.Outlined.GasMeter,
-                                contentDescription = null,
-                                tint = GreenIberdrola,
-                                modifier = Modifier.size(28.dp)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Mi Consumo",
+                                fontSize = 32.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontFamily = IberPangeaFamily,
+                                color = GreenIberdrola
                             )
+                            Text(
+                                text = "Analiza tus gastos energéticos",
+                                fontSize = 16.sp,
+                                color = TextGrey,
+                                fontWeight = FontWeight.Medium,
+                                fontFamily = IberPangeaFamily
+                            )
+                        }
+                        
+                        Surface(
+                            color = GreenIberdrola.copy(alpha = 0.1f),
+                            shape = CircleShape,
+                            modifier = Modifier.size(56.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = if (state.selectedType == ContractType.LUZ) Icons.Outlined.ElectricBolt else Icons.Outlined.GasMeter,
+                                    contentDescription = null,
+                                    tint = GreenIberdrola,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                SuministroToggle(
-                    selectedType = state.selectedType,
-                    onTypeSelected = { viewModel.onTypeSelected(it) }
-                )
+                AnimateConsumptionItem(index = 1) {
+                    SuministroToggle(
+                        selectedType = state.selectedType,
+                        onTypeSelected = { viewModel.onTypeSelected(it) }
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -184,15 +191,21 @@ fun ConsumptionDashboardScreen(
                         EmptyConsumptionState()
                     } else {
                         Column {
-                            ConsumptionChart(state.chartData)
+                            AnimateConsumptionItem(index = 2) {
+                                ConsumptionChart(state.chartData)
+                            }
                             Spacer(modifier = Modifier.height(24.dp))
-                            ComparisonCard(
-                                message = state.comparisonMessage,
-                                isPositive = state.isPositiveTrend
-                            )
+                            AnimateConsumptionItem(index = 3) {
+                                ComparisonCard(
+                                    message = state.comparisonMessage,
+                                    isPositive = state.isPositiveTrend
+                                )
+                            }
                             
                             Spacer(modifier = Modifier.height(24.dp))
-                            SavingsTipCard()
+                            AnimateConsumptionItem(index = 4) {
+                                SavingsTipCard()
+                            }
                         }
                     }
                 }
@@ -200,6 +213,30 @@ fun ConsumptionDashboardScreen(
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
+    }
+}
+
+@Composable
+fun AnimateConsumptionItem(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 100))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 100)),
+            initialOffsetY = { it / 4 }
+        )
+    ) {
+        content()
     }
 }
 

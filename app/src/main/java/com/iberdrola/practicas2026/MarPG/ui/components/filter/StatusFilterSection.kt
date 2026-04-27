@@ -41,7 +41,7 @@ fun StatusFilterSection(
             fontWeight = FontWeight.Bold,
             fontFamily = IberPangeaFamily
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Column(
             verticalArrangement = Arrangement.spacedBy(28.dp)
@@ -56,7 +56,7 @@ fun StatusFilterSection(
                 ) {
                     Checkbox(
                         checked = selectedStatuses.contains(status),
-                        onCheckedChange = null, // null porque el click lo maneja la Row
+                        onCheckedChange = null,
                         colors = CheckboxDefaults.colors(
                             checkedColor = GreenIberdrola,
                             uncheckedColor = GreenIberdrola

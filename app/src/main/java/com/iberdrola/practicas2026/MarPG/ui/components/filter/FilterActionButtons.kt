@@ -36,14 +36,17 @@ fun FilterActionButtons(
     onClear: () -> Unit
 ) {
     Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)),
         color = WhiteApp,
-        shadowElevation = 8.dp
+        shadowElevation = 16.dp
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            HorizontalDivider(thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
+            HorizontalDivider(thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.2f))
             
             Spacer(modifier = Modifier.height(16.dp))
 

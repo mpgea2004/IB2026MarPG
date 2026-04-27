@@ -1,6 +1,11 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_filter
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -209,46 +215,81 @@ fun FilterContent(
                 .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text(
-                text = stringResource(R.string.invoice_filter_title),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.Black,
-                modifier = Modifier.padding(top = 16.dp),
-                fontFamily = IberPangeaFamily
-            )
+            AnimateFilterItemEntrance(index = 0) {
+                Text(
+                    text = stringResource(R.string.invoice_filter_title),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.Black,
+                    modifier = Modifier.padding(top = 16.dp),
+                    fontFamily = IberPangeaFamily
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            DateRangeSection(
-                dateFrom = state.dateFrom,
-                dateTo = state.dateTo,
-                onFromClick = { showFromPicker = true },
-                onToClick = { showToPicker = true }
-            )
+            AnimateFilterItemEntrance(index = 1) {
+                DateRangeSection(
+                    dateFrom = state.dateFrom,
+                    dateTo = state.dateTo,
+                    onFromClick = { showFromPicker = true },
+                    onToClick = { showToPicker = true }
+                )
+            }
+            
             Spacer(modifier = Modifier.height(40.dp))
 
-            Text(stringResource(R.string.invoice_filter_price), fontSize = 14.sp, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
-            Spacer(modifier = Modifier.height(16.dp))
+            AnimateFilterItemEntrance(index = 2) {
+                Column {
+                    Text(stringResource(R.string.invoice_filter_price), fontSize = 14.sp, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            PriceRangeSection(
-                minPrice = state.minPrice,
-                maxPrice = state.maxPrice,
-                minLimit = minLimit,
-                maxLimit = maxLimit,
-                onRangeChange = { min, max -> events.onPriceRangeChange(min, max) }
-            )
+                    PriceRangeSection(
+                        minPrice = state.minPrice,
+                        maxPrice = state.maxPrice,
+                        minLimit = minLimit,
+                        maxLimit = maxLimit,
+                        onRangeChange = { min, max -> events.onPriceRangeChange(min, max) }
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            StatusFilterSection(
-                statusOptions = statusOptions,
-                selectedStatuses = state.selectedStatuses,
-                onStatusToggle = { events.onStatusToggle(it) }
-            )
+            AnimateFilterItemEntrance(index = 3) {
+                StatusFilterSection(
+                    statusOptions = statusOptions,
+                    selectedStatuses = state.selectedStatuses,
+                    onStatusToggle = { events.onStatusToggle(it) }
+                )
+            }
 
             Spacer(modifier = Modifier.height(48.dp))
         }
+    }
+}
+
+@Composable
+fun AnimateFilterItemEntrance(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(400))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(400)),
+            initialOffsetY = { it / 4 }
+        )
+    ) {
+        content()
     }
 }
 
