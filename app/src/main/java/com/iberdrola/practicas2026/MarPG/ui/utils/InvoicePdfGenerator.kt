@@ -124,6 +124,16 @@ object InvoicePdfGenerator {
 
     private fun savePdfToDownloads(context: Context, pdfDocument: PdfDocument, fileName: String): Uri? {
         val resolver = context.contentResolver
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                val selection = "${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+                val selectionArgs = arrayOf(fileName)
+                resolver.delete(MediaStore.Downloads.EXTERNAL_CONTENT_URI, selection, selectionArgs)
+            } catch (e: Exception) {
+            }
+        }
+
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
             put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
@@ -132,8 +142,8 @@ object InvoicePdfGenerator {
             }
         }
 
-        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
         return try {
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
             uri?.let {
                 val outputStream: OutputStream? = resolver.openOutputStream(it)
                 outputStream?.use { os ->

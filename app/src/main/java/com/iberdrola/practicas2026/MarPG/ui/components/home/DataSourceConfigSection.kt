@@ -1,13 +1,22 @@
 package com.iberdrola.practicas2026.MarPG.ui.components.home
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -24,7 +33,6 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
-/** Switch para alternar entre Mockoon (Nube) y Assets (Local) */
 @Composable
 fun DataSourceConfigSection(
     isCloudEnabled: Boolean,
@@ -42,34 +50,56 @@ fun DataSourceConfigSection(
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = WhiteApp),
-            border = BorderStroke(1.dp, Color(0xFFE0E0E0))
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Row(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Surface(
+                    color = GreenIberdrola.copy(alpha = 0.1f),
+                    shape = CircleShape,
+                    modifier = Modifier.size(44.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Outlined.Sync,
+                            contentDescription = null,
+                            tint = GreenIberdrola,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.width(16.dp))
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = if (isCloudEnabled) stringResource(R.string.home_footer_typeS) else stringResource(R.string.home_footer_typeL),
                         fontWeight = FontWeight.Bold,
-                        color = if (isCloudEnabled) GreenIberdrola else Color.DarkGray,
+                        fontSize = 16.sp,
+                        color = Color.Black,
                         fontFamily = IberPangeaFamily
                     )
                     Text(
                         text = stringResource(R.string.home_footer_subtitle),
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                         color = Color.Gray,
                         fontFamily = IberPangeaFamily
                     )
                 }
+                
                 Switch(
                     checked = isCloudEnabled,
                     onCheckedChange = onToggleCloud,
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = WhiteApp,
-                        checkedTrackColor = GreenIberdrola
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = GreenIberdrola,
+                        uncheckedThumbColor = Color.White,
+                        uncheckedTrackColor = Color.LightGray.copy(alpha = 0.5f),
+                        uncheckedBorderColor = Color.Transparent
                     )
                 )
             }

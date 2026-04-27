@@ -33,6 +33,7 @@ import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_home.HomeScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
+import com.iberdrola.practicas2026.MarPG.ui.faq.FaqScreen
 import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileScreen
 
 object Routes {
@@ -48,6 +49,7 @@ object Routes {
     const val ELECTRONIC_INVOICE_OTP = "electronic_invoice_otp"
     const val ELECTRONIC_INVOICE_SUCCESS = "electronic_invoice_success"
     const val CONSUMPTION_DASHBOARD = "consumption_dashboard/{isCloud}"
+    const val FAQ = "faq"
 }
 
 @Composable
@@ -71,6 +73,7 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 onToggleCloud = { isCloudEnabled = it },
                 onNavigateToElectronicInvoice = { navController.navigate(Routes.ELECTRONIC_INVOICE_SELECTION) },
                 onNavigateToProfile = { navController.navigate(Routes.USER_PROFILE) },
+                onNavigateToFaq = { navController.navigate(Routes.FAQ) }
             )
         }
 
@@ -338,6 +341,22 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 viewModel = vm,
                 onFinish = {
                     navController.popBackStack(Routes.HOME, false)
+                }
+            )
+        }
+
+        composable(
+            route = Routes.FAQ,
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) {
+            FaqScreen(
+                onBack = {
+                    if (navController.currentDestination?.route == Routes.FAQ) {
+                        navController.popBackStack()
+                    }
                 }
             )
         }

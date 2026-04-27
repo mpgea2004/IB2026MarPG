@@ -1,6 +1,7 @@
 package com.iberdrola.practicas2026.MarPG.data.repository
 
 import android.content.Context
+import android.util.Log
 import com.google.gson.Gson
 import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.mapper.toDomain
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 import javax.inject.Singleton
 import retrofit2.HttpException
@@ -24,10 +26,6 @@ import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-/**
- * Implementación del repositorio de facturas con patrón SSOT (Single Source of Truth).
- * Gestiona la sincronización entre API (Mockoon) y base de datos local (Room).
- */
 @Singleton
 class InvoiceRepositoryImpl @Inject constructor(
     private val invoiceApiServer: InvoiceApiServer,
@@ -39,14 +37,18 @@ class InvoiceRepositoryImpl @Inject constructor(
     private var lastModeIsCloud: Boolean? = null
 
     override fun getAllInvoices(isCloud: Boolean): Flow<List<Invoice>> = flow {
-        val databaseFlow = getInvoicesFromDatabase()
         val modeChanged = lastModeIsCloud != isCloud
         lastModeIsCloud = isCloud
+        
         if(isCloud){
-            //emit(getInvoicesFromDatabaseOnce())
+            if (!modeChanged) {
+                val cache = getInvoicesFromDatabaseOnce()
+                emit(cache)
+            }
 
             try {
                 val response = invoiceApiServer.getInvoices()
+
                 invoiceDao.refreshCache(response.invoices.toEntityList())
             } catch (e: Exception) {
                 val customException = when (e) {
@@ -59,7 +61,7 @@ class InvoiceRepositoryImpl @Inject constructor(
                 }
                 throw customException
             }
-            emitAll(databaseFlow)
+            emitAll(getInvoicesFromDatabase())
 
         } else {
             try {
@@ -75,8 +77,15 @@ class InvoiceRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 throw InvoiceException.LocalDataError
             }
-            emitAll(databaseFlow)
+            emitAll(getInvoicesFromDatabase())
         }
+    }
+
+    override fun getInvoiceById(id: String): Flow<Invoice?> {
+        return invoiceDao.getInvoiceByIdFlow(id)
+            .map { entity -> 
+                entity?.toDomain()
+            }
     }
 
     private suspend fun getInvoicesFromDatabaseOnce(): List<Invoice> {
@@ -97,7 +106,8 @@ class InvoiceRepositoryImpl @Inject constructor(
         if (isCloud) {
             try {
                 invoiceApiServer.payInvoice(id)
-            } catch (e: Exception) {  }
+            } catch (e: Exception) {
+            }
         }
         invoiceDao.updateInvoiceToPaid(id)
     }

@@ -11,5 +11,10 @@ data class InvoiceDetailState(
     val paymentSuccess: Boolean = false,
     val paymentError: Boolean = false,
     val pdfUri: Uri? = null,
-    val showPdfViewer: Boolean = false
+    val showPdfViewer: Boolean = false,
+    val showPayPasswordDialog: Boolean = false,
+    val showOverdueDialog: Boolean = false,
+    val payPasswordInput: String = "",
+    val payPasswordError: Boolean = false,
+    val isOverdue: Boolean = false
 )

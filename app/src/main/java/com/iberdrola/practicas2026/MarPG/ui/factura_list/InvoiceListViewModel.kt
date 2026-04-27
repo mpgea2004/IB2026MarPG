@@ -100,28 +100,25 @@ class InvoiceListViewModel @Inject constructor(
         viewModelScope.launch {
             prepareLoadingState()
 
-            prepareLoadingState()
-
             getInvoicesUseCase(isCloud)
                 .catch { handleLoadError(it) }
                 .collect { invoices ->
                     allInvoices = invoices
-
                     setupDynamicFilterPrices(invoices)
 
-                    if (invoices.isNotEmpty()) {
+                    if (invoices.isEmpty()) {
+                        state = InvoiceListState.NODATA
+                    } else {
                         errorMessage = null
+                        updateFilteredInvoices()
                     }
-
-                    updateFilteredInvoices()
                 }
         }
     }
 
     private fun prepareLoadingState() {
-        if (allInvoices.isEmpty()) {
-            state = InvoiceListState.LOADING
-        }
+        allInvoices = emptyList()
+        state = InvoiceListState.LOADING
         errorMessage = null
     }
 

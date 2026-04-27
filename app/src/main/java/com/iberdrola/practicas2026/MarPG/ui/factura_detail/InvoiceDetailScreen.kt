@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Bitmap.createBitmap
 import android.graphics.pdf.PdfRenderer
 import android.util.Log
 import android.widget.Toast
@@ -30,14 +31,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -48,11 +54,14 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.TooltipDefaults.rememberPlainTooltipPositionProvider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -72,11 +81,17 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
@@ -126,7 +141,11 @@ fun InvoiceDetailScreen(
     val events = InvoiceDetailEvents(
         onBack = handleBack,
         onDownloadPdf = { viewModel.downloadPdf(context) },
-        onPay = { viewModel.payInvoice(isCloudEnabled) },
+        onPayClick = { viewModel.onPayClick() },
+        onPayConfirm = { viewModel.confirmPayment(isCloudEnabled) },
+        onPasswordChange = { viewModel.onPasswordChange(it) },
+        onDismissPasswordDialog = { viewModel.dismissPasswordDialog() },
+        onDismissOverdueDialog = { viewModel.dismissOverdueDialog() },
         onDismissPdf = { viewModel.dismissPdfViewer() }
     )
 
@@ -149,6 +168,22 @@ fun InvoiceDetailContent(
     val copyTooltipState = rememberTooltipState(isPersistent = false)
     val scope = rememberCoroutineScope()
 
+    if (state.showPayPasswordDialog) {
+        PayPasswordDialog(
+            passwordInput = state.payPasswordInput,
+            isError = state.payPasswordError,
+            onPasswordChange = events.onPasswordChange,
+            onConfirm = events.onPayConfirm,
+            onDismiss = events.onDismissPasswordDialog
+        )
+    }
+
+    if (state.showOverdueDialog) {
+        OverdueInvoiceDialog(
+            onDismiss = events.onDismissOverdueDialog
+        )
+    }
+
     if (state.showPdfViewer && state.pdfUri != null) {
         PdfViewerDialog(
             uri = state.pdfUri,
@@ -163,39 +198,80 @@ fun InvoiceDetailContent(
 
         bottomBar = {
             if(invoice!= null) {
-                if (invoice.status != InvoiceStatus.PAGADAS && invoice.status != InvoiceStatus.ANULADAS && invoice.status != InvoiceStatus.CUOTA_FIJA ) {
+                val isPayable = invoice.status != InvoiceStatus.PAGADAS && 
+                               invoice.status != InvoiceStatus.ANULADAS && 
+                               invoice.status != InvoiceStatus.CUOTA_FIJA
+
+                if (isPayable) {
                     Surface(
-                        color = WhiteApp,
-                        shadowElevation = 8.dp
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)),
+                        color = Color.Transparent,
+                        shadowElevation = 16.dp
                     ) {
-                        Button(
-                            onClick = events.onPay,
+                        Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                                .height(56.dp),
-                            shape = RoundedCornerShape(28.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = GreenIberdrola,
-                                contentColor = Color.White,
-                                disabledContainerColor = Color.Gray,
-                                disabledContentColor = Color.White
-                            ),
-                            enabled = !state.isLoading
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = if (state.isOverdue) 
+                                            listOf(Color(0xFFFFF3E0), Color.White) 
+                                        else 
+                                            listOf(Color.White, Color.White)
+                                    )
+                                )
+                                .padding(bottom = 8.dp)
                         ) {
-                            if (state.isLoading) {
-                                CircularProgressIndicator(
-                                    color = Color.White,
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text(
-                                    "PAGAR FACTURA AHORA",
-                                    fontFamily = IberPangeaFamily,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = WhiteApp
-                                )
+                            if (state.isOverdue) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 12.dp, horizontal = 24.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Outlined.Warning, null, tint = Color(0xFFE65100), modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "Factura fuera de plazo (>6 meses)",
+                                            color = Color(0xFFE65100),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontFamily = IberPangeaFamily
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            Button(
+                                onClick = events.onPayClick,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 24.dp, vertical = 20.dp)
+                                    .height(56.dp),
+                                shape = RoundedCornerShape(28.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (state.isOverdue) Color.LightGray else GreenIberdrola,
+                                    contentColor = Color.White,
+                                    disabledContainerColor = Color.Gray,
+                                    disabledContentColor = Color.White
+                                ),
+                                enabled = !state.isLoading && !state.isOverdue
+                            ) {
+                                if (state.isLoading) {
+                                    CircularProgressIndicator(
+                                        color = Color.White,
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Text(
+                                        if (state.isOverdue) "PAGO NO DISPONIBLE" else "PAGAR FACTURA AHORA",
+                                        fontFamily = IberPangeaFamily,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = WhiteApp
+                                    )
+                                }
                             }
                         }
                     }
@@ -246,7 +322,7 @@ fun InvoiceDetailContent(
                                 )
                             } else {
                                 TooltipBox(
-                                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                                    positionProvider = rememberPlainTooltipPositionProvider(),
                                     tooltip = {
                                         Surface(
                                             color = Color.DarkGray,
@@ -312,6 +388,10 @@ fun InvoiceDetailContent(
                         modifier = Modifier.padding(horizontal = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+                        if (state.isOverdue && invoice.status != InvoiceStatus.PAGADAS) {
+                            OverdueWarningBanner()
+                        }
+                        
                         if (invoice.status == InvoiceStatus.CUOTA_FIJA) {
                             FixedQuotaBanner()
                         }
@@ -347,7 +427,7 @@ fun InvoiceDetailContent(
                                     Spacer(modifier = Modifier.width(4.dp))
                                     
                                     TooltipBox(
-                                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                                        positionProvider = rememberPlainTooltipPositionProvider(),
                                         tooltip = {
                                             Surface(
                                                 color = Color.DarkGray,
@@ -436,6 +516,148 @@ fun InvoiceDetailContent(
 }
 
 @Composable
+fun PayPasswordDialog(
+    passwordInput: String,
+    isError: Boolean,
+    onPasswordChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Seguridad de pago",
+                fontFamily = IberPangeaFamily,
+                fontWeight = FontWeight.Bold,
+                color = GreenDarkIberdrola
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    text = "Introduce tu contraseña para confirmar el pago de la factura.",
+                    fontFamily = IberPangeaFamily,
+                    fontSize = 14.sp,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = passwordInput,
+                    onValueChange = onPasswordChange,
+                    label = { Text("Contraseña", fontFamily = IberPangeaFamily) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    isError = isError,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(imageVector = image, null, tint = TextGrey)
+                        }
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = GreenIberdrola,
+                        focusedLabelColor = GreenIberdrola,
+                        cursorColor = GreenIberdrola
+                    )
+                )
+                if (isError) {
+                    Text(
+                        text = "Contraseña incorrecta",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        fontFamily = IberPangeaFamily,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = GreenIberdrola)
+            ) {
+                Text("Confirmar Pago", fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = Color.Gray)
+            }
+        },
+        containerColor = WhiteApp,
+        shape = RoundedCornerShape(16.dp)
+    )
+}
+
+@Composable
+fun OverdueInvoiceDialog(
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Outlined.Warning, null, tint = Color(0xFFD32F2F), modifier = Modifier.size(32.dp)) },
+        title = {
+            Text(
+                text = "Factura fuera de plazo",
+                fontFamily = IberPangeaFamily,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = Color(0xFFD32F2F)
+            )
+        },
+        text = {
+            Text(
+                text = "Esta factura tiene más de 6 meses de antigüedad y no puede pagarse desde la aplicación. Por favor, póngase en contacto con Atención al Cliente de Iberdrola.",
+                fontFamily = IberPangeaFamily,
+                fontSize = 15.sp,
+                textAlign = TextAlign.Center,
+                color = Color.Black
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+            ) {
+                Text("Entendido", fontWeight = FontWeight.Bold)
+            }
+        },
+        containerColor = WhiteApp,
+        shape = RoundedCornerShape(16.dp)
+    )
+}
+
+@Composable
+fun OverdueWarningBanner() {
+    Surface(
+        color = Color(0xFFFFF3E0),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Outlined.Warning, null, tint = Color(0xFFE65100), modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "Factura vencida. El periodo de pago online ha expirado. Contacte con Iberdrola para regularizar su situación.",
+                color = Color(0xFFE65100),
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = IberPangeaFamily
+            )
+        }
+    }
+}
+
+@Composable
 fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
     val context = LocalContext.current
     var pdfBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -447,7 +669,9 @@ fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
                 if (pfd != null) {
                     val renderer = PdfRenderer(pfd)
                     val page = renderer.openPage(0)
-                    val bitmap = Bitmap.createBitmap(page.width * 2, page.height * 2, Bitmap.Config.ARGB_8888)
+                    val bitmap = createBitmap(page.width * 2, page.height * 2,
+                        Bitmap.Config.ARGB_8888
+                    )
                     page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
                     pdfBitmap = bitmap
                     page.close()

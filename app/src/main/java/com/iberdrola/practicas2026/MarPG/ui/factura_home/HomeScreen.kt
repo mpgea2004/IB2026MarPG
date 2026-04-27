@@ -4,6 +4,7 @@ package com.iberdrola.practicas2026.MarPG.ui.factura_home
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,10 +16,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +53,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -64,7 +68,6 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/** Pantalla principal: acceso a facturas y configuración de origen de datos */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -72,21 +75,19 @@ fun HomeScreen(
     onNavigateToInvoices: () -> Unit,
     onNavigateToElectronicInvoice: () -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToFaq: () -> Unit,
     isCloudEnabled: Boolean,
     onToggleCloud: (Boolean) -> Unit
 ) {
-    /** Estado que controla la animación y visibilidad del ModalBottomSheet */
     val sheetState = rememberModalBottomSheetState()
     val context = LocalContext.current
     val currentUserName = viewModel.userName
     val isProfileComplete = viewModel.isProfileComplete
 
-    // Guarda local para evitar navegación múltiple por clics rápidos
     var isNavigating by remember { mutableStateOf(false) }
 
-    // Reseteamos el estado de navegación cuando volvemos a la pantalla
     LaunchedEffect(Unit) {
-        delay(100) // Pequeño margen para asegurar que la transición terminó
+        delay(100)
         isNavigating = false
     }
 
@@ -127,6 +128,12 @@ fun HomeScreen(
                 onNavigateToProfile()
             }
         },
+        onNavigateToFaq = {
+            if (!isNavigating) {
+                isNavigating = true
+                onNavigateToFaq()
+            }
+        },
         onToggleCloud = onToggleCloud,
         onSheetDismiss = { viewModel.onOptionSelected(1) },
         onSheetOptionSelected = { tregua -> viewModel.onOptionSelected(tregua)
@@ -142,9 +149,6 @@ fun HomeScreen(
     )
 }
 
-/** * Contenedor visual de la Home.
- * Separa la lógica de Scaffold y la estructura de la pantalla para facilitar Previews.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
@@ -155,6 +159,7 @@ fun HomeContent(
     onNavigateToInvoices: () -> Unit,
     onNavigateToElectronicInvoice: () -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToFaq: () -> Unit,
     onToggleCloud: (Boolean) -> Unit,
     onSheetDismiss: () -> Unit,
     onSheetOptionSelected: (Int) -> Unit,
@@ -169,8 +174,10 @@ fun HomeContent(
                 .padding(padding)
                 .padding(24.dp)
         ) {
-            HomeHeader(userName = currentUserName,
-                onProfileClick = onNavigateToProfile)
+            HomeHeader(
+                userName = currentUserName,
+                onProfileClick = onNavigateToProfile
+            )
 
             Spacer(modifier = Modifier.height(48.dp))
 
@@ -187,6 +194,34 @@ fun HomeContent(
                 onToggleCloud = onToggleCloud
             )
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onNavigateToFaq() }
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.HelpOutline,
+                    contentDescription = null,
+                    tint = GreenIberdrola,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "¿Necesitas ayuda? Consulta las FAQ",
+                    color = GreenIberdrola,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = IberPangeaFamily,
+                    textDecoration = TextDecoration.Underline
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
         if (isSheetVisible) {
@@ -202,7 +237,10 @@ fun HomeContent(
 /** Título y subtítulo de bienvenida */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-private fun HomeHeader(userName: String,onProfileClick: () -> Unit) {
+private fun HomeHeader(
+    userName: String,
+    onProfileClick: () -> Unit
+) {
 
     val processedName = remember(userName) {
         if (userName.isNotEmpty() && userName != "Usuario") {
@@ -221,7 +259,7 @@ private fun HomeHeader(userName: String,onProfileClick: () -> Unit) {
         }
     }
 
-    val tooltipState = rememberTooltipState(isPersistent = false)
+    val profileTooltipState = rememberTooltipState(isPersistent = false)
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
 
@@ -256,7 +294,7 @@ private fun HomeHeader(userName: String,onProfileClick: () -> Unit) {
         }
 
         TooltipBox(
-            positionProvider =rememberPlainTooltipPositionProvider(),
+            positionProvider = rememberPlainTooltipPositionProvider(),
             tooltip = {
                 Surface(
                     color = Color.DarkGray,
@@ -270,7 +308,7 @@ private fun HomeHeader(userName: String,onProfileClick: () -> Unit) {
                     )
                 }
             },
-            state = tooltipState
+            state = profileTooltipState
         ) {
             Box(
                 modifier = Modifier
@@ -281,7 +319,7 @@ private fun HomeHeader(userName: String,onProfileClick: () -> Unit) {
                         onClick = onProfileClick,
                         onLongClick = {
                             haptic.performHapticFeedback(LongPress)
-                            scope.launch { tooltipState.show() }
+                            scope.launch { profileTooltipState.show() }
                         }
                     ),
                 contentAlignment = Alignment.Center

@@ -2,7 +2,12 @@ package com.iberdrola.practicas2026.MarPG.ui.factura_list
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -23,6 +28,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -433,7 +439,11 @@ fun InvoiceListContent(
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         lastInvoice?.let {
-            item { LastInvoiceItem(it, onClick = { events.onDetail(it) }) }
+            item {
+                AnimateItemEntrance(index = 0) {
+                    LastInvoiceItem(it, onClick = { events.onDetail(it) })
+                }
+            }
         }
 
         stickyHeader {
@@ -450,10 +460,10 @@ fun InvoiceListContent(
                         modifier = Modifier
                             .weight(1f)
                             .height(52.dp),
-                        placeholder = { Text("Buscar...", fontSize = 14.sp) },
+                        placeholder = { Text("Buscar por id...", fontSize = 14.sp) },
                         leadingIcon = {
                             TooltipBox(
-                                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                                positionProvider = rememberPlainTooltipPositionProvider(),
                                 tooltip = {
                                     Surface(
                                         color = Color.DarkGray,
@@ -588,27 +598,57 @@ fun InvoiceListContent(
                 FilterEmptyState()
             }
         } else {
+            var globalIndex = 1
             groupedInvoices.forEach { (year, invoicesOfYear) ->
                 item {
-                    Text(
-                        text = year,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.Black,
-                        fontFamily = IberPangeaFamily
-                    )
+                    AnimateItemEntrance(index = globalIndex++) {
+                        Text(
+                            text = year,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.Black,
+                            fontFamily = IberPangeaFamily
+                        )
+                    }
                 }
-                items(invoicesOfYear) { invoice ->
-                    InvoiceHistoricalItem(invoice = invoice, onClick = { events.onDetail(invoice) })
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp),
-                        thickness = 0.5.dp,
-                        color = Color.LightGray
-                    )
+                itemsIndexed(invoicesOfYear) { index, invoice ->
+                    AnimateItemEntrance(index = globalIndex++) {
+                        Column {
+                            InvoiceHistoricalItem(invoice = invoice, onClick = { events.onDetail(invoice) })
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                thickness = 0.5.dp,
+                                color = Color.LightGray
+                            )
+                        }
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun AnimateItemEntrance(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 500, delayMillis = (index * 50).coerceAtMost(300))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 500, delayMillis = (index * 50).coerceAtMost(300)),
+            initialOffsetY = { it / 2 }
+        )
+    ) {
+        content()
     }
 }
 

@@ -18,9 +18,22 @@ import javax.inject.Singleton
 object NetworkModule {
 
     private fun getBaseUrl(): String {
-        val url = if (Build.FINGERPRINT.contains("generic") ||
-                   Build.MODEL.contains("Emulator") || 
-                   Build.MODEL.contains("Android SDK built for x86")) {
+        val isEmulator = Build.FINGERPRINT.contains("generic") ||
+                Build.FINGERPRINT.contains("vnc") ||
+                Build.MODEL.contains("Emulator") ||
+                Build.MODEL.contains("Android SDK built for x86") ||
+                Build.BOARD.contains("goldfish") ||
+                Build.HARDWARE.contains("goldfish") ||
+                Build.HARDWARE.contains("ranchu") ||
+                Build.PRODUCT.contains("sdk_google") ||
+                Build.PRODUCT.contains("google_sdk") ||
+                Build.PRODUCT.contains("sdk") ||
+                Build.PRODUCT.contains("sdk_x86") ||
+                Build.PRODUCT.contains("vbox86p") ||
+                Build.PRODUCT.contains("emulator") ||
+                Build.PRODUCT.contains("simulator")
+
+        val url = if (isEmulator) {
             "https://10.0.2.2:3000/"
         } else {
             "https://localhost:3000/"
