@@ -1,8 +1,14 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -41,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -252,47 +260,55 @@ fun ElectronicInvoiceDetailInfoScreenContent(
         },
         bottomBar = {
 
-            Column(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(WhiteApp)
+                    .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)),
+                color = WhiteApp,
+                shadowElevation = 16.dp
             ) {
-                HorizontalDivider(
-                    thickness = 1.dp,
-                    color = Color.LightGray
-                )
-
-                Button(
-                    onClick = events.onConfirmDeactivate,
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = WhiteApp,
-                        contentColor = GreenDarkIberdrola
-                    ),
-                    border = BorderStroke(1.5.dp, color = GreenDarkIberdrola)
+                        .padding(bottom = 8.dp)
                 ) {
-                    Icon(imageVector = Icons.Outlined.Delete, contentDescription = null,tint = GreenDarkIberdrola,)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.invoice_detail_btn_deactivate), fontSize = 15.sp, color = GreenDarkIberdrola)
-                }
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = Color.LightGray.copy(alpha = 0.2f)
+                    )
 
-                Spacer(modifier = Modifier.height(4.dp))
-                Button(
-                    onClick = events.onNext,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola, contentColor = WhiteApp)
-                ) {
-                    Icon(imageVector = Icons.Outlined.Edit, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.invoice_detail_btn_edit), fontSize = 15.sp)
+                    Button(
+                        onClick = events.onConfirmDeactivate,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 8.dp)
+                            .padding(top = 12.dp)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = WhiteApp,
+                            contentColor = GreenDarkIberdrola
+                        ),
+                        border = BorderStroke(1.5.dp, color = GreenDarkIberdrola)
+                    ) {
+                        Icon(imageVector = Icons.Outlined.Delete, contentDescription = null,tint = GreenDarkIberdrola,)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(R.string.invoice_detail_btn_deactivate), fontSize = 15.sp, color = GreenDarkIberdrola, fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = events.onNext,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 8.dp)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola, contentColor = WhiteApp)
+                    ) {
+                        Icon(imageVector = Icons.Outlined.Edit, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(R.string.invoice_detail_btn_edit), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
@@ -303,74 +319,112 @@ fun ElectronicInvoiceDetailInfoScreenContent(
                 .padding(padding)
                 .padding(horizontal = 20.dp)
         ) {
-            Text(
-                text = if (contract?.type == ContractType.LUZ) stringResource(R.string.invoice_detail_type_light) else stringResource(R.string.invoice_detail_type_gas),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 16.dp),
-                fontFamily = IberPangeaFamily
-            )
+            AnimateElectronicDetailItem(index = 0) {
+                Text(
+                    text = if (contract?.type == ContractType.LUZ) stringResource(R.string.invoice_detail_type_light) else stringResource(R.string.invoice_detail_type_gas),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 16.dp),
+                    fontFamily = IberPangeaFamily
+                )
+            }
 
-            Text(
-                text = state.userProfile.address.ifEmpty { stringResource(R.string.profile_empty_address) },
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            AnimateElectronicDetailItem(index = 1) {
+                Text(
+                    text = state.userProfile.address.ifEmpty { stringResource(R.string.profile_empty_address) },
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text(
-                text = stringResource(R.string.invoice_detail_current_status_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray,
-                fontSize = 11.5.sp
-            )
+            AnimateElectronicDetailItem(index = 2) {
+                Text(
+                    text = stringResource(R.string.invoice_detail_current_status_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.DarkGray,
+                    fontSize = 11.5.sp
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = stringResource(R.string.invoice_detail_email_label),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 14.sp
-            )
+            AnimateElectronicDetailItem(index = 3) {
+                Column {
+                    Text(
+                        text = stringResource(R.string.invoice_detail_email_label),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 14.sp
+                    )
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = email ?: stringResource(R.string.invoice_detail_email_label),
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.Gray,
-                modifier = Modifier.padding(top = 4.dp),
-                fontSize = 14.sp
-            )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = email ?: stringResource(R.string.invoice_detail_email_label),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(top = 4.dp),
+                        fontSize = 14.sp
+                    )
+                }
+            }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 20.dp),
-                thickness = DividerDefaults.Thickness,
-                color = Color.LightGray
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Info,
-                    contentDescription = null,
-                    tint = Color.Gray,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = stringResource(R.string.invoice_detail_info_box_text),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
-                    lineHeight = 18.sp,
-                    fontSize = 10.sp
+            AnimateElectronicDetailItem(index = 4) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 20.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = Color.LightGray
                 )
             }
+
+            AnimateElectronicDetailItem(index = 5) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = stringResource(R.string.invoice_detail_info_box_text),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray,
+                        lineHeight = 18.sp,
+                        fontSize = 10.sp
+                    )
+                }
+            }
         }
+    }
+}
+
+@Composable
+fun AnimateElectronicDetailItem(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(500))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(500)),
+            initialOffsetY = { it / 4 }
+        )
+    ) {
+        content()
     }
 }
 

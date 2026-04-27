@@ -1,5 +1,10 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_selection
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +18,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -96,23 +102,51 @@ fun ElectronicInvoiceSelectionContent(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = stringResource(R.string.contract_selection_title),
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.padding(horizontal = 24.dp),
-        )
+        AnimateElectronicInvoiceItem(index = 0) {
+            Text(
+                text = stringResource(R.string.contract_selection_title),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                fontFamily = IberPangeaFamily,
+                modifier = Modifier.padding(horizontal = 24.dp),
+            )
+        }
 
         Spacer(modifier = Modifier.height(14.dp))
 
 
-        invoices.forEach { elecInvoice ->
-            ContractCard(
-                elecInvoice = elecInvoice,
-                onClick = { events.onElectronicInvoiceClick(elecInvoice) }
-            )
+        invoices.forEachIndexed { index, elecInvoice ->
+            AnimateElectronicInvoiceItem(index = index + 1) {
+                ContractCard(
+                    elecInvoice = elecInvoice,
+                    onClick = { events.onElectronicInvoiceClick(elecInvoice) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AnimateElectronicInvoiceItem(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
         }
     }
 
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 500, delayMillis = (index * 60).coerceAtMost(300))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 500, delayMillis = (index * 60).coerceAtMost(300)),
+            initialOffsetY = { it / 2 }
+        )
+    ) {
+        content()
+    }
 }

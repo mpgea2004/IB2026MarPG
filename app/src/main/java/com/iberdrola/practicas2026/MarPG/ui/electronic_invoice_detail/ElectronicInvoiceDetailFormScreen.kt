@@ -1,6 +1,11 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -223,107 +228,123 @@ fun ElectronicInvoiceDetailFormContent(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(stringResource(R.string.form_linked_email_label), fontSize = 12.sp, color = Color.Black)
-            Text(emailActualOfuscado, fontWeight = FontWeight.ExtraBold, fontSize = 12.sp, color = Color.Black)
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, color = Color.Black)
-
-            TextField(
-                value = state.emailInput,
-                onValueChange = events.onEmailChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                textStyle = TextStyle(color = Color.Black, fontSize = 14.sp),
-                placeholder = { Text(stringResource(R.string.form_email_placeholder), fontSize = 14.sp, color = Color.Gray)},
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    unfocusedContainerColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.LightGray,
-                    focusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = GreenDarkIberdrola,
-                    cursorColor = GreenDarkIberdrola
-                ),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = stringResource(R.string.form_data_protection_title),
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 16.sp,
-                color = Color.Black
-            )
-
-            val proteccionDatosText = buildAnnotatedString {
-                append(stringResource(R.string.form_legal_responsable))
-                append(" ")
-                appendLink(moreInfo) {
-                    events.onShowLegal(legalTitleResp, legalContentResp)
-                }
-
-                append(stringResource(R.string.form_legal_finalidad))
-                append(" ")
-                appendLink(moreInfo) {
-                    events.onShowLegal(legalTitleFin, legalContentFin)
-                }
-
-                append(stringResource(R.string.form_legal_derechos))
-                append(" ")
-                appendLink(moreInfo) {
-                    events.onShowLegal(legalTitleDer, legalContentDer)
+            AnimateElectronicFormItem(index = 0) {
+                Column {
+                    Text(stringResource(R.string.form_linked_email_label), fontSize = 12.sp, color = Color.Black)
+                    Text(emailActualOfuscado, fontWeight = FontWeight.ExtraBold, fontSize = 12.sp, color = Color.Black)
                 }
             }
 
-            Text(
-                text = proteccionDatosText,
-                fontSize = 13.sp,
-                color = Color.DarkGray,
-                lineHeight = 16.sp,
-                modifier = Modifier.padding(top = 10.dp)
-            )
+            Spacer(modifier = Modifier.height(32.dp))
+
+            AnimateElectronicFormItem(index = 1) {
+                Column {
+                    Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, color = Color.Black)
+
+                    TextField(
+                        value = state.emailInput,
+                        onValueChange = events.onEmailChange,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        textStyle = TextStyle(color = Color.Black, fontSize = 14.sp),
+                        placeholder = { Text(stringResource(R.string.form_email_placeholder), fontSize = 14.sp, color = Color.Gray)},
+                        colors = TextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            unfocusedContainerColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.LightGray,
+                            focusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = GreenDarkIberdrola,
+                            cursorColor = GreenDarkIberdrola
+                        ),
+                        singleLine = true
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            AnimateElectronicFormItem(index = 2) {
+                Column {
+                    Text(
+                        text = stringResource(R.string.form_data_protection_title),
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
+                        color = Color.Black
+                    )
+
+                    val proteccionDatosText = buildAnnotatedString {
+                        append(stringResource(R.string.form_legal_responsable))
+                        append(" ")
+                        appendLink(moreInfo) {
+                            events.onShowLegal(legalTitleResp, legalContentResp)
+                        }
+
+                        append(stringResource(R.string.form_legal_finalidad))
+                        append(" ")
+                        appendLink(moreInfo) {
+                            events.onShowLegal(legalTitleFin, legalContentFin)
+                        }
+
+                        append(stringResource(R.string.form_legal_derechos))
+                        append(" ")
+                        appendLink(moreInfo) {
+                            events.onShowLegal(legalTitleDer, legalContentDer)
+                        }
+                    }
+
+                    Text(
+                        text = proteccionDatosText,
+                        fontSize = 13.sp,
+                        color = Color.DarkGray,
+                        lineHeight = 16.sp,
+                        modifier = Modifier.padding(top = 10.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            val checkboxText = buildAnnotatedString {
-                append(stringResource(R.string.form_checkbox_prefix))
-                append(" ")
-                appendLink(stringResource(R.string.form_condiciones_generales)) {
-                    events.onShowLegal(legalTitleGen, legalContentGen)
-                }
-                append(" ")
-                appendLink(stringResource(R.string.form_condiciones_particulares)) {
-                    events.onShowLegal(legalTitlePart, legalContentPart)
-                }
-                append(" ")
-                append(stringResource(R.string.form_checkbox_suffix))
-            }
+            AnimateElectronicFormItem(index = 3) {
+                Column {
+                    val checkboxText = buildAnnotatedString {
+                        append(stringResource(R.string.form_checkbox_prefix))
+                        append(" ")
+                        appendLink(stringResource(R.string.form_condiciones_generales)) {
+                            events.onShowLegal(legalTitleGen, legalContentGen)
+                        }
+                        append(" ")
+                        appendLink(stringResource(R.string.form_condiciones_particulares)) {
+                            events.onShowLegal(legalTitlePart, legalContentPart)
+                        }
+                        append(" ")
+                        append(stringResource(R.string.form_checkbox_suffix))
+                    }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                verticalAlignment = Alignment.Top
-            ) {
-                Checkbox(
-                    checked = state.isLegalAccepted,
-                    onCheckedChange = { events.onLegalCheckChange(it) },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = GreenDarkIberdrola,
-                        uncheckedColor = GreenDarkIberdrola,
-                        checkmarkColor = WhiteApp
-                    )
-                )
-                Text(
-                    text = checkboxText,
-                    fontSize = 14.sp,
-                    color = Color.Black,
-                    modifier = Modifier.padding(start = 4.dp, top = 10.dp)
-                )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Checkbox(
+                            checked = state.isLegalAccepted,
+                            onCheckedChange = { events.onLegalCheckChange(it) },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = GreenDarkIberdrola,
+                                uncheckedColor = GreenDarkIberdrola,
+                                checkmarkColor = WhiteApp
+                            )
+                        )
+                        Text(
+                            text = checkboxText,
+                            fontSize = 14.sp,
+                            color = Color.Black,
+                            modifier = Modifier.padding(start = 4.dp, top = 10.dp)
+                        )
+                    }
+                }
             }
             Spacer(modifier = Modifier.height(30.dp))
 
@@ -356,6 +377,30 @@ fun ElectronicInvoiceDetailFormContent(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun AnimateElectronicFormItem(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(400))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(400)),
+            initialOffsetY = { it / 4 }
+        )
+    ) {
+        content()
     }
 }
 

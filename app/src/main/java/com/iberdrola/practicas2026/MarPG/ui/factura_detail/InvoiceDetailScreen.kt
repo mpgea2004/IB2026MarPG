@@ -9,6 +9,11 @@ import android.graphics.pdf.PdfRenderer
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -363,21 +368,25 @@ fun InvoiceDetailContent(
                 }
 
                 item {
-                    InvoiceDetailHeader(
-                        amount = invoice.amount,
-                        date = DateMapper.formatToDisplay(invoice.issueDate)
-                    )
+                    AnimateDetailItemEntrance(index = 0) {
+                        InvoiceDetailHeader(
+                            amount = invoice.amount,
+                            date = DateMapper.formatToDisplay(invoice.issueDate)
+                        )
+                    }
                 }
 
                 item {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = WhiteApp
-                    ) {
-                        InvoiceStepper(
-                            status = invoice.status,
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-                        )
+                    AnimateDetailItemEntrance(index = 1) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = WhiteApp
+                        ) {
+                            InvoiceStepper(
+                                status = invoice.status,
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                            )
+                        }
                     }
                 }
 
@@ -389,11 +398,15 @@ fun InvoiceDetailContent(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         if (state.isOverdue && invoice.status != InvoiceStatus.PAGADAS) {
-                            OverdueWarningBanner()
+                            AnimateDetailItemEntrance(index = 2) {
+                                OverdueWarningBanner()
+                            }
                         }
                         
                         if (invoice.status == InvoiceStatus.CUOTA_FIJA) {
-                            FixedQuotaBanner()
+                            AnimateDetailItemEntrance(index = 3) {
+                                FixedQuotaBanner()
+                            }
                         }
 
                         if (state.paymentSuccess) {
@@ -408,103 +421,109 @@ fun InvoiceDetailContent(
                             StatusMessage(message = "Factura descargada correctamente", color = GreenIberdrola)
                         }
 
-                        InfoCard(
-                            title = "Datos del suministro",
-                            icon = Icons.Outlined.Receipt
-                        ) {
-                            DetailRow(
-                                label = "Tipo de contrato",
-                                value = if (invoice.contractType == ContractType.LUZ) "Suministro de Luz" else "Suministro de Gas"
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                        AnimateDetailItemEntrance(index = 4) {
+                            InfoCard(
+                                title = "Datos del suministro",
+                                icon = Icons.Outlined.Receipt
                             ) {
-                                Text("Número de factura", fontSize = 14.sp, color = TextGrey, fontFamily = IberPangeaFamily)
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(invoice.id, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF333333), fontFamily = IberPangeaFamily)
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    
-                                    TooltipBox(
-                                        positionProvider = rememberPlainTooltipPositionProvider(),
-                                        tooltip = {
-                                            Surface(
-                                                color = Color.DarkGray,
-                                                shape = RoundedCornerShape(4.dp)
+                                DetailRow(
+                                    label = "Tipo de contrato",
+                                    value = if (invoice.contractType == ContractType.LUZ) "Suministro de Luz" else "Suministro de Gas"
+                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("Número de factura", fontSize = 14.sp, color = TextGrey, fontFamily = IberPangeaFamily)
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(invoice.id, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF333333), fontFamily = IberPangeaFamily)
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        
+                                        TooltipBox(
+                                            positionProvider = rememberPlainTooltipPositionProvider(),
+                                            tooltip = {
+                                                Surface(
+                                                    color = Color.DarkGray,
+                                                    shape = RoundedCornerShape(4.dp)
+                                                ) {
+                                                    Text(
+                                                        text = "Copiar número de factura",
+                                                        color = Color.White,
+                                                        modifier = Modifier.padding(8.dp),
+                                                        fontSize = 12.sp
+                                                    )
+                                                }
+                                            },
+                                            state = copyTooltipState
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(36.dp)
+                                                    .clip(CircleShape)
+                                                    .combinedClickable(
+                                                        onClick = {
+                                                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                                            val clip = ClipData.newPlainText("ID Factura", invoice.id)
+                                                            clipboard.setPrimaryClip(clip)
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                            Toast.makeText(context, "ID copiado al portapapeles", Toast.LENGTH_SHORT).show()
+                                                        },
+                                                        onLongClick = {
+                                                            scope.launch { copyTooltipState.show() }
+                                                        }
+                                                    ),
+                                                contentAlignment = Alignment.Center
                                             ) {
-                                                Text(
-                                                    text = "Copiar número de factura",
-                                                    color = Color.White,
-                                                    modifier = Modifier.padding(8.dp),
-                                                    fontSize = 12.sp
+                                                Icon(
+                                                    imageVector = Icons.Outlined.ContentCopy,
+                                                    contentDescription = "Copiar ID",
+                                                    tint = GreenIberdrola,
+                                                    modifier = Modifier.size(18.dp)
                                                 )
                                             }
-                                        },
-                                        state = copyTooltipState
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(36.dp)
-                                                .clip(CircleShape)
-                                                .combinedClickable(
-                                                    onClick = {
-                                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                                        val clip = ClipData.newPlainText("ID Factura", invoice.id)
-                                                        clipboard.setPrimaryClip(clip)
-                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                        Toast.makeText(context, "ID copiado al portapapeles", Toast.LENGTH_SHORT).show()
-                                                    },
-                                                    onLongClick = {
-                                                        scope.launch { copyTooltipState.show() }
-                                                    }
-                                                ),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Outlined.ContentCopy,
-                                                contentDescription = "Copiar ID",
-                                                tint = GreenIberdrola,
-                                                modifier = Modifier.size(18.dp)
-                                            )
                                         }
                                     }
                                 }
                             }
                         }
 
-                        InfoCard(
-                            title = "Periodo de facturación",
-                            icon = Icons.Outlined.Info
-                        ) {
-                            val range = "${DateMapper.formatToShortDisplay(invoice.startDate)} - ${DateMapper.formatToShortDisplay(invoice.endDate)}"
-                            Text(
-                                text = range,
-                                fontFamily = IberPangeaFamily,
-                                fontSize = 15.sp,
-                                color = Color(0xFF333333),
-                                fontWeight = FontWeight.Medium
-                            )
+                        AnimateDetailItemEntrance(index = 5) {
+                            InfoCard(
+                                title = "Periodo de facturación",
+                                icon = Icons.Outlined.Info
+                            ) {
+                                val range = "${DateMapper.formatToShortDisplay(invoice.startDate)} - ${DateMapper.formatToShortDisplay(invoice.endDate)}"
+                                Text(
+                                    text = range,
+                                    fontFamily = IberPangeaFamily,
+                                    fontSize = 15.sp,
+                                    color = Color(0xFF333333),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
 
-                        InfoCard(
-                            title = "Estado del pago",
-                            icon = Icons.Outlined.Info
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                        AnimateDetailItemEntrance(index = 6) {
+                            InfoCard(
+                                title = "Estado del pago",
+                                icon = Icons.Outlined.Info
                             ) {
-                                Text(
-                                    text = if (invoice.status == InvoiceStatus.PAGADAS || invoice.status == InvoiceStatus.CUOTA_FIJA) "Factura cobrada" else {
-                                        if (invoice.status == InvoiceStatus.ANULADAS) "Factura en anulación" else "Pendiente de cobro"
-                                    },
-                                    fontFamily = IberPangeaFamily,
-                                    fontSize = 14.sp,
-                                    color = TextGrey
-                                )
-                                StatusBadge(invoice.status)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = if (invoice.status == InvoiceStatus.PAGADAS || invoice.status == InvoiceStatus.CUOTA_FIJA) "Factura cobrada" else {
+                                            if (invoice.status == InvoiceStatus.ANULADAS) "Factura en anulación" else "Pendiente de cobro"
+                                        },
+                                        fontFamily = IberPangeaFamily,
+                                        fontSize = 14.sp,
+                                        color = TextGrey
+                                    )
+                                    StatusBadge(invoice.status)
+                                }
                             }
                         }
                     }
@@ -512,6 +531,30 @@ fun InvoiceDetailContent(
                 item { Spacer(modifier = Modifier.height(32.dp)) }
             }
         }
+    }
+}
+
+@Composable
+fun AnimateDetailItemEntrance(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(500))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(500)),
+            initialOffsetY = { it / 4 }
+        )
+    ) {
+        content()
     }
 }
 

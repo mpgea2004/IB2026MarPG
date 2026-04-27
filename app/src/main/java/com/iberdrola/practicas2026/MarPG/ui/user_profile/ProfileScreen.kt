@@ -1,6 +1,12 @@
 package com.iberdrola.practicas2026.MarPG.ui.user_profile
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -63,6 +69,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -276,16 +283,23 @@ fun ProfileScreen(
         bottomBar = {
             if (!state.isLoading) {
                 Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)),
                     color = WhiteApp,
-                    shadowElevation = 8.dp
+                    shadowElevation = 16.dp
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        HorizontalDivider(thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    ) {
+                        HorizontalDivider(thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.2f))
                         Button(
                             onClick = { events.onSaveClick { events.onBackClick() } },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp)
+                                .padding(horizontal = 24.dp, vertical = 20.dp)
                                 .height(56.dp),
                             shape = RoundedCornerShape(28.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -348,79 +362,124 @@ fun ProfileContent(
     ) {
         Spacer(modifier = Modifier.height(24.dp))
 
-        ProfileAvatar()
+        AnimateProfileItem(index = 0) {
+            Text(
+                text = stringResource(R.string.profile_header_title),
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = IberPangeaFamily,
+                color = Color.Black,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = WhiteApp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+
+        AnimateProfileItem(index = 1) {
+            ProfileAvatar()
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        AnimateProfileItem(index = 2) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = WhiteApp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(4.dp, 18.dp)
-                            .background(GreenIberdrola, RoundedCornerShape(2.dp))
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(4.dp, 18.dp)
+                                .background(GreenIberdrola, RoundedCornerShape(2.dp))
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = stringResource(R.string.profile_section_account),
+                            fontFamily = IberPangeaFamily,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = GreenIberdrola
+                        )
+                    }
+
+                    ProfileField(
+                        value = state.name,
+                        errorMessage = state.nameError,
+                        label = stringResource(R.string.profile_label_name),
+                        icon = Icons.Default.Person,
+                        onValueChange = events.onNameChanged,
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = stringResource(R.string.profile_section_account),
-                        fontFamily = IberPangeaFamily,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = GreenIberdrola
+
+                    ProfileField(
+                        value = state.email,
+                        errorMessage = state.emailError,
+                        label = stringResource(R.string.profile_label_email),
+                        icon = Icons.Default.Email,
+                        keyboardType = KeyboardType.Email,
+                        onValueChange = events.onEmailChanged
+                    )
+
+                    ProfileField(
+                        value = state.phone,
+                        errorMessage = state.phoneError,
+                        label = stringResource(R.string.profile_label_phone),
+                        icon = Icons.Default.Phone,
+                        keyboardType = KeyboardType.Phone,
+                        onValueChange = events.onPhoneChanged
+                    )
+
+                    ProfileField(
+                        value = state.address,
+                        label = stringResource(R.string.profile_label_address),
+                        icon = Icons.Default.Home,
+                        onValueChange = events.onAddressChanged,
+                    )
+                    PasswordField(
+                        value = state.password,
+                        errorMessage = state.passwordError,
+                        isVisible = passwordVisible,
+                        onValueChange = events.onPasswordChanged,
+                        onToggleVisibility = { passwordVisible = !passwordVisible }
                     )
                 }
-
-                ProfileField(
-                    value = state.name,
-                    errorMessage = state.nameError,
-                    label = stringResource(R.string.profile_label_name),
-                    icon = Icons.Default.Person,
-                    onValueChange = events.onNameChanged
-                )
-
-                ProfileField(
-                    value = state.email,
-                    errorMessage = state.emailError,
-                    label = stringResource(R.string.profile_label_email),
-                    icon = Icons.Default.Email,
-                    keyboardType = KeyboardType.Email,
-                    onValueChange = events.onEmailChanged
-                )
-
-                ProfileField(
-                    value = state.phone,
-                    errorMessage = state.phoneError,
-                    label = stringResource(R.string.profile_label_phone),
-                    icon = Icons.Default.Phone,
-                    keyboardType = KeyboardType.Phone,
-                    onValueChange = events.onPhoneChanged
-                )
-
-                ProfileField(
-                    value = state.address,
-                    label = stringResource(R.string.profile_label_address),
-                    icon = Icons.Default.Home,
-                    onValueChange = events.onAddressChanged
-                )
-                PasswordField(
-                    value = state.password,
-                    errorMessage = state.passwordError,
-                    isVisible = passwordVisible,
-                    onValueChange = events.onPasswordChanged,
-                    onToggleVisibility = { passwordVisible = !passwordVisible }
-                )
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+@Composable
+fun AnimateProfileItem(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 100))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 100)),
+            initialOffsetY = { it / 2 }
+        )
+    ) {
+        content()
     }
 }
 

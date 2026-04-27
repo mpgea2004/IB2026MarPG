@@ -2,6 +2,11 @@ package com.iberdrola.practicas2026.MarPG.ui.factura_home
 
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,8 +22,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.HelpOutline
@@ -173,53 +180,63 @@ fun HomeContent(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(24.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            HomeHeader(
-                userName = currentUserName,
-                onProfileClick = onNavigateToProfile
-            )
+            AnimateHomeItem(index = 0) {
+                HomeHeader(
+                    userName = currentUserName,
+                    onProfileClick = onNavigateToProfile
+                )
+            }
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            Column(modifier = Modifier.alpha(if (isProfileComplete) 1f else 0.6f)) {
-                InvoiceNavigationCard(onClick = onNavigateToInvoices)
-                Spacer(modifier = Modifier.height(24.dp))
-                ElectronicInvoiceCard(onClick = onNavigateToElectronicInvoice)
+            AnimateHomeItem(index = 1) {
+                Column(modifier = Modifier.alpha(if (isProfileComplete) 1f else 0.6f)) {
+                    InvoiceNavigationCard(onClick = onNavigateToInvoices)
+                    Spacer(modifier = Modifier.height(24.dp))
+                    ElectronicInvoiceCard(onClick = onNavigateToElectronicInvoice)
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            DataSourceConfigSection(
-                isCloudEnabled = isCloudEnabled,
-                onToggleCloud = onToggleCloud
-            )
+            AnimateHomeItem(index = 2) {
+                DataSourceConfigSection(
+                    isCloudEnabled = isCloudEnabled,
+                    onToggleCloud = onToggleCloud
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { onNavigateToFaq() }
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.HelpOutline,
-                    contentDescription = null,
-                    tint = GreenIberdrola,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "¿Necesitas ayuda? Consulta las FAQ",
-                    color = GreenIberdrola,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = IberPangeaFamily,
-                    textDecoration = TextDecoration.Underline
-                )
+            AnimateHomeItem(index = 3) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { onNavigateToFaq() }
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.HelpOutline,
+                        contentDescription = null,
+                        tint = GreenIberdrola,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "¿Necesitas ayuda? Consulta las FAQ",
+                        color = GreenIberdrola,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = IberPangeaFamily,
+                        textDecoration = TextDecoration.Underline
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -234,7 +251,30 @@ fun HomeContent(
     }
 }
 
-/** Título y subtítulo de bienvenida */
+@Composable
+fun AnimateHomeItem(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 100))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 100)),
+            initialOffsetY = { it / 2 }
+        )
+    ) {
+        content()
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun HomeHeader(

@@ -1,6 +1,11 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -155,39 +160,69 @@ fun ElectronicInvoiceEditEmailContent(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = stringResource(R.string.edit_email_question),
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 15.sp,
-                lineHeight = 22.sp,
-                color = Color(0xFF222222)
-            )
+            AnimateEditEmailItem(index = 0) {
+                Text(
+                    text = stringResource(R.string.edit_email_question),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp,
+                    color = Color(0xFF222222),
+                    fontFamily = IberPangeaFamily
+                )
+            }
 
-            TextField(
-                value = state.emailInput,
-                onValueChange = events.onEmailChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                textStyle = TextStyle(
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                ),
-                placeholder = {
-                    Text(stringResource(R.string.edit_email_placeholder), fontSize = 14.sp, color = Color.Gray)
-                },
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.LightGray,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Gray,
-                    focusedIndicatorColor = GreenDarkIberdrola,
-                    cursorColor = GreenDarkIberdrola
-                ),
-                singleLine = true
-            )
+            AnimateEditEmailItem(index = 1) {
+                TextField(
+                    value = state.emailInput,
+                    onValueChange = events.onEmailChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    textStyle = TextStyle(
+                        color = Color.Black,
+                        fontSize = 14.sp,
+                        fontFamily = IberPangeaFamily
+                    ),
+                    placeholder = {
+                        Text(stringResource(R.string.edit_email_placeholder), fontSize = 14.sp, color = Color.Gray, fontFamily = IberPangeaFamily)
+                    },
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.LightGray,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Gray,
+                        focusedIndicatorColor = GreenDarkIberdrola,
+                        cursorColor = GreenDarkIberdrola
+                    ),
+                    singleLine = true
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun AnimateEditEmailItem(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 100))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 100)),
+            initialOffsetY = { it / 4 }
+        )
+    ) {
+        content()
     }
 }
 

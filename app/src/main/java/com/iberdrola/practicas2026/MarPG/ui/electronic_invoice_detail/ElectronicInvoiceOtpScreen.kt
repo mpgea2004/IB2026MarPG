@@ -1,6 +1,11 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -165,95 +170,109 @@ fun ElectronicInvoiceOtpContent(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = stringResource(R.string.otp_input_header),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 16.sp,
-                )
+                AnimateElectronicOtpItem(index = 0) {
+                    Text(
+                        text = stringResource(R.string.otp_input_header),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
+                        fontFamily = IberPangeaFamily
+                    )
+                }
 
-                Text(
-                    text = stringResource(R.string.otp_description, phoneToShow),
-                    fontSize = 12.sp,
-                    color = Color.Black,
-                    lineHeight = 12.sp,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                AnimateElectronicOtpItem(index = 1) {
+                    Text(
+                        text = stringResource(R.string.otp_description, phoneToShow),
+                        fontSize = 12.sp,
+                        color = Color.Black,
+                        lineHeight = 12.sp,
+                        modifier = Modifier.padding(top = 16.dp),
+                        fontFamily = IberPangeaFamily
+                    )
+                }
 
-                TextField(
-                    value = state.otpInput,
-                    onValueChange = events.onOtpChange,
-                    modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
-                    placeholder = { Text(stringResource(R.string.otp_placeholder), fontSize = 14.sp, color = Color.DarkGray,style = MaterialTheme.typography.bodyLarge) },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.NumberPassword
-                    ),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.Gray,
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.DarkGray,
-                        focusedIndicatorColor = GreenDarkIberdrola,
-                        cursorColor = GreenDarkIberdrola
-                    ),
-                    singleLine = true
-                )
+                AnimateElectronicOtpItem(index = 2) {
+                    TextField(
+                        value = state.otpInput,
+                        onValueChange = events.onOtpChange,
+                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                        placeholder = { Text(stringResource(R.string.otp_placeholder), fontSize = 14.sp, color = Color.DarkGray,style = MaterialTheme.typography.bodyLarge, fontFamily = IberPangeaFamily) },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.NumberPassword
+                        ),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            color = Color.Gray,
+                            fontSize = 16.sp,
+                            fontFamily = IberPangeaFamily
+                        ),
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.DarkGray,
+                            focusedIndicatorColor = GreenDarkIberdrola,
+                            cursorColor = GreenDarkIberdrola
+                        ),
+                        singleLine = true
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Surface(
-                    color = if (hasAttempts) Color(0xFFE3F2FD) else Color(0xFFFFEBEE),
-                    shape = RoundedCornerShape(
-                        topStart = 0.dp,
-                        topEnd = 16.dp,
-                        bottomEnd = 16.dp,
-                        bottomStart = 16.dp
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.Top
+                AnimateElectronicOtpItem(index = 3) {
+                    Surface(
+                        color = if (hasAttempts) Color(0xFFE3F2FD) else Color(0xFFFFEBEE),
+                        shape = RoundedCornerShape(
+                            topStart = 0.dp,
+                            topEnd = 16.dp,
+                            bottomEnd = 16.dp,
+                            bottomStart = 16.dp
+                        ),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Info,
-                            contentDescription = null,
-                            tint = if (hasAttempts) Color(0xFF455A64) else Color(0xFFC62828),
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = stringResource(R.string.otp_not_received_title),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                color = if (hasAttempts) Color(0xFF263238) else Color(0xFFB71C1C)
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Info,
+                                contentDescription = null,
+                                tint = if (hasAttempts) Color(0xFF455A64) else Color(0xFFC62828),
+                                modifier = Modifier.size(24.dp)
                             )
-                            Text(
-                                text = if (hasAttempts)
-                                    stringResource(R.string.otp_not_received_desc, state.resendAttempts)
-                                else
-                                    stringResource(R.string.otp_no_attempts_left),
-                                fontSize = 12.sp,
-                                lineHeight = 18.sp,
-                                color = if (hasAttempts) Color(0xFF455A64) else Color(0xFFD32F2F),
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
-                            if (hasAttempts) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
                                 Text(
-                                    text = stringResource(R.string.otp_resend_link),
-                                    fontSize = 12.sp,
+                                    text = stringResource(R.string.otp_not_received_title),
                                     fontWeight = FontWeight.Bold,
-                                    color = GreenDarkIberdrola,
-                                    textDecoration = TextDecoration.Underline,
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .clickable { events.onResendOtp() }
-                                        .padding(vertical = 2.dp)
+                                    fontSize = 14.sp,
+                                    color = if (hasAttempts) Color(0xFF263238) else Color(0xFFB71C1C),
+                                    fontFamily = IberPangeaFamily
                                 )
+                                Text(
+                                    text = if (hasAttempts)
+                                        stringResource(R.string.otp_not_received_desc, state.resendAttempts)
+                                    else
+                                        stringResource(R.string.otp_no_attempts_left),
+                                    fontSize = 12.sp,
+                                    lineHeight = 18.sp,
+                                    color = if (hasAttempts) Color(0xFF455A64) else Color(0xFFD32F2F),
+                                    modifier = Modifier.padding(top = 4.dp),
+                                    fontFamily = IberPangeaFamily
+                                )
+                                if (hasAttempts) {
+                                    Text(
+                                        text = stringResource(R.string.otp_resend_link),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = GreenDarkIberdrola,
+                                        textDecoration = TextDecoration.Underline,
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable { events.onResendOtp() }
+                                            .padding(vertical = 2.dp),
+                                        fontFamily = IberPangeaFamily
+                                    )
+                                }
                             }
                         }
                     }
@@ -265,6 +284,31 @@ fun ElectronicInvoiceOtpContent(
         }
     }
 }
+
+@Composable
+fun AnimateElectronicOtpItem(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(500))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(500)),
+            initialOffsetY = { it / 4 }
+        )
+    ) {
+        content()
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun ElectronicInvoiceOtpPreview() {
