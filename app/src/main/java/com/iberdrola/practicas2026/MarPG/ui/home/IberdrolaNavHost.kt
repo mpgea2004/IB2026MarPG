@@ -17,6 +17,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.iberdrola.practicas2026.MarPG.ui.consumption_dashboard.ConsumptionDashboardScreen
+import com.iberdrola.practicas2026.MarPG.ui.consumption_dashboard.ConsumptionDashboardViewModel
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.ElectronicInvoiceDetailFormScreen
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.ElectronicInvoiceDetailInfoScreen
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.ElectronicInvoiceEditEmailScreen
@@ -45,6 +47,7 @@ object Routes {
     const val ELECTRONIC_INVOICE_EDIT_EMAIL = "electronic_invoice_edit"
     const val ELECTRONIC_INVOICE_OTP = "electronic_invoice_otp"
     const val ELECTRONIC_INVOICE_SUCCESS = "electronic_invoice_success"
+    const val CONSUMPTION_DASHBOARD = "consumption_dashboard/{isCloud}"
 }
 
 @Composable
@@ -67,7 +70,32 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 isCloudEnabled = isCloudEnabled,
                 onToggleCloud = { isCloudEnabled = it },
                 onNavigateToElectronicInvoice = { navController.navigate(Routes.ELECTRONIC_INVOICE_SELECTION) },
-                onNavigateToProfile = { navController.navigate(Routes.USER_PROFILE) }
+                onNavigateToProfile = { navController.navigate(Routes.USER_PROFILE) },
+            )
+        }
+
+        composable(
+            route = Routes.CONSUMPTION_DASHBOARD,
+            arguments = listOf(navArgument("isCloud") { type = NavType.BoolType }),
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) { backStackEntry ->
+            val isCloud = backStackEntry.arguments?.getBoolean("isCloud") ?: false
+            val viewModel: ConsumptionDashboardViewModel = hiltViewModel()
+            
+            LaunchedEffect(isCloud) {
+                viewModel.setCloudMode(isCloud)
+            }
+
+            ConsumptionDashboardScreen(
+                viewModel = viewModel,
+                onBack = {
+                    if (navController.currentBackStackEntry?.destination?.route?.startsWith("consumption_dashboard") == true) {
+                        navController.popBackStack()
+                    }
+                }
             )
         }
 
@@ -96,6 +124,8 @@ fun IberdrolaNavHost(navController: NavHostController) {
             popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
         ) { backStackEntry ->
             val invoiceListViewModel: InvoiceListViewModel = hiltViewModel(backStackEntry)
+            val isCloud = backStackEntry.arguments?.getBoolean("isCloud") ?: false
+            
             InvoiceListScreen(
                 viewModel = invoiceListViewModel,
                 onBack = {
@@ -106,6 +136,9 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 onNavigateToFilters = { navController.navigate(Routes.FILTER) },
                 onNavigateToInvoiceDetail = { invoice ->
                     navController.navigate("invoice_detail/${invoice.id}")
+                },
+                onNavigateToConsumption = {
+                    navController.navigate("consumption_dashboard/$isCloud")
                 }
             )
         }

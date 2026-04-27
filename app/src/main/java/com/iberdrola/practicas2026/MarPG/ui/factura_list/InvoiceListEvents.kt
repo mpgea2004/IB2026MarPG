@@ -12,5 +12,6 @@ data class InvoiceListEvents(
     val onRemoveStatus: (String) -> Unit = {},
     val onRemoveDate: () -> Unit = {},
     val onRemovePrice: () -> Unit = {},
-    val onSearchQueryChange: (String) -> Unit = {}
+    val onSearchQueryChange: (String) -> Unit = {},
+    val onNavigateToConsumption: () -> Unit = {}
 )

@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lightbulb
@@ -38,6 +39,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -55,6 +57,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.TooltipDefaults.rememberPlainTooltipPositionProvider
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
@@ -69,7 +72,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType.Companion.LongPress
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -110,7 +116,8 @@ fun InvoiceListScreen(
     viewModel: InvoiceListViewModel,
     onBack: () -> Unit,
     onNavigateToFilters: () -> Unit,
-    onNavigateToInvoiceDetail: (Invoice) -> Unit
+    onNavigateToInvoiceDetail: (Invoice) -> Unit,
+    onNavigateToConsumption: () -> Unit
 ) {
 
     var isNavigating by remember { mutableStateOf(true) }
@@ -124,6 +131,13 @@ fun InvoiceListScreen(
         if (!isNavigating) {
             isNavigating = true
             onBack()
+        }
+    }
+
+    val handleNavigateToConsumption = {
+        if (!isNavigating) {
+            isNavigating = true
+            onNavigateToConsumption()
         }
     }
 
@@ -200,7 +214,10 @@ fun InvoiceListScreen(
                 address = userAddress,
                 onBack = handleBack,
                 errorMessage = errorMessage?.let { stringResource(it) },
-                showErrorBanner = currentState is InvoiceListState.SUCCESS && errorMessage != null            )
+                showErrorBanner = currentState is InvoiceListState.SUCCESS && errorMessage != null,
+                onNavigateToConsumption = handleNavigateToConsumption,
+                isLoading = currentState is InvoiceListState.LOADING
+            )
         }
 
     ) { padding ->
@@ -260,7 +277,8 @@ fun InvoiceListScreen(
                                 onRemoveStatus = { viewModel.removeStatusFilter(it) },
                                 onRemoveDate = { viewModel.removeDateFilter() },
                                 onRemovePrice = { viewModel.removePriceFilter() },
-                                onSearchQueryChange = { viewModel.onSearchQueryChange(it) }
+                                onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
+                                onNavigateToConsumption = handleNavigateToConsumption
                             )
                         )
                     }
@@ -270,6 +288,7 @@ fun InvoiceListScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun InvoiceListHeader(
     selectedTab: Int,
@@ -277,8 +296,14 @@ fun InvoiceListHeader(
     address: String,
     showErrorBanner: Boolean,
     onTabSelected: (Int) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToConsumption: () -> Unit,
+    isLoading: Boolean
 ){
+    val tooltipState = rememberTooltipState(isPersistent = false)
+    val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
+
     Surface(
         color = WhiteApp,
         shadowElevation = 2.dp
@@ -289,15 +314,65 @@ fun InvoiceListHeader(
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp)
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .clip(RoundedCornerShape(50))
-                    .clickable { onBack() }
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola,
-                    modifier = Modifier.size(32.dp))
-                Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .clip(RoundedCornerShape(50))
+                        .clickable { onBack() }
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola,
+                        modifier = Modifier.size(32.dp))
+                    Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
+                }
+
+                TooltipBox(
+                    positionProvider = rememberPlainTooltipPositionProvider(),
+                    tooltip = {
+                        Surface(
+                            color = Color.DarkGray,
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = "Ver consumo",
+                                color = Color.White,
+                                modifier = Modifier.padding(8.dp),
+                                fontSize = 12.sp
+                            )
+                        }
+                    },
+                    state = tooltipState
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isLoading) Color.LightGray.copy(alpha = 0.1f) else GreenIberdrola.copy(alpha = 0.1f)
+                            )
+                            .combinedClickable(
+                                enabled = !isLoading,
+                                onClick = onNavigateToConsumption,
+                                onLongClick = {
+                                    haptic.performHapticFeedback(LongPress)
+                                    scope.launch { tooltipState.show() }
+                                }
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.BarChart,
+                            contentDescription = "Ver consumo",
+                            tint = if (isLoading) Color.Gray else GreenIberdrola,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
             if (showErrorBanner && errorMessage != null) {
@@ -635,6 +710,8 @@ fun SortChip(
 ) {
     val tooltipState = rememberTooltipState(isPersistent = false)
     val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
+
     TooltipBox(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
         tooltip = {
@@ -659,6 +736,7 @@ fun SortChip(
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         scope.launch { tooltipState.show() }
                     }
                 ),
@@ -839,6 +917,8 @@ fun InvoiceListScreenPreview() {
                     onTabSelected = {},
                     onBack = {},
                     address = "Calle falsa 123",
+                    onNavigateToConsumption = {},
+                    isLoading = false
                 )
             }
         ){ padding ->
@@ -881,6 +961,8 @@ fun InvoiceListNoDataPreview() {
                     onTabSelected = {},
                     onBack = {},
                     address = "Sin dirección",
+                    onNavigateToConsumption = {},
+                    isLoading = false
                 )
             }
         ) { padding ->

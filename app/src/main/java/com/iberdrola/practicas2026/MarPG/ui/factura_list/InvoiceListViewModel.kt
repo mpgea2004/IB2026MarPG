@@ -100,6 +100,8 @@ class InvoiceListViewModel @Inject constructor(
         viewModelScope.launch {
             prepareLoadingState()
 
+            prepareLoadingState()
+
             getInvoicesUseCase(isCloud)
                 .catch { handleLoadError(it) }
                 .collect { invoices ->

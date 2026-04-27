@@ -22,7 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
@@ -36,7 +36,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -50,7 +49,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -64,11 +62,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -93,6 +95,7 @@ fun ProfileScreen(
     var showDiscardDialog by remember { mutableStateOf(false) }
     val logoutTooltipState = rememberTooltipState(isPersistent = false)
     val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
 
     val handleBackAction = {
         if (!state.isSaved) {
@@ -191,30 +194,39 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.profile_header_title),
-                        fontWeight = FontWeight.ExtraBold,
-                        fontFamily = IberPangeaFamily,
-                        fontSize = 22.sp,
-                        color = Color(0xFF333333)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = handleBackAction,
-                        modifier = Modifier.padding(start = 8.dp)
+            Surface(
+                color = Color.Transparent
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .combinedClickable(
+                                onClick = handleBackAction
+                            )
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.profile_header_back),
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                            contentDescription = null,
                             tint = GreenIberdrola,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.invoice_list_back),
+                            color = GreenIberdrola,
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline,
+                            fontFamily = IberPangeaFamily
                         )
                     }
-                },
-                actions = {
+
                     val isLoggedIn = state.name.isNotEmpty() || state.email.isNotEmpty() || state.password.isNotEmpty()
                     val canLogout = isLoggedIn && state.isSaved
 
@@ -237,13 +249,13 @@ fun ProfileScreen(
                     ) {
                         Box(
                             modifier = Modifier
-                                .padding(end = 8.dp)
                                 .size(48.dp)
                                 .clip(CircleShape)
                                 .combinedClickable(
                                     onClick = { if (canLogout) events.onLogout() },
                                     onLongClick = {
                                         if (canLogout) {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             scope.launch { logoutTooltipState.show() }
                                         }
                                     }
@@ -258,11 +270,8 @@ fun ProfileScreen(
                             )
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
-            )
+                }
+            }
         },
         bottomBar = {
             if (!state.isLoading) {
