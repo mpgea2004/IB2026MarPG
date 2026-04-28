@@ -90,6 +90,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -103,6 +104,7 @@ fun ProfileScreen(
     val logoutTooltipState = rememberTooltipState(isPersistent = false)
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
 
     val handleBackAction = {
         if (!state.isSaved) {
@@ -296,7 +298,12 @@ fun ProfileScreen(
                     ) {
                         HorizontalDivider(thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.2f))
                         Button(
-                            onClick = { events.onSaveClick { events.onBackClick() } },
+                            onClick = { 
+                                events.onSaveClick { 
+                                    Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT).show()
+                                    events.onBackClick()
+                                } 
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 24.dp, vertical = 20.dp)
@@ -312,7 +319,7 @@ fun ProfileScreen(
                             )
                         ) {
                             Text(
-                                text = stringResource(R.string.profile_button_save),
+                                text = if (state.isSaving) "Guardando..." else if (state.saveJustFinished) "¡Guardado!" else stringResource(R.string.profile_button_save),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 fontFamily = IberPangeaFamily,
@@ -418,7 +425,7 @@ fun ProfileContent(
                         errorMessage = state.nameError,
                         label = stringResource(R.string.profile_label_name),
                         icon = Icons.Default.Person,
-                        onValueChange = events.onNameChanged,
+                        onValueChange = events.onNameChanged
                     )
 
                     ProfileField(
@@ -443,7 +450,7 @@ fun ProfileContent(
                         value = state.address,
                         label = stringResource(R.string.profile_label_address),
                         icon = Icons.Default.Home,
-                        onValueChange = events.onAddressChanged,
+                        onValueChange = events.onAddressChanged
                     )
                     PasswordField(
                         value = state.password,

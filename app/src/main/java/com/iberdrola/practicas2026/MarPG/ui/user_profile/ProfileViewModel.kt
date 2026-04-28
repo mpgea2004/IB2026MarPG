@@ -101,9 +101,17 @@ class ProfileViewModel @Inject constructor(
 
         if (!hasError) {
             viewModelScope.launch {
+                state = state.copy(isSaving = true)
+                delay(1500)
                 userPrefs.updateProfile(state)
-                state = state.copy(isSaved = true)
+                state = state.copy(
+                    isSaving = false,
+                    isSaved = true,
+                    saveJustFinished = true
+                )
                 onSuccess()
+                delay(2000)
+                state = state.copy(saveJustFinished = false)
             }
         }
     }

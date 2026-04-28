@@ -14,5 +14,7 @@ data class ProfileState(
     @StringRes val passwordError: Int? = null,
     val isSaved: Boolean = true,
     val showLogoutDialog: Boolean = false,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val isSaving: Boolean = false,
+    val saveJustFinished: Boolean = false
 )
