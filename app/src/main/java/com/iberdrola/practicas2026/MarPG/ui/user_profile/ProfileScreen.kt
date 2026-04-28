@@ -2,11 +2,21 @@ package com.iberdrola.practicas2026.MarPG.ui.user_profile
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,6 +40,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
@@ -42,6 +53,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -65,8 +77,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -90,7 +105,6 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -297,35 +311,22 @@ fun ProfileScreen(
                             .padding(bottom = 8.dp)
                     ) {
                         HorizontalDivider(thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.2f))
-                        Button(
+                        
+                        SmartSaveButton(
+                            isSaving = state.isSaving,
+                            isSaved = state.isSaved,
+                            saveJustFinished = state.saveJustFinished,
                             onClick = { 
                                 events.onSaveClick { 
                                     Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT).show()
                                     events.onBackClick()
-                                } 
+                                }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 24.dp, vertical = 20.dp)
-                                .height(56.dp),
-                            shape = RoundedCornerShape(28.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = GreenIberdrola,
-                                contentColor = WhiteApp
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 4.dp,
-                                pressedElevation = 8.dp
-                            )
-                        ) {
-                            Text(
-                                text = if (state.isSaving) "Guardando..." else if (state.saveJustFinished) "¡Guardado!" else stringResource(R.string.profile_button_save),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                fontFamily = IberPangeaFamily,
-                                letterSpacing = 1.sp
-                            )
-                        }
+                                .height(56.dp)
+                        )
                     }
                 }
             }
@@ -351,6 +352,114 @@ fun ProfileScreen(
             }
         }
     }
+}
+
+@Composable
+fun SmartSaveButton(
+    isSaving: Boolean,
+    isSaved: Boolean,
+    saveJustFinished: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val buttonScale by animateFloatAsState(
+        targetValue = if (isSaving) 0.95f else 1f,
+        animationSpec = tween(durationMillis = 200),
+        label = "buttonScale"
+    )
+
+    val infiniteTransition = rememberInfiniteTransition(label = "shimmerTransition")
+    val shimmerOffset by infiniteTransition.animateFloat(
+        initialValue = -1f,
+        targetValue = 2f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 5000
+                -1f at 0
+                -1f at 4000
+                2f at 5000 with LinearEasing
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerOffset"
+    )
+
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .graphicsLayer(scaleX = buttonScale, scaleY = buttonScale)
+            .then(
+                if (!isSaved && !isSaving && !saveJustFinished) {
+                    Modifier.drawWithContent {
+                        drawContent()
+                        val brush = Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0f),
+                                Color.White.copy(alpha = 0.4f),
+                                Color.White.copy(alpha = 0f)
+                            ),
+                            start = Offset(size.width * shimmerOffset, 0f),
+                            end = Offset(size.width * (shimmerOffset + 0.5f), size.height)
+                        )
+                        drawRect(brush = brush)
+                    }
+                } else Modifier
+            ),
+        shape = RoundedCornerShape(28.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = GreenIberdrola,
+            contentColor = WhiteApp,
+            disabledContainerColor = Color.Gray
+        ),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 4.dp,
+            pressedElevation = 8.dp
+        ),
+        enabled = !isSaving
+    ) {
+        AnimatedContent(
+            targetState = when {
+                isSaving -> ButtonState.Saving
+                saveJustFinished -> ButtonState.Success
+                else -> ButtonState.Idle
+            },
+            transitionSpec = {
+                fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
+            },
+            label = "buttonContent"
+        ) { targetState ->
+            when (targetState) {
+                ButtonState.Idle -> {
+                    Text(
+                        text = stringResource(R.string.profile_button_save),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontFamily = IberPangeaFamily,
+                        letterSpacing = 1.sp
+                    )
+                }
+                ButtonState.Saving -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = WhiteApp,
+                        strokeWidth = 2.dp
+                    )
+                }
+                ButtonState.Success -> {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Completado",
+                        tint = WhiteApp,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+enum class ButtonState {
+    Idle, Saving, Success
 }
 
 @Composable

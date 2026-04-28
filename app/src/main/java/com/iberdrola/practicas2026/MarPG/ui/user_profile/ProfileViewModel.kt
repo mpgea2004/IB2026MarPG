@@ -110,7 +110,7 @@ class ProfileViewModel @Inject constructor(
                     saveJustFinished = true
                 )
                 onSuccess()
-                delay(2000)
+                delay(2500)
                 state = state.copy(saveJustFinished = false)
             }
         }

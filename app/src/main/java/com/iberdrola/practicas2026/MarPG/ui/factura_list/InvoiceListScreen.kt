@@ -136,6 +136,7 @@ fun InvoiceListScreen(
     val handleBack = {
         if (!isNavigating) {
             isNavigating = true
+            viewModel.registerBackNavigation()
             onBack()
         }
     }

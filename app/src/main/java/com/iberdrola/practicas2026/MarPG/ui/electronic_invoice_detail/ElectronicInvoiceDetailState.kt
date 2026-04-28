@@ -39,7 +39,10 @@ data class ElectronicInvoiceState(
 
     val showNoAddressDialog: Boolean = false,
     val newAddressInput: String = "",
-    val showDeactivationConfirmDialog: Boolean = false
+    val showDeactivationConfirmDialog: Boolean = false,
+    val showSimulatedNotification: Boolean = false,
+    val simulatedNotificationMessage: String = "",
+    val simulatedOtpCode: String = ""
 )
 enum class ElectronicInvoiceStep {
     SELECTION, FORM, VERIFICATION, SUCCESS

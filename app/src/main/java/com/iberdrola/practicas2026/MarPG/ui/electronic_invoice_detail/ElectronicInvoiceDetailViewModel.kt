@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.random.Random
 
 @HiltViewModel
 class ElectronicInvoiceViewModel @Inject constructor(
@@ -53,7 +54,10 @@ class ElectronicInvoiceViewModel @Inject constructor(
             isLegalAccepted = false,
             isSuccess = false,
             error = null,
-            showSameEmailWarning = false
+            showSameEmailWarning = false,
+            otpInput = "",
+            showSimulatedNotification = false,
+            simulatedOtpCode = ""
         )
         hasAcknowledgedSameEmail = false
     }
@@ -84,11 +88,19 @@ class ElectronicInvoiceViewModel @Inject constructor(
         return result
     }
 
-    fun performUpdate() {
+    fun verifyOtpAndPerformUpdate() {
+        if (state.otpInput == state.simulatedOtpCode) {
+            performUpdate()
+        } else {
+            state = state.copy(error = R.string.error_incorrect_otp)
+        }
+    }
+
+    private fun performUpdate() {
         val contract = state.selectedContract ?: return
 
         viewModelScope.launch {
-            state = state.copy(isLoading = true)
+            state = state.copy(isLoading = true, error = null)
             try {
                 val updatedContract = contract.copy(
                     isEnabled = true,
@@ -136,7 +148,43 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
 
     fun onOtpChanged(nuevoOtp: String) {
-        if (nuevoOtp.length <= 6) state = state.copy(otpInput = nuevoOtp)
+        if (nuevoOtp.length <= 6) {
+            state = state.copy(otpInput = nuevoOtp, error = null)
+        }
+    }
+
+    fun clearOtp() {
+        state = state.copy(
+            otpInput = "",
+            simulatedOtpCode = "",
+            error = null,
+            showSimulatedNotification = false
+        )
+    }
+
+    fun startOtpSimulation() {
+        viewModelScope.launch {
+            clearOtp()
+            delay(1500) 
+            
+            val simulatedCode = (100000..999999).random().toString()
+            
+            state = state.copy(
+                showSimulatedNotification = true,
+                simulatedNotificationMessage = "Iberdrola: Su código es $simulatedCode. No lo comparta.",
+                simulatedOtpCode = simulatedCode
+            )
+            
+            delay(2000)
+            
+            simulatedCode.forEachIndexed { index, _ ->
+                delay(100)
+                state = state.copy(otpInput = simulatedCode.take(index + 1))
+            }
+            
+            delay(2000)
+            state = state.copy(showSimulatedNotification = false)
+        }
     }
 
     fun onResendOtp() {
@@ -145,16 +193,24 @@ class ElectronicInvoiceViewModel @Inject constructor(
                 state = state.copy(
                     resendAttempts = state.resendAttempts - 1,
                     isLoading = true,
-                    showResendSuccess = false
+                    showResendSuccess = false,
+                    otpInput = "",
+                    showSimulatedNotification = false,
+                    simulatedOtpCode = ""
                 )
                 delay(1500)
                 state = state.copy(isLoading = false, showResendSuccess = true)
+                startOtpSimulation()
             }
         }
     }
 
     fun closeResendBanner() {
         state = state.copy(showResendSuccess = false)
+    }
+
+    fun closeSimulatedNotification() {
+        state = state.copy(showSimulatedNotification = false)
     }
 
     fun onShowLegalDetail(title: String, content: String) {
