@@ -5,20 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
-import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListScreen
-import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
 import com.iberdrola.practicas2026.MarPG.ui.home.IberdrolaNavHost
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
 import dagger.hilt.android.AndroidEntryPoint
 
-/** Punto de entrada principal de la aplicación. Configura Hilt y el contenedor de navegación. */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +23,7 @@ class MainActivity : ComponentActivity() {
 
             IB2026MarPGTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize().safeDrawingPadding(),
+                    modifier = Modifier.fillMaxSize(),
                     color = Color.White
                 ) {
                     IberdrolaNavHost(navController = navController)

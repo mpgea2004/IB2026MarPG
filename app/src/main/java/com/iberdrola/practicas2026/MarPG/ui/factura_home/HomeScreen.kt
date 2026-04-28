@@ -189,7 +189,7 @@ fun HomeContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp)
+                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             AnimateHomeItem(index = 0) {

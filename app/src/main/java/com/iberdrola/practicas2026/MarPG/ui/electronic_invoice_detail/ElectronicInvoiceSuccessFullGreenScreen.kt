@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -95,22 +97,30 @@ fun ElectronicInvoiceSuccessFullGreenContent(
         containerColor = GreenDarkIberdrola,
         bottomBar = {
             AnimateSuccessItem(index = 3) {
-                SuccessWhiteButton(
-                    text = stringResource(R.string.success_button_accept), 
-                    onClick = onAccept,
-                    modifier = Modifier.padding(24.dp).padding(bottom = 8.dp)
-                )
+                Box(modifier = Modifier.navigationBarsPadding()) {
+                    SuccessWhiteButton(
+                        text = stringResource(R.string.success_button_accept), 
+                        onClick = onAccept,
+                        modifier = Modifier.padding(24.dp).padding(bottom = 8.dp)
+                    )
+                }
             }
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(bottom = padding.calculateBottomPadding())
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), contentAlignment = Alignment.TopEnd) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(top = 16.dp), 
+                contentAlignment = Alignment.TopEnd
+            ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = stringResource(R.string.success_close_description),

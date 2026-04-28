@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -232,7 +233,7 @@ fun InvoiceListScreen(
             isRefreshing = viewModel.isRefreshing,
             onRefresh = { viewModel.refreshInvoices() },
             modifier = Modifier
-                .padding(padding)
+                .padding(padding) // Scaffold ya incluye los márgenes seguros aquí
                 .fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ){
@@ -284,6 +285,7 @@ fun InvoiceListScreen(
                                 onRemoveStatus = { viewModel.removeStatusFilter(it) },
                                 onRemoveDate = { viewModel.removeDateFilter() },
                                 onRemovePrice = { viewModel.removePriceFilter() },
+                                onRemoveSearch = { viewModel.onSearchQueryChange("") },
                                 onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
                                 onNavigateToConsumption = handleNavigateToConsumption
                             )
@@ -317,8 +319,9 @@ fun InvoiceListHeader(
     ) {
         Column(
             modifier = Modifier
+                .statusBarsPadding()
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -559,7 +562,7 @@ fun InvoiceListContent(
                     onRemoveStatus = events.onRemoveStatus,
                     onRemoveDate = events.onRemoveDate,
                     onRemovePrice = events.onRemovePrice,
-                    onRemoveSearch = { events.onSearchQueryChange("") }
+                    onRemoveSearch = events.onRemoveSearch
                 )
 
                 LazyRow(
@@ -981,6 +984,7 @@ fun InvoiceListScreenPreview() {
                         onRemoveStatus = {},
                         onRemoveDate = {},
                         onRemovePrice = {},
+                        onRemoveSearch = {},
                         onSearchQueryChange = {}
                     ),
                 )

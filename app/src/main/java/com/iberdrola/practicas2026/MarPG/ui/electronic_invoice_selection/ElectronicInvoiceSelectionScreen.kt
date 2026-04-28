@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -61,7 +62,7 @@ fun ElectronicInvoiceSelectionScreen(
     ) { padding ->
         Box(modifier = Modifier
             .fillMaxSize()
-            .padding(padding)) {
+            .padding(top = padding.calculateTopPadding())) {
             when (state) {
                 is ElectronicInvoiceListState.Loading -> {
                     ShimmerElectronicInvoiceList(
@@ -73,7 +74,8 @@ fun ElectronicInvoiceSelectionScreen(
                 is ElectronicInvoiceListState.Success -> {
                     ElectronicInvoiceSelectionContent(
                         invoices = state.contracts,
-                        events = events
+                        events = events,
+                        modifier = Modifier.navigationBarsPadding()
                     )
                 }
 
@@ -124,6 +126,8 @@ fun ElectronicInvoiceSelectionContent(
                 )
             }
         }
+        
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 

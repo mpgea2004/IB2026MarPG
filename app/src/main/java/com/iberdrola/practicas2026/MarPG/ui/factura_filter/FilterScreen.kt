@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -109,10 +111,12 @@ fun FilterScreen(
         },
         bottomBar = {
             if (!state.isLoading) {
-                FilterActionButtons(
-                    onApply = { events.onApply() },
-                    onClear = { events.onClear() }
-                )
+                Box(modifier = Modifier.navigationBarsPadding()) {
+                    FilterActionButtons(
+                        onApply = { events.onApply() },
+                        onClear = { events.onClear() }
+                    )
+                }
             }
         }
     ) { padding ->
@@ -139,13 +143,14 @@ fun FilterTopBar(onBack: () -> Unit) {
     ) {
         Column(
             modifier = Modifier
+                .statusBarsPadding()
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(top = 24.dp, bottom = 0.dp)
+                    .padding(top = 16.dp, bottom = 8.dp)
                     .clip(RoundedCornerShape(50))
                     .clickable { onBack() }
             ) {

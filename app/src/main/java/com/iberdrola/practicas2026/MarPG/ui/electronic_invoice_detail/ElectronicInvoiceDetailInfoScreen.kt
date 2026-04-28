@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -84,12 +86,7 @@ fun ElectronicInvoiceDetailInfoScreen(
     val state = viewModel.state
     val haptic = LocalHapticFeedback.current
     
-    var isNavigating by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        delay(100)
-        isNavigating = false
-    }
+    var isNavigating by remember { mutableStateOf(false) }
 
     val handleBack = {
         if (!isNavigating) {
@@ -259,7 +256,6 @@ fun ElectronicInvoiceDetailInfoScreenContent(
             FilterTopBar(onBack = events.onBack)
         },
         bottomBar = {
-
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -270,19 +266,21 @@ fun ElectronicInvoiceDetailInfoScreenContent(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp)
+                        .navigationBarsPadding()
+                        .padding(bottom = 24.dp, top = 8.dp)
                 ) {
                     HorizontalDivider(
                         thickness = 1.dp,
                         color = Color.LightGray.copy(alpha = 0.2f)
                     )
 
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     Button(
                         onClick = events.onConfirmDeactivate,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 8.dp)
-                            .padding(top = 12.dp)
+                            .padding(horizontal = 24.dp)
                             .height(56.dp),
                         shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -296,11 +294,13 @@ fun ElectronicInvoiceDetailInfoScreenContent(
                         Text(text = stringResource(R.string.invoice_detail_btn_deactivate), fontSize = 15.sp, color = GreenDarkIberdrola, fontWeight = FontWeight.Bold)
                     }
 
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     Button(
                         onClick = events.onNext,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 8.dp)
+                            .padding(horizontal = 24.dp)
                             .height(56.dp),
                         shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola, contentColor = WhiteApp)
