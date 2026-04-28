@@ -27,6 +27,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
     private val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,}\$")
     
     private var hasAcknowledgedSameEmail = false
+    private var currentSimulationId = 0L
 
     init {
         observeUserProfile()
@@ -47,6 +48,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
 
     fun selectContract(contract: ElectronicInvoice) {
+        currentSimulationId++
         state = state.copy(
             selectedContract = contract,
             emailInput = contract.email ?: "",
@@ -57,7 +59,8 @@ class ElectronicInvoiceViewModel @Inject constructor(
             showSameEmailWarning = false,
             otpInput = "",
             showSimulatedNotification = false,
-            simulatedOtpCode = ""
+            simulatedOtpCode = "",
+            resendAttempts = 2
         )
         hasAcknowledgedSameEmail = false
     }
@@ -154,35 +157,49 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
 
     fun clearOtp() {
+        currentSimulationId++
         state = state.copy(
             otpInput = "",
-            simulatedOtpCode = "",
             error = null,
             showSimulatedNotification = false
         )
     }
 
     fun startOtpSimulation() {
+        currentSimulationId++
+        val simulationId = currentSimulationId
+
         viewModelScope.launch {
-            clearOtp()
-            delay(1500) 
+            state = state.copy(otpInput = "", showSimulatedNotification = false)
+            delay(1000) 
             
-            val simulatedCode = (100000..999999).random().toString()
+            if (simulationId != currentSimulationId) return@launch
+
+            val simulatedCode = if (state.simulatedOtpCode.isNotEmpty()) {
+                state.simulatedOtpCode
+            } else {
+                val newCode = (100000..999999).random().toString()
+                state = state.copy(simulatedOtpCode = newCode)
+                newCode
+            }
             
             state = state.copy(
                 showSimulatedNotification = true,
                 simulatedNotificationMessage = "Iberdrola: Su código es $simulatedCode. No lo comparta.",
-                simulatedOtpCode = simulatedCode
             )
             
             delay(2000)
             
+            if (simulationId != currentSimulationId) return@launch
+
             simulatedCode.forEachIndexed { index, _ ->
                 delay(100)
+                if (simulationId != currentSimulationId) return@forEachIndexed
                 state = state.copy(otpInput = simulatedCode.take(index + 1))
             }
             
             delay(2000)
+            if (simulationId != currentSimulationId) return@launch
             state = state.copy(showSimulatedNotification = false)
         }
     }
@@ -190,15 +207,15 @@ class ElectronicInvoiceViewModel @Inject constructor(
     fun onResendOtp() {
         if (state.resendAttempts > 0) {
             viewModelScope.launch {
+                currentSimulationId++
                 state = state.copy(
                     resendAttempts = state.resendAttempts - 1,
                     isLoading = true,
                     showResendSuccess = false,
                     otpInput = "",
-                    showSimulatedNotification = false,
                     simulatedOtpCode = ""
                 )
-                delay(1500)
+                delay(1200)
                 state = state.copy(isLoading = false, showResendSuccess = true)
                 startOtpSimulation()
             }

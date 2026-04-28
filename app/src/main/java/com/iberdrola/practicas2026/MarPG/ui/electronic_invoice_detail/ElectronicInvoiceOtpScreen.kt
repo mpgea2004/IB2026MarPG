@@ -1,15 +1,26 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +40,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -50,6 +62,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -68,6 +81,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -158,7 +172,44 @@ fun ElectronicInvoiceOtpContent(
     phoneToShow: String,
     onDismissNotification: () -> Unit = {}
 ) {
-    val hasAttempts = state.resendAttempts > 0
+    val haptic = LocalHapticFeedback.current
+    
+    var bufferedHasAttempts by remember { mutableStateOf(true) }
+    
+    val containerScale = remember { Animatable(1f) }
+    val glowAlpha = remember { Animatable(0f) }
+    val iconScale = remember { Animatable(1f) }
+
+    LaunchedEffect(state.isLoading, state.resendAttempts) {
+        if (!state.isLoading) {
+            val currentHasAttempts = state.resendAttempts > 0
+            
+            if (bufferedHasAttempts && !currentHasAttempts) {
+                delay(300)
+                bufferedHasAttempts = false
+                
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                
+                launch {
+                    containerScale.animateTo(1.05f, spring(dampingRatio = Spring.DampingRatioLowBouncy))
+                    containerScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+                }
+                launch {
+                    repeat(2) {
+                        glowAlpha.animateTo(0.6f, tween(300))
+                        glowAlpha.animateTo(0f, tween(300))
+                    }
+                }
+                launch {
+                    delay(200)
+                    iconScale.animateTo(1.4f, spring(dampingRatio = Spring.DampingRatioLowBouncy))
+                    iconScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+                }
+            } else {
+                bufferedHasAttempts = currentHasAttempts
+            }
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -250,59 +301,101 @@ fun ElectronicInvoiceOtpContent(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 AnimateElectronicOtpItem(index = 3) {
+                    val backgroundColor by animateColorAsState(
+                        targetValue = if (bufferedHasAttempts) Color(0xFFE3F2FD) else Color(0xFFFFEBEE),
+                        animationSpec = tween(600),
+                        label = "background"
+                    )
+                    val iconColor by animateColorAsState(
+                        targetValue = if (bufferedHasAttempts) Color(0xFF455A64) else Color(0xFFC62828),
+                        animationSpec = tween(600),
+                        label = "icon"
+                    )
+
                     Surface(
-                        color = if (hasAttempts) Color(0xFFE3F2FD) else Color(0xFFFFEBEE),
+                        color = backgroundColor,
                         shape = RoundedCornerShape(
                             topStart = 0.dp,
                             topEnd = 16.dp,
                             bottomEnd = 16.dp,
                             bottomStart = 16.dp
                         ),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .graphicsLayer {
+                                scaleX = containerScale.value
+                                scaleY = containerScale.value
+                            }
+                            .border(
+                                width = 2.dp,
+                                color = Color(0xFFC62828).copy(alpha = glowAlpha.value),
+                                shape = RoundedCornerShape(
+                                    topStart = 0.dp,
+                                    topEnd = 16.dp,
+                                    bottomEnd = 16.dp,
+                                    bottomStart = 16.dp
+                                )
+                            )
+                            .animateContentSize()
                     ) {
                         Row(
                             modifier = Modifier.padding(16.dp),
                             verticalAlignment = Alignment.Top
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.Info,
+                                imageVector = if (bufferedHasAttempts) Icons.Outlined.Info else Icons.Outlined.ErrorOutline,
                                 contentDescription = null,
-                                tint = if (hasAttempts) Color(0xFF455A64) else Color(0xFFC62828),
-                                modifier = Modifier.size(24.dp)
+                                tint = iconColor,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .graphicsLayer {
+                                        scaleX = iconScale.value
+                                        scaleY = iconScale.value
+                                    }
                             )
                             Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.otp_not_received_title),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp,
-                                    color = if (hasAttempts) Color(0xFF263238) else Color(0xFFB71C1C),
-                                    fontFamily = IberPangeaFamily
-                                )
-                                Text(
-                                    text = if (hasAttempts)
-                                        stringResource(R.string.otp_not_received_desc, state.resendAttempts)
-                                    else
-                                        stringResource(R.string.otp_no_attempts_left),
-                                    fontSize = 12.sp,
-                                    lineHeight = 18.sp,
-                                    color = if (hasAttempts) Color(0xFF455A64) else Color(0xFFD32F2F),
-                                    modifier = Modifier.padding(top = 4.dp),
-                                    fontFamily = IberPangeaFamily
-                                )
-                                if (hasAttempts) {
+                            
+                            AnimatedContent(
+                                targetState = bufferedHasAttempts,
+                                transitionSpec = {
+                                    (fadeIn(tween(400)) + scaleIn(initialScale = 0.8f))
+                                        .togetherWith(fadeOut(tween(300)) + scaleOut(targetScale = 0.8f))
+                                },
+                                label = "content"
+                            ) { targetHasAttempts ->
+                                Column {
                                     Text(
-                                        text = stringResource(R.string.otp_resend_link),
-                                        fontSize = 12.sp,
+                                        text = stringResource(R.string.otp_not_received_title),
                                         fontWeight = FontWeight.Bold,
-                                        color = GreenDarkIberdrola,
-                                        textDecoration = TextDecoration.Underline,
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .clickable { events.onResendOtp() }
-                                            .padding(vertical = 2.dp),
+                                        fontSize = 14.sp,
+                                        color = if (targetHasAttempts) Color(0xFF263238) else Color(0xFFB71C1C),
                                         fontFamily = IberPangeaFamily
                                     )
+                                    Text(
+                                        text = if (targetHasAttempts)
+                                            stringResource(R.string.otp_not_received_desc, state.resendAttempts)
+                                        else
+                                            stringResource(R.string.otp_no_attempts_left),
+                                        fontSize = 12.sp,
+                                        lineHeight = 18.sp,
+                                        color = if (targetHasAttempts) Color(0xFF455A64) else Color(0xFFD32F2F),
+                                        modifier = Modifier.padding(top = 4.dp),
+                                        fontFamily = IberPangeaFamily
+                                    )
+                                    if (targetHasAttempts) {
+                                        Text(
+                                            text = stringResource(R.string.otp_resend_link),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = GreenDarkIberdrola,
+                                            textDecoration = TextDecoration.Underline,
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .clickable { events.onResendOtp() }
+                                                .padding(vertical = 2.dp),
+                                            fontFamily = IberPangeaFamily
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -339,6 +432,7 @@ fun SimulatedNotification(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
             .clickable { onDismiss() },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = GreenIberdrola),
