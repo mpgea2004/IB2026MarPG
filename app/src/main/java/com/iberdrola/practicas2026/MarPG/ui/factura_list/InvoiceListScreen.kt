@@ -476,7 +476,6 @@ fun InvoiceListHeader(
     }
 }
 
-/** Contenido scrolleable: última factura, cabecera fija e histórico */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun InvoiceListContent(
@@ -496,8 +495,7 @@ fun InvoiceListContent(
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding(),
+            .fillMaxSize(),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         lastInvoice?.let {

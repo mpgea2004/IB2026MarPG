@@ -62,6 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType.Companion.LongPress
@@ -183,75 +184,89 @@ fun HomeContent(
     currentUserName:String
 ) {
     Scaffold(
-        containerColor = Color(0xFFF7F9F8)
+        containerColor = Color.Transparent
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState())
+                .background(
+                    brush = Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to Color(0xFFF7F9F8),
+                            0.6f to Color(0xFFF7F9F8),
+                            1.0f to Color.White
+                        )
+                    )
+                )
         ) {
-            AnimateHomeItem(index = 0) {
-                HomeHeader(
-                    userName = currentUserName,
-                    isProfileComplete = isProfileComplete,
-                    isFullProfileComplete = isFullProfileComplete,
-                    onProfileClick = onNavigateToProfile
-                )
-            }
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            AnimateHomeItem(index = 1) {
-                Column(modifier = Modifier.alpha(if (isProfileComplete) 1f else 0.6f)) {
-                    InvoiceNavigationCard(onClick = onNavigateToInvoices)
-                    Spacer(modifier = Modifier.height(24.dp))
-                    ElectronicInvoiceCard(onClick = onNavigateToElectronicInvoice)
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.height(32.dp))
-
-            AnimateHomeItem(index = 2) {
-                DataSourceConfigSection(
-                    isCloudEnabled = isCloudEnabled,
-                    onToggleCloud = onToggleCloud
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            AnimateHomeItem(index = 3) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onNavigateToFaq() }
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.HelpOutline,
-                        contentDescription = null,
-                        tint = GreenIberdrola,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "¿Necesitas ayuda? Consulta las FAQ",
-                        color = GreenIberdrola,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = IberPangeaFamily,
-                        textDecoration = TextDecoration.Underline
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 24.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                AnimateHomeItem(index = 0) {
+                    HomeHeader(
+                        userName = currentUserName,
+                        isProfileComplete = isProfileComplete,
+                        isFullProfileComplete = isFullProfileComplete,
+                        onProfileClick = onNavigateToProfile
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(48.dp))
+
+                AnimateHomeItem(index = 1) {
+                    Column(modifier = Modifier.alpha(if (isProfileComplete) 1f else 0.6f)) {
+                        InvoiceNavigationCard(onClick = onNavigateToInvoices)
+                        Spacer(modifier = Modifier.height(24.dp))
+                        ElectronicInvoiceCard(onClick = onNavigateToElectronicInvoice)
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(32.dp))
+
+                AnimateHomeItem(index = 2) {
+                    DataSourceConfigSection(
+                        isCloudEnabled = isCloudEnabled,
+                        onToggleCloud = onToggleCloud
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                AnimateHomeItem(index = 3) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onNavigateToFaq() }
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.HelpOutline,
+                            contentDescription = null,
+                            tint = GreenIberdrola,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "¿Necesitas ayuda? Consulta las FAQ",
+                            color = GreenIberdrola,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = IberPangeaFamily,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
         if (isSheetVisible) {
             FeedbackBottomSheet(

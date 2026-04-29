@@ -32,6 +32,18 @@ class InvoiceDetailViewModel @Inject constructor(
     var state by mutableStateOf(InvoiceDetailState())
         private set
 
+    init {
+        observeAmountVisibility()
+    }
+
+    private fun observeAmountVisibility() {
+        viewModelScope.launch {
+            userPrefs.amountVisibleFlow.collect { visible ->
+                state = state.copy(isAmountVisible = visible)
+            }
+        }
+    }
+
     fun loadInvoice(id: String) {
         if (state.isLoading || state.invoice?.id == id) return
 
@@ -148,6 +160,12 @@ class InvoiceDetailViewModel @Inject constructor(
                 delay(5000)
                 state = state.copy(paymentError = false)
             }
+        }
+    }
+
+    fun toggleAmountVisibility() {
+        viewModelScope.launch {
+            userPrefs.updateAmountVisibility(!state.isAmountVisible)
         }
     }
 }

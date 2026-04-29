@@ -16,5 +16,6 @@ data class InvoiceDetailState(
     val showOverdueDialog: Boolean = false,
     val payPasswordInput: String = "",
     val payPasswordError: Boolean = false,
-    val isOverdue: Boolean = false
+    val isOverdue: Boolean = false,
+    val isAmountVisible: Boolean = true
 )

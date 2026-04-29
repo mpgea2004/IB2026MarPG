@@ -91,11 +91,20 @@ class InvoiceListViewModel @Inject constructor(
         loadInvoices()
         observeFeedback()
         observeUserProfile()
+        observeAmountVisibility()
     }
     private fun observeUserProfile() {
         viewModelScope.launch {
             userPrefs.userProfileFlow.collect { profile ->
                 userAddress = profile.address
+            }
+        }
+    }
+
+    private fun observeAmountVisibility() {
+        viewModelScope.launch {
+            userPrefs.amountVisibleFlow.collect { visible ->
+                isAmountVisible = visible
             }
         }
     }
@@ -338,6 +347,8 @@ class InvoiceListViewModel @Inject constructor(
     }
     
     fun toggleAmountVisibility() {
-        isAmountVisible = !isAmountVisible
+        viewModelScope.launch {
+            userPrefs.updateAmountVisibility(!isAmountVisible)
+        }
     }
 }

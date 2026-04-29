@@ -1,4 +1,4 @@
-package com.iberdrola.practicas2026.MarPG.ui.factura_list
+package com.iberdrola.practicas2026.MarPG.ui.components.list
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +27,7 @@ fun LoadingScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(WhiteApp), // Fondo blanco para que no sea transparente
+            .background(WhiteApp),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -36,7 +36,7 @@ fun LoadingScreen(
         ) {
             CircularProgressIndicator(
                 color = color,
-                strokeWidth = 4.dp // Un poco más grueso para que se vea premium
+                strokeWidth = 4.dp
             )
 
             Spacer(modifier = Modifier.height(16.dp))

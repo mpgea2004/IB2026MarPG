@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -152,7 +153,8 @@ fun InvoiceDetailScreen(
         onPasswordChange = { viewModel.onPasswordChange(it) },
         onDismissPasswordDialog = { viewModel.dismissPasswordDialog() },
         onDismissOverdueDialog = { viewModel.dismissOverdueDialog() },
-        onDismissPdf = { viewModel.dismissPdfViewer() }
+        onDismissPdf = { viewModel.dismissPdfViewer() },
+        onToggleAmountVisibility = { viewModel.toggleAmountVisibility() }
     )
 
     InvoiceDetailContent(
@@ -171,6 +173,7 @@ fun InvoiceDetailContent(
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val downloadTooltipState = rememberTooltipState(isPersistent = false)
+    val visibilityTooltipState = rememberTooltipState(isPersistent = false)
     val copyTooltipState = rememberTooltipState(isPersistent = false)
     val scope = rememberCoroutineScope()
 
@@ -317,51 +320,91 @@ fun InvoiceDetailContent(
                             color = Color.Black,
                         )
                         
-                        Box(
-                            modifier = Modifier.size(48.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (state.isDownloadingPdf) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    color = GreenIberdrola,
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                TooltipBox(
-                                    positionProvider = rememberPlainTooltipPositionProvider(),
-                                    tooltip = {
-                                        Surface(
-                                            color = Color.DarkGray,
-                                            shape = RoundedCornerShape(4.dp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            TooltipBox(
+                                positionProvider = rememberPlainTooltipPositionProvider(),
+                                tooltip = {
+                                    Surface(
+                                        color = Color.DarkGray,
+                                        shape = RoundedCornerShape(4.dp)
+                                    ) {
+                                        Text(
+                                            text = if (state.isAmountVisible) "Ocultar importes" else "Mostrar importes",
+                                            color = Color.White,
+                                            modifier = Modifier.padding(8.dp),
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                },
+                                state = visibilityTooltipState
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(CircleShape)
+                                        .combinedClickable(
+                                            onClick = events.onToggleAmountVisibility,
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                scope.launch { visibilityTooltipState.show() }
+                                            }
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = if (state.isAmountVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = "Cambiar visibilidad",
+                                        tint = GreenIberdrola
+                                    )
+                                }
+                            }
+
+                            Box(
+                                modifier = Modifier.size(48.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (state.isDownloadingPdf) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = GreenIberdrola,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    TooltipBox(
+                                        positionProvider = rememberPlainTooltipPositionProvider(),
+                                        tooltip = {
+                                            Surface(
+                                                color = Color.DarkGray,
+                                                shape = RoundedCornerShape(4.dp)
+                                            ) {
+                                                Text(
+                                                    text = "Descargar factura",
+                                                    color = Color.White,
+                                                    modifier = Modifier.padding(8.dp),
+                                                    fontSize = 12.sp
+                                                )
+                                            }
+                                        },
+                                        state = downloadTooltipState
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .clip(CircleShape)
+                                                .combinedClickable(
+                                                    onClick = { events.onDownloadPdf() },
+                                                    onLongClick = {
+                                                        scope.launch { downloadTooltipState.show() }
+                                                    }
+                                                ),
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            Text(
-                                                text = "Descargar factura",
-                                                color = Color.White,
-                                                modifier = Modifier.padding(8.dp),
-                                                fontSize = 12.sp
+                                            Icon(
+                                                imageVector = Icons.Outlined.CloudDownload,
+                                                contentDescription = "Descargar PDF",
+                                                tint = GreenIberdrola
                                             )
                                         }
-                                    },
-                                    state = downloadTooltipState
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .clip(CircleShape)
-                                            .combinedClickable(
-                                                onClick = { events.onDownloadPdf() },
-                                                onLongClick = {
-                                                    scope.launch { downloadTooltipState.show() }
-                                                }
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.CloudDownload,
-                                            contentDescription = "Descargar PDF",
-                                            tint = GreenIberdrola
-                                        )
                                     }
                                 }
                             }
@@ -373,7 +416,8 @@ fun InvoiceDetailContent(
                     AnimateDetailItemEntrance(index = 0) {
                         InvoiceDetailHeader(
                             amount = invoice.amount,
-                            date = DateMapper.formatToDisplay(invoice.issueDate)
+                            date = DateMapper.formatToDisplay(invoice.issueDate),
+                            isAmountVisible = state.isAmountVisible
                         )
                     }
                 }
@@ -910,7 +954,7 @@ private fun StatusMessage(message: String, color: Color) {
 }
 
 @Composable
-private fun InvoiceDetailHeader(amount: Double, date: String) {
+private fun InvoiceDetailHeader(amount: Double, date: String, isAmountVisible: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -920,12 +964,24 @@ private fun InvoiceDetailHeader(amount: Double, date: String) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = "Importe total", fontFamily = IberPangeaFamily, fontSize = 14.sp, color = TextGrey)
-            Text(
-                text = amount.toAnnotatedCurrencyFormat(42.sp),
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                fontFamily = IberPangeaFamily
-            )
+            
+            if (isAmountVisible) {
+                Text(
+                    text = amount.toAnnotatedCurrencyFormat(42.sp),
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    fontFamily = IberPangeaFamily
+                )
+            } else {
+                Text(
+                    text = "... €",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    fontFamily = IberPangeaFamily,
+                    fontSize = 32.sp
+                )
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
             Surface(color = BackgroundApp, shape = RoundedCornerShape(16.dp)) {
                 Text(
