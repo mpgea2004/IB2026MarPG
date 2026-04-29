@@ -74,6 +74,10 @@ class InvoiceListViewModel @Inject constructor(
         private set
     var searchQuery by mutableStateOf("")
         private set
+    
+    var isAmountVisible by mutableStateOf(true)
+        private set
+
     private var lastMinLimit: Float = 0f
     private var lastMaxLimit: Float = 500f
 
@@ -331,5 +335,9 @@ class InvoiceListViewModel @Inject constructor(
         } catch (e: Exception) {
             true
         }
+    }
+    
+    fun toggleAmountVisibility() {
+        isAmountVisible = !isAmountVisible
     }
 }

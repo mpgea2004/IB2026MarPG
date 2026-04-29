@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -37,6 +38,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
@@ -85,6 +88,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -158,6 +162,7 @@ fun InvoiceListScreen(
     val selectedTab = viewModel.selectedTab
     val errorMessage = viewModel.errorMessage
     val userAddress = viewModel.userAddress
+    val isAmountVisible = viewModel.isAmountVisible
     val context = LocalContext.current
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -224,7 +229,9 @@ fun InvoiceListScreen(
                 errorMessage = errorMessage?.let { stringResource(it) },
                 showErrorBanner = currentState is InvoiceListState.SUCCESS && errorMessage != null,
                 onNavigateToConsumption = handleNavigateToConsumption,
-                isLoading = currentState is InvoiceListState.LOADING
+                isLoading = currentState is InvoiceListState.LOADING,
+                isAmountVisible = isAmountVisible,
+                onToggleAmountVisibility = { viewModel.toggleAmountVisibility() }
             )
         }
 
@@ -233,7 +240,7 @@ fun InvoiceListScreen(
             isRefreshing = viewModel.isRefreshing,
             onRefresh = { viewModel.refreshInvoices() },
             modifier = Modifier
-                .padding(padding) // Scaffold ya incluye los márgenes seguros aquí
+                .padding(padding)
                 .fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ){
@@ -264,6 +271,7 @@ fun InvoiceListScreen(
                             minLimit = viewModel.minInvoiceAmount,
                             maxLimit = viewModel.maxInvoiceAmount,
                             hasFilters = viewModel.hasActiveFilters(),
+                            isAmountVisible = isAmountVisible,
                             events = InvoiceListEvents(
                                 onFilter = {
                                     if (viewModel.getCategoryInvoicesCount() <= 1) {
@@ -287,7 +295,8 @@ fun InvoiceListScreen(
                                 onRemovePrice = { viewModel.removePriceFilter() },
                                 onRemoveSearch = { viewModel.onSearchQueryChange("") },
                                 onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
-                                onNavigateToConsumption = handleNavigateToConsumption
+                                onNavigateToConsumption = handleNavigateToConsumption,
+                                onToggleAmountVisibility = { viewModel.toggleAmountVisibility() }
                             )
                         )
                     }
@@ -307,9 +316,12 @@ fun InvoiceListHeader(
     onTabSelected: (Int) -> Unit,
     onBack: () -> Unit,
     onNavigateToConsumption: () -> Unit,
-    isLoading: Boolean
+    isLoading: Boolean,
+    isAmountVisible: Boolean,
+    onToggleAmountVisibility: () -> Unit
 ){
     val tooltipState = rememberTooltipState(isPersistent = false)
+    val visibilityTooltipState = rememberTooltipState(isPersistent = false)
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
 
@@ -340,47 +352,90 @@ fun InvoiceListHeader(
                     Text(stringResource(R.string.invoice_list_back), color = GreenIberdrola, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)
                 }
 
-                TooltipBox(
-                    positionProvider = rememberPlainTooltipPositionProvider(),
-                    tooltip = {
-                        Surface(
-                            color = Color.DarkGray,
-                            shape = RoundedCornerShape(4.dp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TooltipBox(
+                        positionProvider = rememberPlainTooltipPositionProvider(),
+                        tooltip = {
+                            Surface(
+                                color = Color.DarkGray,
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = if (isAmountVisible) "Ocultar importes" else "Mostrar importes",
+                                    color = Color.White,
+                                    modifier = Modifier.padding(8.dp),
+                                    fontSize = 12.sp
+                                )
+                            }
+                        },
+                        state = visibilityTooltipState
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 8.dp, end = 8.dp)
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(GreenIberdrola.copy(alpha = 0.1f))
+                                .combinedClickable(
+                                    onClick = onToggleAmountVisibility,
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(LongPress)
+                                        scope.launch { visibilityTooltipState.show() }
+                                    }
+                                ),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "Ver consumo",
-                                color = Color.White,
-                                modifier = Modifier.padding(8.dp),
-                                fontSize = 12.sp
+                            Icon(
+                                imageVector = if (isAmountVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                contentDescription = "Cambiar visibilidad",
+                                tint = GreenIberdrola,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
-                    },
-                    state = tooltipState
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 8.dp)
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (isLoading) Color.LightGray.copy(alpha = 0.1f) else GreenIberdrola.copy(alpha = 0.1f)
-                            )
-                            .combinedClickable(
-                                enabled = !isLoading,
-                                onClick = onNavigateToConsumption,
-                                onLongClick = {
-                                    haptic.performHapticFeedback(LongPress)
-                                    scope.launch { tooltipState.show() }
-                                }
-                            ),
-                        contentAlignment = Alignment.Center
+                    }
+
+                    TooltipBox(
+                        positionProvider = rememberPlainTooltipPositionProvider(),
+                        tooltip = {
+                            Surface(
+                                color = Color.DarkGray,
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = "Ver consumo",
+                                    color = Color.White,
+                                    modifier = Modifier.padding(8.dp),
+                                    fontSize = 12.sp
+                                )
+                            }
+                        },
+                        state = tooltipState
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.BarChart,
-                            contentDescription = "Ver consumo",
-                            tint = if (isLoading) Color.Gray else GreenIberdrola,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (isLoading) Color.LightGray.copy(alpha = 0.1f) else GreenIberdrola.copy(alpha = 0.1f)
+                                )
+                                .combinedClickable(
+                                    enabled = !isLoading,
+                                    onClick = onNavigateToConsumption,
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(LongPress)
+                                        scope.launch { tooltipState.show() }
+                                    }
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.BarChart,
+                                contentDescription = "Ver consumo",
+                                tint = if (isLoading) Color.Gray else GreenIberdrola,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -433,19 +488,22 @@ fun InvoiceListContent(
     minLimit: Float,
     maxLimit: Float,
     hasFilters: Boolean,
+    isAmountVisible: Boolean,
     events: InvoiceListEvents
 ) {
     val searchTooltipState = rememberTooltipState(isPersistent = false)
     val scope = rememberCoroutineScope()
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding(),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         lastInvoice?.let {
             item {
                 AnimateItemEntrance(index = 0) {
-                    LastInvoiceItem(it, onClick = { events.onDetail(it) })
+                    LastInvoiceItem(it, isAmountVisible = isAmountVisible, onClick = { events.onDetail(it) })
                 }
             }
         }
@@ -618,7 +676,7 @@ fun InvoiceListContent(
                 itemsIndexed(invoicesOfYear) { index, invoice ->
                     AnimateItemEntrance(index = globalIndex++) {
                         Column {
-                            InvoiceHistoricalItem(invoice = invoice, onClick = { events.onDetail(invoice) })
+                            InvoiceHistoricalItem(invoice = invoice, isAmountVisible = isAmountVisible, onClick = { events.onDetail(invoice) })
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 thickness = 0.5.dp,
@@ -757,7 +815,7 @@ fun SortChip(
     val haptic = LocalHapticFeedback.current
 
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = rememberPlainTooltipPositionProvider(),
         tooltip = {
             Surface(
                 color = Color.DarkGray,
@@ -806,7 +864,7 @@ fun SortChip(
 
 /** Tarjeta destacada para la factura más reciente, esta también se ve afectada por el filtrado */
 @Composable
-fun LastInvoiceItem(invoice: Invoice, onClick: () -> Unit) {
+fun LastInvoiceItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> Unit) {
 
     val startDateFormatted = formatToShortDisplay(invoice.startDate)
     val endDateFormatted = formatToShortDisplay(invoice.endDate)
@@ -848,7 +906,24 @@ fun LastInvoiceItem(invoice: Invoice, onClick: () -> Unit) {
                     modifier = Modifier.size(32.dp)
                 )
             }
-            Text(text = invoice.amount.toAnnotatedCurrencyFormat(28.sp), fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 8.dp),fontFamily = IberPangeaFamily)
+            
+            if (isAmountVisible) {
+                Text(
+                    text = invoice.amount.toAnnotatedCurrencyFormat(28.sp),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    fontFamily = IberPangeaFamily
+                )
+            } else {
+                Text(
+                    text = "... €",
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    fontFamily = IberPangeaFamily,
+                    fontSize = 24.sp
+                )
+            }
+
             Text(
                 text = stringResource(R.string.invoice_list_last_invoice_date_range, startDateFormatted, endDateFormatted),
                 color = TextGrey,
@@ -867,7 +942,7 @@ fun LastInvoiceItem(invoice: Invoice, onClick: () -> Unit) {
 
 /** Fila individual del histórico de facturas */
 @Composable
-fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
+fun InvoiceHistoricalItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> Unit) {
     val dateDisplay = DateMapper.formatToDisplay(invoice.issueDate)
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -889,12 +964,22 @@ fun InvoiceHistoricalItem(invoice: Invoice, onClick: () -> Unit) {
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = invoice.amount.toAnnotatedCurrencyFormat(14.sp, 14.sp),
-                    color = TextGrey,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = IberPangeaFamily
-                )
+                if (isAmountVisible) {
+                    Text(
+                        text = invoice.amount.toAnnotatedCurrencyFormat(14.sp, 14.sp),
+                        color = TextGrey,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = IberPangeaFamily
+                    )
+                } else {
+                    Text(
+                        text = "... €",
+                        color = TextGrey,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = IberPangeaFamily,
+                        fontSize = 14.sp
+                    )
+                }
                 Icon(
                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = null,
@@ -962,7 +1047,9 @@ fun InvoiceListScreenPreview() {
                     onBack = {},
                     address = "Calle falsa 123",
                     onNavigateToConsumption = {},
-                    isLoading = false
+                    isLoading = false,
+                    isAmountVisible = true,
+                    onToggleAmountVisibility = {}
                 )
             }
         ){ padding ->
@@ -976,6 +1063,7 @@ fun InvoiceListScreenPreview() {
                     searchQuery = "",
                     minLimit = 0f,
                     maxLimit = 500f,
+                    isAmountVisible = true,
                     events = InvoiceListEvents(
                         onFilter = {},
                         onDetail = {},
@@ -1007,7 +1095,9 @@ fun InvoiceListNoDataPreview() {
                     onBack = {},
                     address = "Sin dirección",
                     onNavigateToConsumption = {},
-                    isLoading = false
+                    isLoading = false,
+                    isAmountVisible = true,
+                    onToggleAmountVisibility = {}
                 )
             }
         ) { padding ->

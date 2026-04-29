@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +34,8 @@ fun ShimmerFilter(
         modifier = modifier
             .fillMaxSize()
             .background(WhiteApp)
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .padding(horizontal = 24.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -50,20 +54,20 @@ fun ShimmerFilter(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(60.dp, 12.dp).clip(RoundedCornerShape(2.dp)).background(brush))
                     Spacer(modifier = Modifier.weight(1f))
-                    Box(modifier = Modifier.size(24.dp).clip(RoundedCornerShape(4.dp)).background(brush)) // Icono calendario
+                    Box(modifier = Modifier.size(24.dp).clip(RoundedCornerShape(4.dp)).background(brush))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Box(modifier = Modifier.fillMaxWidth().height(2.dp).alpha(0.3f).background(brush)) // Línea
+                Box(modifier = Modifier.fillMaxWidth().height(2.dp).alpha(0.3f).background(brush))
             }
             Spacer(modifier = Modifier.width(24.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(60.dp, 12.dp).clip(RoundedCornerShape(2.dp)).background(brush))
                     Spacer(modifier = Modifier.weight(1f))
-                    Box(modifier = Modifier.size(24.dp).clip(RoundedCornerShape(4.dp)).background(brush)) // Icono calendario
+                    Box(modifier = Modifier.size(24.dp).clip(RoundedCornerShape(4.dp)).background(brush))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Box(modifier = Modifier.fillMaxWidth().height(2.dp).alpha(0.3f).background(brush)) // Línea
+                Box(modifier = Modifier.fillMaxWidth().height(2.dp).alpha(0.3f).background(brush))
             }
         }
 
