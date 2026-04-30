@@ -93,6 +93,12 @@ class InvoiceListViewModel @Inject constructor(
     val maxInvoiceAmount: Float
         get() = allInvoices.maxOfOrNull { it.amount.toFloat() }?.let { ceil(it) } ?: 500f
 
+    val minInvoiceDate: String?
+        get() = allInvoices.minByOrNull { DateMapper.toLocalDate(it.issueDate) }?.issueDate
+
+    val maxInvoiceDate: String?
+        get() = allInvoices.maxByOrNull { DateMapper.toLocalDate(it.issueDate) }?.issueDate
+
     init {
         loadInvoices()
         observeFeedback()
@@ -182,9 +188,9 @@ class InvoiceListViewModel @Inject constructor(
     fun onSearchQueryChange(query: String) {
         searchQuery = query
         updateFilteredInvoices()
-        if (query.isNotEmpty()) {
+        if (hasActiveFilters()) {
             shouldScrollToHistoric = true
-        } else if (!hasActiveFilters()) {
+        } else {
             shouldScrollToTop = true
         }
     }
@@ -300,7 +306,7 @@ class InvoiceListViewModel @Inject constructor(
         val newStatuses = currentFilterState.selectedStatuses - status
         currentFilterState = currentFilterState.copy(selectedStatuses = newStatuses)
         updateFilteredInvoices()
-        if (hasActiveFilters() || searchQuery.isNotEmpty()) {
+        if (hasActiveFilters()) {
             shouldScrollToHistoric = true
         } else {
             shouldScrollToTop = true
@@ -310,7 +316,7 @@ class InvoiceListViewModel @Inject constructor(
     fun removeDateFilter() {
         currentFilterState = currentFilterState.copy(dateFrom = "", dateTo = "")
         updateFilteredInvoices()
-        if (hasActiveFilters() || searchQuery.isNotEmpty()) {
+        if (hasActiveFilters()) {
             shouldScrollToHistoric = true
         } else {
             shouldScrollToTop = true
@@ -323,7 +329,7 @@ class InvoiceListViewModel @Inject constructor(
             maxPrice = maxInvoiceAmount
         )
         updateFilteredInvoices()
-        if (hasActiveFilters() || searchQuery.isNotEmpty()) {
+        if (hasActiveFilters()) {
             shouldScrollToHistoric = true
         } else {
             shouldScrollToTop = true

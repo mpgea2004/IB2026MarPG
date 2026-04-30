@@ -383,8 +383,11 @@ fun InvoiceListHeader(
                                 .padding(top = 8.dp, end = 8.dp)
                                 .size(40.dp)
                                 .clip(CircleShape)
-                                .background(GreenIberdrola.copy(alpha = 0.1f))
+                                .background(
+                                    if (isLoading) Color.LightGray.copy(alpha = 0.1f) else GreenIberdrola.copy(alpha = 0.1f)
+                                )
                                 .combinedClickable(
+                                    enabled = !isLoading,
                                     onClick = onToggleAmountVisibility,
                                     onLongClick = {
                                         haptic.performHapticFeedback(LongPress)
@@ -396,7 +399,7 @@ fun InvoiceListHeader(
                             Icon(
                                 imageVector = if (isAmountVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = stringResource(R.string.invoice_list_change_visibility),
-                                tint = GreenIberdrola,
+                                tint = if (isLoading) Color.Gray else GreenIberdrola,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -508,7 +511,7 @@ fun InvoiceListContent(
 
     LaunchedEffect(shouldScrollToHistoric) {
         if (shouldScrollToHistoric) {
-            delay(300) 
+            delay(150) 
             listState.animateScrollToItem(index = 1)
             onScrollHandled()
         }
@@ -516,7 +519,7 @@ fun InvoiceListContent(
 
     LaunchedEffect(shouldScrollToTop) {
         if (shouldScrollToTop) {
-            delay(300)
+            delay(150)
             listState.animateScrollToItem(index = 0)
             onScrollToTopHandled()
         }

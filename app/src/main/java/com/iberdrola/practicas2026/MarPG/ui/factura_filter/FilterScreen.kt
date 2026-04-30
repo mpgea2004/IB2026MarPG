@@ -70,6 +70,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -128,7 +129,9 @@ fun FilterScreen(
                 state = state,
                 events = events,
                 minLimit = listViewModel.minInvoiceAmount,
-                maxLimit = listViewModel.maxInvoiceAmount
+                maxLimit = listViewModel.maxInvoiceAmount,
+                minDateLimit = listViewModel.minInvoiceDate,
+                maxDateLimit = listViewModel.maxInvoiceDate
             )
         }
     }
@@ -179,14 +182,17 @@ fun FilterContent(
     state: FilterState,
     events: FilterEvents,
     minLimit: Float = 0f,
-    maxLimit: Float = 500f
+    maxLimit: Float = 500f,
+    minDateLimit: String? = null,
+    maxDateLimit: String? = null
 ) {
     var showFromPicker by remember { mutableStateOf(false) }
     var showToPicker by remember { mutableStateOf(false) }
 
     if (showFromPicker) {
         MyDatePickerDialog(
-            maxDateStr = state.dateTo,
+            minDateStr = minDateLimit,
+            maxDateStr = state.dateTo.ifEmpty { maxDateLimit },
             onDateSelected = { 
                 events.onDateFromChange(it)
                 showFromPicker = false
@@ -197,7 +203,8 @@ fun FilterContent(
 
     if (showToPicker) {
         MyDatePickerDialog(
-            minDateStr = state.dateFrom,
+            minDateStr = state.dateFrom.ifEmpty { minDateLimit },
+            maxDateStr = maxDateLimit,
             onDateSelected = { 
                 events.onDateToChange(it)
                 showToPicker = false
@@ -324,7 +331,22 @@ fun MyDatePickerDialog(
         } else null
     }
 
+    val yearRange = remember(minDateMillis, maxDateMillis) {
+        val calendar = Calendar.getInstance()
+        val startYear = minDateMillis?.let {
+            calendar.timeInMillis = it
+            calendar.get(Calendar.YEAR)
+        } ?: 2000
+        val endYear = maxDateMillis?.let {
+            calendar.timeInMillis = it
+            calendar.get(Calendar.YEAR)
+        } ?: 2030
+        startYear..endYear
+    }
+
     val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = minDateMillis,
+        yearRange = yearRange,
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
                 val isAfterMin = minDateMillis == null || utcTimeMillis >= minDateMillis

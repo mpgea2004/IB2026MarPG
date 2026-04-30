@@ -968,14 +968,14 @@ private fun InvoiceDetailHeader(amount: Double, date: String, isAmountVisible: B
             
             if (isAmountVisible) {
                 Text(
-                    text = amount.toAnnotatedCurrencyFormat(42.sp),
+                    text = amount.toAnnotatedCurrencyFormat(32.sp),
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     fontFamily = IberPangeaFamily
                 )
             } else {
                 Text(
-                    text = getHiddenAmountAnnotatedString(42.sp),
+                    text = getHiddenAmountAnnotatedString(32.sp),
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     fontFamily = IberPangeaFamily
