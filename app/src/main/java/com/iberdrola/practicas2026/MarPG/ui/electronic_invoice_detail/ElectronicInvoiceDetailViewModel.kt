@@ -105,7 +105,6 @@ class ElectronicInvoiceViewModel @Inject constructor(
         viewModelScope.launch {
             state = state.copy(isLoading = true, error = null)
             try {
-                // Añadimos un delay para que la pantalla de carga sea visible
                 delay(2500)
                 
                 val updatedContract = contract.copy(
@@ -219,8 +218,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
                     otpInput = "",
                     simulatedOtpCode = ""
                 )
-                // Aumentamos el tiempo de carga al reenviar el código
-                delay(3000)
+                delay(2000)
                 state = state.copy(isLoading = false, showResendSuccess = true)
                 startOtpSimulation()
             }

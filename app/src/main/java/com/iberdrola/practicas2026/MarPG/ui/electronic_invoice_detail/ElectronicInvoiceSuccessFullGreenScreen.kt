@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
 
@@ -94,7 +95,7 @@ fun ElectronicInvoiceSuccessFullGreenContent(
     }
 
     Scaffold(
-        containerColor = GreenDarkIberdrola,
+        containerColor = GreenIberdrola,
         bottomBar = {
             AnimateSuccessItem(index = 3) {
                 Box(modifier = Modifier.navigationBarsPadding()) {
