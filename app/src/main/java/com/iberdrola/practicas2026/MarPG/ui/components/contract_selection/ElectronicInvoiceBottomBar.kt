@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -45,7 +46,7 @@ fun ElectronicInvoiceBottomBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(WhiteApp)
-            .navigationBarsPadding().padding(bottom = 44.dp)
+            .navigationBarsPadding()
     ) {
 
         AnimatedVisibility(
@@ -56,7 +57,7 @@ fun ElectronicInvoiceBottomBar(
             ResendSuccessBanner(onClose = onCloseBanner)
         }
 
-        HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
+        HorizontalDivider(thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.3f))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -92,5 +93,8 @@ fun ElectronicInvoiceBottomBar(
                 Text(nextText, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
             }
         }
+        Spacer(modifier = Modifier.height(44.dp))
+
+        HorizontalDivider(thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.3f))
     }
 }
