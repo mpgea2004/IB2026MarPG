@@ -61,9 +61,22 @@ fun PriceRangeSection(
         RangeSlider(
             value = minPrice..maxPrice,
             onValueChange = { range ->
-                val startValue = if (range.start < minLimit + 0.1f) minLimit else range.start
-                val endValue = if (range.endInclusive > maxLimit - 0.1f) maxLimit else range.endInclusive
-                onRangeChange(startValue, endValue)
+                val minDistance = 1f
+                var newStart = range.start
+                var newEnd = range.endInclusive
+
+                if (newEnd - newStart < minDistance) {
+                    if (newStart != minPrice) {
+                        newStart = newEnd - minDistance
+                    } else {
+                        newEnd = newStart + minDistance
+                    }
+                }
+                
+                onRangeChange(
+                    newStart.coerceIn(minLimit, maxLimit),
+                    newEnd.coerceIn(minLimit, maxLimit)
+                )
             },
             valueRange = minLimit..maxLimit,
             steps = 0,
