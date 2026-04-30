@@ -22,15 +22,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -49,8 +50,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -66,7 +65,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TooltipDefaults.rememberPlainTooltipPositionProvider
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberTooltipState
@@ -88,7 +86,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -103,7 +100,6 @@ import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper.formatToShortDi
 import com.iberdrola.practicas2026.MarPG.ui.components.ErrorBanner
 import com.iberdrola.practicas2026.MarPG.ui.components.FilterEmptyState
 import com.iberdrola.practicas2026.MarPG.ui.components.InvoiceEmptyState
-import com.iberdrola.practicas2026.MarPG.ui.components.InvoiceNotAvailableDialog
 import com.iberdrola.practicas2026.MarPG.ui.components.ShimmerInvoiceList
 import com.iberdrola.practicas2026.MarPG.ui.components.list.FilterButton
 import com.iberdrola.practicas2026.MarPG.ui.components.list.InvoiceTabItem
@@ -249,6 +245,8 @@ fun InvoiceListScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ){
+            val listState = rememberLazyListState()
+            
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
@@ -277,6 +275,11 @@ fun InvoiceListScreen(
                             maxLimit = viewModel.maxInvoiceAmount,
                             hasFilters = viewModel.hasActiveFilters(),
                             isAmountVisible = isAmountVisible,
+                            listState = listState,
+                            shouldScrollToHistoric = viewModel.shouldScrollToHistoric,
+                            shouldScrollToTop = viewModel.shouldScrollToTop,
+                            onScrollHandled = { viewModel.onScrollHandled() },
+                            onScrollToTopHandled = { viewModel.onScrollToTopHandled() },
                             events = InvoiceListEvents(
                                 onFilter = {
                                     if (viewModel.getCategoryInvoicesCount() <= 1) {
@@ -493,12 +496,34 @@ fun InvoiceListContent(
     maxLimit: Float,
     hasFilters: Boolean,
     isAmountVisible: Boolean,
+    listState: LazyListState,
+    shouldScrollToHistoric: Boolean,
+    shouldScrollToTop: Boolean,
+    onScrollHandled: () -> Unit,
+    onScrollToTopHandled: () -> Unit,
     events: InvoiceListEvents
 ) {
     val searchTooltipState = rememberTooltipState(isPersistent = false)
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(shouldScrollToHistoric) {
+        if (shouldScrollToHistoric) {
+            delay(300) 
+            listState.animateScrollToItem(index = 1)
+            onScrollHandled()
+        }
+    }
+
+    LaunchedEffect(shouldScrollToTop) {
+        if (shouldScrollToTop) {
+            delay(300)
+            listState.animateScrollToItem(index = 0)
+            onScrollToTopHandled()
+        }
+    }
+
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize(),
         contentPadding = PaddingValues(bottom = 16.dp)
@@ -1065,6 +1090,11 @@ fun InvoiceListScreenPreview() {
                     minLimit = 0f,
                     maxLimit = 500f,
                     isAmountVisible = true,
+                    listState = rememberLazyListState(),
+                    shouldScrollToHistoric = false,
+                    shouldScrollToTop = false,
+                    onScrollHandled = {},
+                    onScrollToTopHandled = {},
                     events = InvoiceListEvents(
                         onFilter = {},
                         onDetail = {},

@@ -78,6 +78,12 @@ class InvoiceListViewModel @Inject constructor(
     var isAmountVisible by mutableStateOf(true)
         private set
 
+    var shouldScrollToHistoric by mutableStateOf(false)
+        private set
+
+    var shouldScrollToTop by mutableStateOf(false)
+        private set
+
     private var lastMinLimit: Float = 0f
     private var lastMaxLimit: Float = 500f
 
@@ -176,6 +182,11 @@ class InvoiceListViewModel @Inject constructor(
     fun onSearchQueryChange(query: String) {
         searchQuery = query
         updateFilteredInvoices()
+        if (query.isNotEmpty()) {
+            shouldScrollToHistoric = true
+        } else if (!hasActiveFilters()) {
+            shouldScrollToTop = true
+        }
     }
 
     private fun updateFilteredInvoices() {
@@ -259,6 +270,11 @@ class InvoiceListViewModel @Inject constructor(
     fun applyFilters(newFilters: FilterState) {
         currentFilterState = newFilters
         updateFilteredInvoices()
+        if (hasActiveFilters()) {
+            shouldScrollToHistoric = true
+        } else {
+            shouldScrollToTop = true
+        }
     }
 
     fun setSortOption(option: SortOption) {
@@ -277,17 +293,28 @@ class InvoiceListViewModel @Inject constructor(
         )
         searchQuery = ""
         updateFilteredInvoices()
+        shouldScrollToTop = true
     }
 
     fun removeStatusFilter(status: String) {
         val newStatuses = currentFilterState.selectedStatuses - status
         currentFilterState = currentFilterState.copy(selectedStatuses = newStatuses)
         updateFilteredInvoices()
+        if (hasActiveFilters() || searchQuery.isNotEmpty()) {
+            shouldScrollToHistoric = true
+        } else {
+            shouldScrollToTop = true
+        }
     }
 
     fun removeDateFilter() {
         currentFilterState = currentFilterState.copy(dateFrom = "", dateTo = "")
         updateFilteredInvoices()
+        if (hasActiveFilters() || searchQuery.isNotEmpty()) {
+            shouldScrollToHistoric = true
+        } else {
+            shouldScrollToTop = true
+        }
     }
 
     fun removePriceFilter() {
@@ -296,6 +323,19 @@ class InvoiceListViewModel @Inject constructor(
             maxPrice = maxInvoiceAmount
         )
         updateFilteredInvoices()
+        if (hasActiveFilters() || searchQuery.isNotEmpty()) {
+            shouldScrollToHistoric = true
+        } else {
+            shouldScrollToTop = true
+        }
+    }
+
+    fun onScrollHandled() {
+        shouldScrollToHistoric = false
+    }
+
+    fun onScrollToTopHandled() {
+        shouldScrollToTop = false
     }
 
     fun hasActiveFilters(): Boolean {
