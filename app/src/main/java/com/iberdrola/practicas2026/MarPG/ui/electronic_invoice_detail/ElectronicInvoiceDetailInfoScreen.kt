@@ -154,16 +154,16 @@ fun ElectronicInvoiceDetailInfoScreen(
         AlertDialog(
             onDismissRequest = { viewModel.closeAddressDialog() },
             icon = { Icon(imageVector = Icons.Outlined.Info, contentDescription = null, tint = GreenDarkIberdrola, modifier = Modifier.size(32.dp)) },
-            title = { Text(text = "Dirección de envío", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = GreenDarkIberdrola) },
+            title = { Text(text = stringResource(R.string.electronic_invoice_address_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = GreenDarkIberdrola) },
             text = {
                 Column {
-                    Text(text = "No tienes una dirección en tu cuenta, introduce la dirección donde deseas recibir tus facturas en papel y confirma con tu contraseña:", style = MaterialTheme.typography.bodyMedium, color = Color.Black)
+                    Text(text = stringResource(R.string.electronic_invoice_no_address_message), style = MaterialTheme.typography.bodyMedium, color = Color.Black)
                     Spacer(modifier = Modifier.height(16.dp))
                     TextField(
                         value = state.newAddressInput,
                         onValueChange = { viewModel.onNewAddressChanged(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Dirección completa", fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.electronic_invoice_address_placeholder), fontSize = 14.sp) },
                         colors = TextFieldDefaults.colors(
                             focusedTextColor = Color.Black  ,
                             unfocusedTextColor = if (state.newAddressInput.isEmpty()) Color.Gray else Color.Black,
@@ -221,7 +221,7 @@ fun ElectronicInvoiceDetailInfoScreen(
                     onClick = { viewModel.onDeactivateWithAddress(state.newAddressInput) },
                     enabled = state.newAddressInput.isNotEmpty() && state.passwordInput.isNotEmpty() && !state.isLoading
                 ) {
-                    Text("Confirmar", color = GreenDarkIberdrola, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.common_confirm), color = GreenDarkIberdrola, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {

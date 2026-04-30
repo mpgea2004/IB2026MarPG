@@ -17,16 +17,7 @@ class HomeViewModel @Inject constructor(
     private val userPrefs: UserPreferencesRepository
 ) : ViewModel() {
 
-    var isSheetVisible by mutableStateOf(false)
-        private set
-
-    var userName by mutableStateOf("")
-        private set
-
-    var isProfileComplete by mutableStateOf(false)
-        private set
-
-    var isFullProfileComplete by mutableStateOf(false)
+    var state by mutableStateOf(HomeState())
         private set
 
     init {
@@ -37,26 +28,33 @@ class HomeViewModel @Inject constructor(
     private fun observeUserProfile() {
         viewModelScope.launch {
             userPrefs.userProfileFlow.collect { profile ->
-                userName = profile.name.ifEmpty { "Usuario" }
-                isProfileComplete = profile.name.isNotEmpty() &&
+                val isProfileComplete = profile.name.isNotEmpty() &&
                         profile.email.isNotEmpty() &&
                         profile.password.isNotEmpty()
-                isFullProfileComplete = isProfileComplete &&
-                        profile.phone.isNotEmpty() &&
-                        profile.address.isNotEmpty()
+                
+                state = state.copy(
+                    userName = profile.name.ifEmpty { "Usuario" },
+                    isProfileComplete = isProfileComplete,
+                    isFullProfileComplete = isProfileComplete &&
+                            profile.phone.isNotEmpty() &&
+                            profile.address.isNotEmpty()
+                )
             }
         }
     }
+
     private fun observeFeedback() {
         viewModelScope.launch {
             checkFeedbackUseCase.shouldShowFeedback().collect { shouldShow ->
-                isSheetVisible = shouldShow
+                state = state.copy(isSheetVisible = shouldShow)
             }
         }
     }
+
     fun onOptionSelected(target: Int) {
         viewModelScope.launch {
             checkFeedbackUseCase.setNextTregua(target)
+            state = state.copy(isSheetVisible = false)
         }
     }
 }

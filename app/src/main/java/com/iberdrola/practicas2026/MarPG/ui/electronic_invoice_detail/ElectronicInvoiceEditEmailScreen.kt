@@ -83,16 +83,16 @@ fun ElectronicInvoiceEditEmailScreen(
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
-            title = { Text("¿Descartar cambios?", fontFamily = IberPangeaFamily, fontWeight = FontWeight.Bold, color = GreenDarkIberdrola) },
-            text = { Text("Has modificado el email. ¿Estás seguro de que quieres volver atrás y perder los cambios?", fontFamily = IberPangeaFamily, color = Color.Black) },
+            title = { Text(stringResource(R.string.form_discard_changes_title), fontFamily = IberPangeaFamily, fontWeight = FontWeight.Bold, color = GreenDarkIberdrola) },
+            text = { Text(stringResource(R.string.edit_email_discard_message), fontFamily = IberPangeaFamily, color = Color.Black) },
             confirmButton = {
                 TextButton(onClick = onBack) {
-                    Text("Descartar", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.profile_discard_button), color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDiscardDialog = false }) {
-                    Text("Cancelar", color = GreenDarkIberdrola)
+                    Text(stringResource(R.string.common_cancel), color = GreenDarkIberdrola)
                 }
             },
             containerColor = WhiteApp,

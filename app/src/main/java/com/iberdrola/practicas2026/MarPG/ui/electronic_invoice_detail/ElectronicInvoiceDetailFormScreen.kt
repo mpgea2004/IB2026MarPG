@@ -108,19 +108,19 @@ fun ElectronicInvoiceDetailFormScreen(
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
-            title = { Text("¿Descartar cambios?", color = GreenDarkIberdrola, fontFamily = IberPangeaFamily, fontWeight = FontWeight.Bold) },
-            text = { Text("Has empezado a completar los datos. ¿Estás seguro de que quieres salir y perder el progreso?", color = Color.Black, fontFamily = IberPangeaFamily) },
+            title = { Text(stringResource(R.string.form_discard_changes_title), color = GreenDarkIberdrola, fontFamily = IberPangeaFamily, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.form_discard_changes_message), color = Color.Black, fontFamily = IberPangeaFamily) },
             confirmButton = {
                 TextButton(onClick = {
                     showDiscardDialog = false
                     onCloseToHome()
                 }) {
-                    Text("Descartar", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.profile_discard_button), color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDiscardDialog = false }) {
-                    Text("Cancelar", color = GreenDarkIberdrola)
+                    Text(stringResource(R.string.security_dialog_cancel), color = GreenDarkIberdrola)
                 }
             },
             containerColor = WhiteApp,

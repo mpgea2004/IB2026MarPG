@@ -1,6 +1,5 @@
 package com.iberdrola.practicas2026.MarPG.ui.components.filter
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,8 +27,6 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
-/** * Botones de acción anclados para la pantalla de filtros
- */
 @Composable
 fun FilterActionButtons(
     onApply: () -> Unit,

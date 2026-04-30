@@ -7,30 +7,30 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightRedIberdrola
 
-/** Etiqueta de estado: Pagada (verde) o Pendiente (rojo) */
 @Composable
 fun StatusBadge(status: InvoiceStatus) {
-    // Defino los colores según el estado real
     val (backgroundColor, contentColor) = when (status) {
         InvoiceStatus.PAGADAS -> LightGreenIberdrola to GreenIberdrola
         InvoiceStatus.PENDIENTES_PAGO -> LightRedIberdrola to Color(0xFFD32F2F)
         InvoiceStatus.EN_TRAMITE ->
-            Color(0xFFE3F2FD) to Color(0xFF1976D2) // Azul
+            Color(0xFFE3F2FD) to Color(0xFF1976D2)
 
         InvoiceStatus.ANULADAS ->
-            Color(0xFFEEEEEE) to Color(0xFF616161) // Gris
+            Color(0xFFEEEEEE) to Color(0xFF616161)
 
         InvoiceStatus.CUOTA_FIJA ->
-            Color(0xFFF3E5F5) to Color(0xFF7B1FA2) // Morado
+            Color(0xFFF3E5F5) to Color(0xFF7B1FA2)
         else -> {
             Color(0xFFF5F5F5) to Color(0xFF616161)
         }
@@ -42,10 +42,11 @@ fun StatusBadge(status: InvoiceStatus) {
     ) {
         Text(
             text = when(status) {
-                InvoiceStatus.PAGADAS -> "Pagada"
-                InvoiceStatus.PENDIENTES_PAGO -> "Pendiente de pago"
-                InvoiceStatus.ANULADAS -> "Anulada"
-                else -> status.description
+                InvoiceStatus.PAGADAS -> stringResource(R.string.status_paid)
+                InvoiceStatus.PENDIENTES_PAGO -> stringResource(R.string.status_pending)
+                InvoiceStatus.ANULADAS -> stringResource(R.string.status_cancelled)
+                InvoiceStatus.EN_TRAMITE -> stringResource(R.string.status_processing)
+                InvoiceStatus.CUOTA_FIJA -> stringResource(R.string.status_fixed)
             },
             color = contentColor,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),

@@ -1,7 +1,5 @@
 package com.iberdrola.practicas2026.MarPG.ui.faq
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
@@ -142,7 +140,7 @@ fun FaqContent(
                     AnimateFaqItemEntrance(index = 0) {
                         Column {
                             Text(
-                                text = "Preguntas Frecuentes",
+                                text = stringResource(R.string.faq_title),
                                 fontSize = 32.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 fontFamily = IberPangeaFamily,
@@ -150,7 +148,7 @@ fun FaqContent(
                                 lineHeight = 1.em,
                             )
                             Text(
-                                text = "Resolvemos tus dudas sobre la aplicación",
+                                text = stringResource(R.string.faq_subtitle),
                                 fontSize = 16.sp,
                                 color = TextGrey,
                                 fontWeight = FontWeight.Medium,
@@ -233,7 +231,7 @@ fun FaqExpandableCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = item.question,
+                    text = stringResource(item.question),
                     modifier = Modifier.weight(1f),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -251,7 +249,7 @@ fun FaqExpandableCard(
                 Column {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = item.answer,
+                        text = stringResource(item.answer),
                         fontSize = 14.sp,
                         color = TextGrey,
                         fontFamily = IberPangeaFamily,
@@ -289,13 +287,13 @@ fun ContactCard(onClick: () -> Unit) {
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
-                    "¿Aún tienes dudas?",
+                    stringResource(R.string.faq_contact_title),
                     fontWeight = FontWeight.Bold,
                     fontFamily = IberPangeaFamily,
                     fontSize = 16.sp
                 )
                 Text(
-                    "Contacta con soporte técnico",
+                    stringResource(R.string.faq_contact_subtitle),
                     color = GreenIberdrola,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,

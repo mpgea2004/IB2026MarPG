@@ -463,14 +463,14 @@ fun SimulatedNotification(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "IBERDROLA",
+                        text = stringResource(R.string.otp_notification_header),
                         color = Color.White.copy(alpha = 0.8f),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp
                     )
                     Text(
-                        text = "ahora",
+                        text = stringResource(R.string.otp_notification_time),
                         color = Color.White.copy(alpha = 0.6f),
                         fontSize = 10.sp
                     )

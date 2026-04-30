@@ -1,7 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.components.contract_selection
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

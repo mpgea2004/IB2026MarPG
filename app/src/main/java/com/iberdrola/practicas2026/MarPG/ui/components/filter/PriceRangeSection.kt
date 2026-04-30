@@ -30,10 +30,6 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 
-/**
- * Sección de filtro por importe que utiliza un RangeSlider personalizado
- * Permite seleccionar un rango de precios entre un límite mínimo y máximo
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PriceRangeSection(

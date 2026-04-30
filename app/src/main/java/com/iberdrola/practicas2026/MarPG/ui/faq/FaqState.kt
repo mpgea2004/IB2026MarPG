@@ -1,9 +1,11 @@
 package com.iberdrola.practicas2026.MarPG.ui.faq
 
+import androidx.annotation.StringRes
+
 data class FaqItem(
     val id: Int,
-    val question: String,
-    val answer: String
+    @StringRes val question: Int,
+    @StringRes val answer: Int
 )
 
 data class FaqState(

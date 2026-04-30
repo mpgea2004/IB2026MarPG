@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import com.iberdrola.practicas2026.MarPG.ui.components.FeedbackSheetContent
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
-/** BottomSheet para encuesta: carita (10) o luego (3) */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedbackBottomSheet(

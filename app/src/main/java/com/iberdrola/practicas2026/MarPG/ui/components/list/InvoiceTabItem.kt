@@ -22,7 +22,6 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 
 
-/** Pestaña de filtrado por energía */
 
 @Composable
 fun InvoiceTabItem(
@@ -45,7 +44,6 @@ fun InvoiceTabItem(
             modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
             fontFamily = IberPangeaFamily
         )
-        //Barra verde
         Box(
             modifier = Modifier
                 .height(3.dp)

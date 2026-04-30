@@ -15,16 +15,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
-/**
- * Componente visual que se muestra cuando el usuario aplica filtros
- * y la lista resultante está vacía.
- */
 @Composable
 fun FilterEmptyState() {
     Column(
@@ -46,7 +44,7 @@ fun FilterEmptyState() {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "No hay facturas que coincidan con los filtros seleccionados",
+            text = stringResource(R.string.filter_no_results),
             textAlign = TextAlign.Center,
             fontSize = 16.sp,
             color = Color.Gray,

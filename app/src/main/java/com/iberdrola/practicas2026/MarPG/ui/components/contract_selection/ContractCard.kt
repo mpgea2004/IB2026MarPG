@@ -35,9 +35,6 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 
-/**
- * Tarjeta que representa un contrato de luz o gas.
- */
 @Composable
 fun ContractCard(
     elecInvoice: ElectronicInvoice,
@@ -75,7 +72,7 @@ fun ContractCard(
         HorizontalDivider(
             modifier = Modifier.fillMaxWidth(),
             thickness = 1.dp,
-            color = Color.LightGray.copy(alpha = 0.5f) // Un gris suave
+            color = Color.LightGray.copy(alpha = 0.5f)
         )
     }
 }

@@ -116,6 +116,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import com.iberdrola.practicas2026.MarPG.ui.utils.getHiddenAmountAnnotatedString
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -195,7 +196,7 @@ fun InvoiceListScreen(
             icon = { Icon(Icons.Outlined.Info, null, tint = GreenIberdrola) },
             title = {
                 Text(
-                    text = "Información",
+                    text = stringResource(R.string.invoice_list_info_title),
                     fontFamily = IberPangeaFamily,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -203,14 +204,18 @@ fun InvoiceListScreen(
             },
             text = {
                 Text(
-                    text = "Solo tienes una factura disponible, por lo que no es necesario aplicar filtros.",
+                    text = stringResource(R.string.invoice_list_single_invoice_msg),
                     fontFamily = IberPangeaFamily,
                     color = Color.Black
                 )
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.closeSingleInvoiceDialog() }) {
-                    Text("Aceptar", color = GreenIberdrola, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(R.string.invoice_not_available_button),
+                        color = GreenIberdrola,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             containerColor = WhiteApp,
@@ -226,7 +231,7 @@ fun InvoiceListScreen(
                 onTabSelected = { viewModel.selectTab(it) },
                 address = userAddress,
                 onBack = handleBack,
-                errorMessage = errorMessage?.let { stringResource(it) },
+                errorMessage = if (errorMessage != null) stringResource(errorMessage) else null,
                 showErrorBanner = currentState is InvoiceListState.SUCCESS && errorMessage != null,
                 onNavigateToConsumption = handleNavigateToConsumption,
                 isLoading = currentState is InvoiceListState.LOADING,
@@ -256,7 +261,7 @@ fun InvoiceListScreen(
 
                     InvoiceListState.NODATA -> {
                         InvoiceEmptyState(
-                            message = errorMessage?.let { stringResource(it)},
+                            message = if (errorMessage != null) stringResource(errorMessage) else null,
                             onRefresh = { viewModel.refreshInvoices() }
                         )
                     }
@@ -361,7 +366,7 @@ fun InvoiceListHeader(
                                 shape = RoundedCornerShape(4.dp)
                             ) {
                                 Text(
-                                    text = if (isAmountVisible) "Ocultar importes" else "Mostrar importes",
+                                    text = if (isAmountVisible) stringResource(R.string.invoice_list_hide_amounts) else stringResource(R.string.invoice_list_show_amounts),
                                     color = Color.White,
                                     modifier = Modifier.padding(8.dp),
                                     fontSize = 12.sp
@@ -387,7 +392,7 @@ fun InvoiceListHeader(
                         ) {
                             Icon(
                                 imageVector = if (isAmountVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = "Cambiar visibilidad",
+                                contentDescription = stringResource(R.string.invoice_list_change_visibility),
                                 tint = GreenIberdrola,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -402,7 +407,7 @@ fun InvoiceListHeader(
                                 shape = RoundedCornerShape(4.dp)
                             ) {
                                 Text(
-                                    text = "Ver consumo",
+                                    text = stringResource(R.string.invoice_list_view_consumption),
                                     color = Color.White,
                                     modifier = Modifier.padding(8.dp),
                                     fontSize = 12.sp
@@ -431,7 +436,7 @@ fun InvoiceListHeader(
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.BarChart,
-                                contentDescription = "Ver consumo",
+                                contentDescription = stringResource(R.string.invoice_list_view_consumption),
                                 tint = if (isLoading) Color.Gray else GreenIberdrola,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -447,7 +452,7 @@ fun InvoiceListHeader(
             Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily, color = Color.Black)
             
             Text(
-                address.ifEmpty { stringResource(R.string.profile_empty_address) },
+                text = address.ifEmpty { stringResource(R.string.profile_empty_address) },
                 color = Color.Black,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -520,7 +525,7 @@ fun InvoiceListContent(
                         modifier = Modifier
                             .weight(1f)
                             .height(52.dp),
-                        placeholder = { Text("Buscar por id...", fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.invoice_list_search_placeholder), fontSize = 14.sp) },
                         leadingIcon = {
                             TooltipBox(
                                 positionProvider = rememberPlainTooltipPositionProvider(),
@@ -530,7 +535,7 @@ fun InvoiceListContent(
                                         shape = RoundedCornerShape(4.dp)
                                     ) {
                                         Text(
-                                            text = "Buscar por número de factura",
+                                            text = stringResource(R.string.invoice_list_search_desc),
                                             color = Color.White,
                                             modifier = Modifier.padding(8.dp),
                                             fontSize = 12.sp
@@ -541,7 +546,7 @@ fun InvoiceListContent(
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.Search,
-                                    contentDescription = "Buscar",
+                                    contentDescription = stringResource(R.string.invoice_list_search_desc),
                                     tint = GreenIberdrola,
                                     modifier = Modifier
                                         .size(24.dp)
@@ -600,7 +605,7 @@ fun InvoiceListContent(
                                 modifier = Modifier.height(32.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = GreenIberdrola, containerColor = GreenIberdrola.copy(alpha = 0.1f))
                             ) {
-                                Text("Limpiar", fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
+                                Text(stringResource(R.string.invoice_list_clear_filters), fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
                                 Spacer(modifier = Modifier.width(2.dp))
                                 Icon(Icons.Outlined.Close, null, modifier = Modifier.size(16.dp))
                             }
@@ -629,21 +634,21 @@ fun InvoiceListContent(
                 ) {
                     item {
                         SortChip(
-                            text = "Fecha",
+                            text = stringResource(R.string.invoice_list_label_date),
                             isSelected = currentSort == SortOption.DATE,
                             onClick = { events.onSort(SortOption.DATE) }
                         )
                     }
                     item {
                         SortChip(
-                            text = "Importe",
+                            text = stringResource(R.string.invoice_list_label_amount),
                             isSelected = currentSort == SortOption.PRICE,
                             onClick = { events.onSort(SortOption.PRICE) }
                         )
                     }
                     item {
                         SortChip(
-                            text = "Estados",
+                            text = stringResource(R.string.invoice_list_label_states),
                             isSelected = currentSort == SortOption.TYPE,
                             onClick = { events.onSort(SortOption.TYPE) }
                         )
@@ -736,27 +741,29 @@ fun ActiveFiltersRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (searchQuery.isNotEmpty()) {
-                item { ActiveFilterChip(text = "ID: $searchQuery", onRemove = onRemoveSearch) }
+                item { ActiveFilterChip(text = stringResource(R.string.invoice_list_filter_id, searchQuery), onRemove = onRemoveSearch) }
             }
             items(state.selectedStatuses.toList()) { status ->
                 ActiveFilterChip(text = status, onRemove = { onRemoveStatus(status) })
             }
 
             if (hasDate) {
-                val dateText = if (state.dateFrom.isNotEmpty() && state.dateTo.isNotEmpty()) {
-                    "${state.dateFrom} - ${state.dateTo}"
-                } else if (state.dateFrom.isNotEmpty()) {
-                    "Desde ${state.dateFrom}"
-                } else {
-                    "Hasta ${state.dateTo}"
+                item { 
+                    val dateText = if (state.dateFrom.isNotEmpty() && state.dateTo.isNotEmpty()) {
+                        "${state.dateFrom} - ${state.dateTo}"
+                    } else if (state.dateFrom.isNotEmpty()) {
+                        stringResource(R.string.invoice_list_filter_date_from, state.dateFrom)
+                    } else {
+                        stringResource(R.string.invoice_list_filter_date_to, state.dateTo)
+                    }
+                    ActiveFilterChip(text = dateText, onRemove = onRemoveDate) 
                 }
-                item { ActiveFilterChip(text = dateText, onRemove = onRemoveDate) }
             }
 
             if (!isDefaultPrice) {
                 item { 
                     ActiveFilterChip(
-                        text = "${state.minPrice.toInt()}€ - ${state.maxPrice.toInt()}€", 
+                        text = stringResource(R.string.filter_price_range, state.minPrice.toInt(), state.maxPrice.toInt()), 
                         onRemove = onRemovePrice
                     ) 
                 }
@@ -790,7 +797,7 @@ fun ActiveFilterChip(
             Spacer(modifier = Modifier.width(6.dp))
             Icon(
                 imageVector = Icons.Outlined.Close,
-                contentDescription = "Quitar filtro",
+                contentDescription = stringResource(R.string.invoice_list_remove_filter),
                 tint = GreenIberdrola,
                 modifier = Modifier
                     .size(14.dp)
@@ -801,7 +808,7 @@ fun ActiveFilterChip(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SortChip(
     text: String,
@@ -820,7 +827,7 @@ fun SortChip(
                 shape = RoundedCornerShape(4.dp)
             ) {
                 Text(
-                    text = "Ordenar por: $text",
+                    text = stringResource(R.string.invoice_list_sort_by, text),
                     color = Color.White,
                     modifier = Modifier.padding(8.dp),
                     fontSize = 12.sp
@@ -860,7 +867,6 @@ fun SortChip(
     }
 }
 
-/** Tarjeta destacada para la factura más reciente, esta también se ve afectada por el filtrado */
 @Composable
 fun LastInvoiceItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> Unit) {
 
@@ -886,7 +892,7 @@ fun LastInvoiceItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> U
                     Text(
                         text = stringResource(
                             id = R.string.invoice_list_invoice_type_label,
-                            invoice.contractType.name.lowercase()
+                            invoice.contractType.name.lowercase().replaceFirstChar { it.uppercase() }
                         ),
                         color = Color.Black,
                         fontSize = 12.sp,
@@ -914,11 +920,10 @@ fun LastInvoiceItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> U
                 )
             } else {
                 Text(
-                    text = "... €",
+                    text = getHiddenAmountAnnotatedString(28.sp),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(vertical = 8.dp),
-                    fontFamily = IberPangeaFamily,
-                    fontSize = 24.sp
+                    fontFamily = IberPangeaFamily
                 )
             }
 
@@ -938,7 +943,6 @@ fun LastInvoiceItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> U
     }
 }
 
-/** Fila individual del histórico de facturas */
 @Composable
 fun InvoiceHistoricalItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> Unit) {
     val dateDisplay = DateMapper.formatToDisplay(invoice.issueDate)
@@ -971,11 +975,10 @@ fun InvoiceHistoricalItem(invoice: Invoice, isAmountVisible: Boolean, onClick: (
                     )
                 } else {
                     Text(
-                        text = "... €",
+                        text = getHiddenAmountAnnotatedString(14.sp, 14.sp),
                         color = TextGrey,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = IberPangeaFamily,
-                        fontSize = 14.sp
+                        fontFamily = IberPangeaFamily
                     )
                 }
                 Icon(

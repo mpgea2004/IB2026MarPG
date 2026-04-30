@@ -29,12 +29,6 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
 
-/**
- * Pantalla de estado vacío o error para el listado de facturas
- * Se muestra cuando no hay datos disponibles o cuando ocurre una excepción de red/local
- * * @param message Mensaje personalizado a mostrar (opcional). Si es nulo, usa el recurso por defecto
- * * @param onRefresh Acción a realizar al pulsar el botón de reintentar/refrescar
- */
 @Composable
 fun InvoiceEmptyState(
     message: String? = null,

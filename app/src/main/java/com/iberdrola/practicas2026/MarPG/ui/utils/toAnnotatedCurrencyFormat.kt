@@ -22,3 +22,18 @@ fun Double.toAnnotatedCurrencyFormat(
         }
     }
 }
+
+fun getHiddenAmountAnnotatedString(
+    amountSize: TextUnit,
+    euroSize: TextUnit = (amountSize.value * 0.6).sp,
+): AnnotatedString {
+    return buildAnnotatedString {
+        withStyle(style = SpanStyle(fontSize = amountSize)){
+            append("...")
+        }
+        append(" ")
+        withStyle(style = SpanStyle(fontSize = euroSize)){
+            append("€")
+        }
+    }
+}

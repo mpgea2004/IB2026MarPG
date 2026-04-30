@@ -24,10 +24,6 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
-/**
- * Sección de filtros por estado de factura (Pagadas, Anuladas, etc.)
- * Genera dinámicamente una lista de checkboxes basada en las opciones proporcionadas
- */
 @Composable
 fun StatusFilterSection(
     statusOptions: List<String>,

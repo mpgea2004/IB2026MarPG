@@ -114,6 +114,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.InvoicePdfGenerator
+import com.iberdrola.practicas2026.MarPG.ui.utils.getHiddenAmountAnnotatedString
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -243,7 +244,7 @@ fun InvoiceDetailContent(
                                         Icon(Icons.Outlined.Warning, null, tint = Color(0xFFE65100), modifier = Modifier.size(16.dp))
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = "Factura fuera de plazo (>6 meses)",
+                                            text = stringResource(R.string.invoice_detail_overdue_short),
                                             color = Color(0xFFE65100),
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
@@ -276,7 +277,7 @@ fun InvoiceDetailContent(
                                     )
                                 } else {
                                     Text(
-                                        if (state.isOverdue) "PAGO NO DISPONIBLE" else "PAGAR FACTURA AHORA",
+                                        text = if (state.isOverdue) stringResource(R.string.invoice_detail_pay_not_available) else stringResource(R.string.invoice_detail_pay_now),
                                         fontFamily = IberPangeaFamily,
                                         fontWeight = FontWeight.ExtraBold,
                                         color = WhiteApp
@@ -313,7 +314,7 @@ fun InvoiceDetailContent(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Detalle de factura",
+                            text = stringResource(R.string.invoice_detail_title),
                             fontFamily = IberPangeaFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
@@ -329,7 +330,7 @@ fun InvoiceDetailContent(
                                         shape = RoundedCornerShape(4.dp)
                                     ) {
                                         Text(
-                                            text = if (state.isAmountVisible) "Ocultar importes" else "Mostrar importes",
+                                            text = if (state.isAmountVisible) stringResource(R.string.invoice_list_hide_amounts) else stringResource(R.string.invoice_list_show_amounts),
                                             color = Color.White,
                                             modifier = Modifier.padding(8.dp),
                                             fontSize = 12.sp
@@ -353,7 +354,7 @@ fun InvoiceDetailContent(
                                 ) {
                                     Icon(
                                         imageVector = if (state.isAmountVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                        contentDescription = "Cambiar visibilidad",
+                                        contentDescription = stringResource(R.string.invoice_list_change_visibility),
                                         tint = GreenIberdrola
                                     )
                                 }
@@ -378,7 +379,7 @@ fun InvoiceDetailContent(
                                                 shape = RoundedCornerShape(4.dp)
                                             ) {
                                                 Text(
-                                                    text = "Descargar factura",
+                                                    text = stringResource(R.string.invoice_detail_download_pdf),
                                                     color = Color.White,
                                                     modifier = Modifier.padding(8.dp),
                                                     fontSize = 12.sp
@@ -401,7 +402,7 @@ fun InvoiceDetailContent(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Outlined.CloudDownload,
-                                                contentDescription = "Descargar PDF",
+                                                contentDescription = stringResource(R.string.invoice_detail_download_pdf),
                                                 tint = GreenIberdrola
                                             )
                                         }
@@ -456,32 +457,32 @@ fun InvoiceDetailContent(
                         }
 
                         if (state.paymentSuccess) {
-                            StatusMessage(message = "¡Factura pagada correctamente!", color = GreenIberdrola)
+                            StatusMessage(message = stringResource(R.string.invoice_detail_pay_success), color = GreenIberdrola)
                         }
 
                         if (state.paymentError) {
-                            StatusMessage(message = "No se ha podido realizar el pago. Inténtalo de nuevo.", color = Color.Red)
+                            StatusMessage(message = stringResource(R.string.invoice_detail_pay_error), color = Color.Red)
                         }
 
                         if (state.pdfDownloaded) {
-                            StatusMessage(message = "Factura descargada correctamente", color = GreenIberdrola)
+                            StatusMessage(message = stringResource(R.string.invoice_detail_download_success), color = GreenIberdrola)
                         }
 
                         AnimateDetailItemEntrance(index = 4) {
                             InfoCard(
-                                title = "Datos del suministro",
+                                title = stringResource(R.string.invoice_detail_section_supply),
                                 icon = Icons.Outlined.Receipt
                             ) {
                                 DetailRow(
-                                    label = "Tipo de contrato",
-                                    value = if (invoice.contractType == ContractType.LUZ) "Suministro de Luz" else "Suministro de Gas"
+                                    label = stringResource(R.string.invoice_detail_label_contract_type),
+                                    value = if (invoice.contractType == ContractType.LUZ) stringResource(R.string.invoice_detail_value_light) else stringResource(R.string.invoice_detail_value_gas)
                                 )
                                 Row(
                                     modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("Número de factura", fontSize = 14.sp, color = TextGrey, fontFamily = IberPangeaFamily)
+                                    Text(stringResource(R.string.invoice_detail_label_id), fontSize = 14.sp, color = TextGrey, fontFamily = IberPangeaFamily)
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(invoice.id, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF333333), fontFamily = IberPangeaFamily)
                                         Spacer(modifier = Modifier.width(4.dp))
@@ -494,7 +495,7 @@ fun InvoiceDetailContent(
                                                     shape = RoundedCornerShape(4.dp)
                                                 ) {
                                                     Text(
-                                                        text = "Copiar número de factura",
+                                                        text = stringResource(R.string.invoice_detail_copy_id),
                                                         color = Color.White,
                                                         modifier = Modifier.padding(8.dp),
                                                         fontSize = 12.sp
@@ -510,10 +511,10 @@ fun InvoiceDetailContent(
                                                     .combinedClickable(
                                                         onClick = {
                                                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                                            val clip = ClipData.newPlainText("ID Factura", invoice.id)
+                                                            val clip = ClipData.newPlainText(context.getString(R.string.invoice_detail_clip_label), invoice.id)
                                                             clipboard.setPrimaryClip(clip)
                                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                            Toast.makeText(context, "ID copiado al portapapeles", Toast.LENGTH_SHORT).show()
+                                                            Toast.makeText(context, context.getString(R.string.invoice_detail_copy_toast), Toast.LENGTH_SHORT).show()
                                                         },
                                                         onLongClick = {
                                                             scope.launch { copyTooltipState.show() }
@@ -523,7 +524,7 @@ fun InvoiceDetailContent(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Outlined.ContentCopy,
-                                                    contentDescription = "Copiar ID",
+                                                    contentDescription = stringResource(R.string.invoice_detail_copy_id),
                                                     tint = GreenIberdrola,
                                                     modifier = Modifier.size(18.dp)
                                                 )
@@ -536,7 +537,7 @@ fun InvoiceDetailContent(
 
                         AnimateDetailItemEntrance(index = 5) {
                             InfoCard(
-                                title = "Periodo de facturación",
+                                title = stringResource(R.string.invoice_detail_section_period),
                                 icon = Icons.Outlined.Info
                             ) {
                                 val range = "${DateMapper.formatToShortDisplay(invoice.startDate)} - ${DateMapper.formatToShortDisplay(invoice.endDate)}"
@@ -552,7 +553,7 @@ fun InvoiceDetailContent(
 
                         AnimateDetailItemEntrance(index = 6) {
                             InfoCard(
-                                title = "Estado del pago",
+                                title = stringResource(R.string.invoice_detail_section_status),
                                 icon = Icons.Outlined.Info
                             ) {
                                 Row(
@@ -561,8 +562,8 @@ fun InvoiceDetailContent(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = if (invoice.status == InvoiceStatus.PAGADAS || invoice.status == InvoiceStatus.CUOTA_FIJA) "Factura cobrada" else {
-                                            if (invoice.status == InvoiceStatus.ANULADAS) "Factura en anulación" else "Pendiente de cobro"
+                                        text = if (invoice.status == InvoiceStatus.PAGADAS || invoice.status == InvoiceStatus.CUOTA_FIJA) stringResource(R.string.invoice_detail_status_paid) else {
+                                            if (invoice.status == InvoiceStatus.ANULADAS) stringResource(R.string.invoice_detail_status_cancelled) else stringResource(R.string.invoice_detail_status_pending)
                                         },
                                         fontFamily = IberPangeaFamily,
                                         fontSize = 14.sp,
@@ -618,7 +619,7 @@ fun PayPasswordDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Seguridad de pago",
+                text = stringResource(R.string.invoice_detail_dialog_pay_title),
                 fontFamily = IberPangeaFamily,
                 fontWeight = FontWeight.Bold,
                 color = GreenDarkIberdrola
@@ -627,7 +628,7 @@ fun PayPasswordDialog(
         text = {
             Column {
                 Text(
-                    text = "Introduce tu contraseña para confirmar el pago de la factura.",
+                    text = stringResource(R.string.invoice_detail_dialog_pay_text),
                     fontFamily = IberPangeaFamily,
                     fontSize = 14.sp,
                     color = Color.Black
@@ -636,7 +637,7 @@ fun PayPasswordDialog(
                 OutlinedTextField(
                     value = passwordInput,
                     onValueChange = onPasswordChange,
-                    label = { Text("Contraseña", fontFamily = IberPangeaFamily) },
+                    label = { Text(stringResource(R.string.invoice_detail_label_password), fontFamily = IberPangeaFamily) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     isError = isError,
@@ -656,7 +657,7 @@ fun PayPasswordDialog(
                 )
                 if (isError) {
                     Text(
-                        text = "Contraseña incorrecta",
+                        text = stringResource(R.string.invoice_detail_error_password),
                         color = Color.Red,
                         fontSize = 12.sp,
                         fontFamily = IberPangeaFamily,
@@ -670,12 +671,12 @@ fun PayPasswordDialog(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(containerColor = GreenIberdrola)
             ) {
-                Text("Confirmar Pago", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.invoice_detail_button_confirm_pay), fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = Color.Gray)
+                Text(stringResource(R.string.invoice_detail_dialog_cancel), color = Color.Gray)
             }
         },
         containerColor = WhiteApp,
@@ -692,7 +693,7 @@ fun OverdueInvoiceDialog(
         icon = { Icon(Icons.Outlined.Warning, null, tint = Color(0xFFD32F2F), modifier = Modifier.size(32.dp)) },
         title = {
             Text(
-                text = "Factura fuera de plazo",
+                text = stringResource(R.string.invoice_detail_dialog_overdue_title),
                 fontFamily = IberPangeaFamily,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -701,7 +702,7 @@ fun OverdueInvoiceDialog(
         },
         text = {
             Text(
-                text = "Esta factura tiene más de 6 meses de antigüedad y no puede pagarse desde la aplicación. Por favor, póngase en contacto con Atención al Cliente de Iberdrola.",
+                text = stringResource(R.string.invoice_detail_dialog_overdue_text),
                 fontFamily = IberPangeaFamily,
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center,
@@ -713,7 +714,7 @@ fun OverdueInvoiceDialog(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
             ) {
-                Text("Entendido", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.invoice_detail_button_understood), fontWeight = FontWeight.Bold)
             }
         },
         containerColor = WhiteApp,
@@ -735,7 +736,7 @@ fun OverdueWarningBanner() {
             Icon(Icons.Outlined.Warning, null, tint = Color(0xFFE65100), modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = "Factura vencida. El periodo de pago online ha expirado. Contacte con Iberdrola para regularizar su situación.",
+                text = stringResource(R.string.invoice_detail_banner_overdue),
                 color = Color(0xFFE65100),
                 fontSize = 13.sp,
                 lineHeight = 18.sp,
@@ -810,14 +811,14 @@ fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
                     ) {
                         Column {
                             Text(
-                                text = "Vista Previa",
+                                text = stringResource(R.string.invoice_detail_preview_title),
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Color.White,
                                 fontFamily = IberPangeaFamily
                             )
                             Text(
-                                text = "Factura Iberdrola",
+                                text = stringResource(R.string.invoice_detail_preview_subtitle),
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.8f),
                                 fontFamily = IberPangeaFamily
@@ -833,7 +834,7 @@ fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Share,
-                                    contentDescription = "Compartir",
+                                    contentDescription = stringResource(R.string.invoice_detail_share),
                                     tint = Color.White,
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -847,7 +848,7 @@ fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
-                                    contentDescription = "Cerrar",
+                                    contentDescription = stringResource(R.string.success_close_description),
                                     tint = Color.White,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -875,7 +876,7 @@ fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
                         ) {
                             Image(
                                 bitmap = pdfBitmap!!.asImageBitmap(),
-                                contentDescription = "Factura Iberdrola",
+                                contentDescription = stringResource(R.string.invoice_detail_preview_subtitle),
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Fit
                             )
@@ -892,7 +893,7 @@ fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "El archivo se encuentra en tu carpeta de descargas", 
+                        text = stringResource(R.string.invoice_detail_download_location),
                         fontSize = 10.sp,
                         color = Color.Gray,
                         fontFamily = IberPangeaFamily
@@ -917,7 +918,7 @@ private fun FixedQuotaBanner() {
             Icon(Icons.Outlined.Sync, null, tint = Color(0xFF1976D2), modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = "Esta factura pertenece al Plan Cuota Fija. El importe se regularizará según tu consumo real.",
+                text = stringResource(R.string.invoice_detail_banner_fixed_quota),
                 color = Color(0xFF1976D2),
                 fontSize = 13.sp,
                 lineHeight = 18.sp,
@@ -963,7 +964,7 @@ private fun InvoiceDetailHeader(amount: Double, date: String, isAmountVisible: B
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "Importe total", fontFamily = IberPangeaFamily, fontSize = 14.sp, color = TextGrey)
+            Text(text = stringResource(R.string.invoice_detail_total_amount), fontFamily = IberPangeaFamily, fontSize = 14.sp, color = TextGrey)
             
             if (isAmountVisible) {
                 Text(
@@ -974,18 +975,17 @@ private fun InvoiceDetailHeader(amount: Double, date: String, isAmountVisible: B
                 )
             } else {
                 Text(
-                    text = "... €",
+                    text = getHiddenAmountAnnotatedString(42.sp),
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
-                    fontFamily = IberPangeaFamily,
-                    fontSize = 32.sp
+                    fontFamily = IberPangeaFamily
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
             Surface(color = BackgroundApp, shape = RoundedCornerShape(16.dp)) {
                 Text(
-                    text = "Emitida el $date",
+                    text = stringResource(R.string.invoice_detail_issued_date, date),
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                     fontSize = 12.sp,
                     fontFamily = IberPangeaFamily,

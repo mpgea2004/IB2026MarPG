@@ -1,6 +1,5 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_home
 
-
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -39,14 +38,11 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TooltipDefaults.rememberPlainTooltipPositionProvider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTooltipState
@@ -64,7 +60,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType.Companion.LongPress
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -96,11 +91,9 @@ fun HomeScreen(
     isCloudEnabled: Boolean,
     onToggleCloud: (Boolean) -> Unit
 ) {
+    val state = viewModel.state
     val sheetState = rememberModalBottomSheetState()
     val context = LocalContext.current
-    val currentUserName = viewModel.userName
-    val isProfileComplete = viewModel.isProfileComplete
-    val isFullProfileComplete = viewModel.isFullProfileComplete
     var isNavigating by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -108,35 +101,30 @@ fun HomeScreen(
         isNavigating = false
     }
 
-    LaunchedEffect(viewModel.isSheetVisible) {
-        if (!viewModel.isSheetVisible) {
+    LaunchedEffect(state.isSheetVisible) {
+        if (!state.isSheetVisible) {
             sheetState.hide()
         }
     }
 
-    HomeContent(
-        isCloudEnabled = isCloudEnabled,
-        isSheetVisible = viewModel.isSheetVisible,
-        sheetState = sheetState,
-        isProfileComplete = isProfileComplete,
-        isFullProfileComplete = isFullProfileComplete,
+    val events = HomeEvents(
         onNavigateToInvoices = {
             if (!isNavigating) {
-                if (isProfileComplete) {
+                if (state.isProfileComplete) {
                     isNavigating = true
                     onNavigateToInvoices()
                 } else {
-                    Toast.makeText(context, "Completa tu Nombre, Email y Password en el perfil para acceder", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.home_toast_complete_profile_access), Toast.LENGTH_LONG).show()
                 }
             }
         },
         onNavigateToElectronicInvoice = {
             if (!isNavigating) {
-                if (isProfileComplete) {
+                if (state.isProfileComplete) {
                     isNavigating = true
                     onNavigateToElectronicInvoice()
                 } else {
-                    Toast.makeText(context, "Completa tu perfil para gestionar la factura electrónica", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.home_toast_complete_profile_electronic), Toast.LENGTH_LONG).show()
                 }
             }
         },
@@ -154,7 +142,8 @@ fun HomeScreen(
         },
         onToggleCloud = onToggleCloud,
         onSheetDismiss = { viewModel.onOptionSelected(1) },
-        onSheetOptionSelected = { tregua -> viewModel.onOptionSelected(tregua)
+        onSheetOptionSelected = { tregua ->
+            viewModel.onOptionSelected(tregua)
             if (tregua == 10) {
                 Toast.makeText(
                     context,
@@ -162,26 +151,24 @@ fun HomeScreen(
                     Toast.LENGTH_SHORT
                 ).show()
             }
-        },
-        currentUserName = currentUserName
+        }
+    )
+
+    HomeContent(
+        state = state,
+        events = events,
+        isCloudEnabled = isCloudEnabled,
+        sheetState = sheetState
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
+    state: HomeState,
+    events: HomeEvents,
     isCloudEnabled: Boolean,
-    isSheetVisible: Boolean,
-    sheetState: SheetState,
-    isProfileComplete: Boolean,
-    isFullProfileComplete: Boolean,
-    onNavigateToInvoices: () -> Unit,
-    onNavigateToElectronicInvoice: () -> Unit,
-    onNavigateToProfile: () -> Unit,
-    onNavigateToFaq: () -> Unit,
-    onToggleCloud: (Boolean) -> Unit,
-    onSheetDismiss: () -> Unit,
-    onSheetOptionSelected: (Int) -> Unit,
-    currentUserName:String
+    sheetState: SheetState
 ) {
     Scaffold(
         containerColor = Color.Transparent
@@ -208,20 +195,20 @@ fun HomeContent(
             ) {
                 AnimateHomeItem(index = 0) {
                     HomeHeader(
-                        userName = currentUserName,
-                        isProfileComplete = isProfileComplete,
-                        isFullProfileComplete = isFullProfileComplete,
-                        onProfileClick = onNavigateToProfile
+                        userName = state.userName,
+                        isProfileComplete = state.isProfileComplete,
+                        isFullProfileComplete = state.isFullProfileComplete,
+                        onProfileClick = events.onNavigateToProfile
                     )
                 }
 
                 Spacer(modifier = Modifier.height(48.dp))
 
                 AnimateHomeItem(index = 1) {
-                    Column(modifier = Modifier.alpha(if (isProfileComplete) 1f else 0.6f)) {
-                        InvoiceNavigationCard(onClick = onNavigateToInvoices)
+                    Column(modifier = Modifier.alpha(if (state.isProfileComplete) 1f else 0.6f)) {
+                        InvoiceNavigationCard(onClick = events.onNavigateToInvoices)
                         Spacer(modifier = Modifier.height(24.dp))
-                        ElectronicInvoiceCard(onClick = onNavigateToElectronicInvoice)
+                        ElectronicInvoiceCard(onClick = events.onNavigateToElectronicInvoice)
                     }
                 }
 
@@ -231,7 +218,7 @@ fun HomeContent(
                 AnimateHomeItem(index = 2) {
                     DataSourceConfigSection(
                         isCloudEnabled = isCloudEnabled,
-                        onToggleCloud = onToggleCloud
+                        onToggleCloud = events.onToggleCloud
                     )
                 }
 
@@ -242,7 +229,7 @@ fun HomeContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .clickable { onNavigateToFaq() }
+                            .clickable { events.onNavigateToFaq() }
                             .padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
@@ -255,7 +242,7 @@ fun HomeContent(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "¿Necesitas ayuda? Consulta las FAQ",
+                            text = stringResource(R.string.home_faq_help),
                             color = GreenIberdrola,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
@@ -268,11 +255,11 @@ fun HomeContent(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-        if (isSheetVisible) {
+        if (state.isSheetVisible) {
             FeedbackBottomSheet(
                 sheetState = sheetState,
-                onDismiss = onSheetDismiss,
-                onOptionSelected = onSheetOptionSelected
+                onDismiss = events.onSheetDismiss,
+                onOptionSelected = events.onSheetOptionSelected
             )
         }
     }
@@ -400,9 +387,9 @@ private fun HomeHeader(
                 ) {
                     Text(
                         text = when {
-                            isFullProfileComplete -> "Perfil completo"
-                            isProfileComplete -> "Faltan datos opcionales"
-                            else -> "Perfil incompleto"
+                            isFullProfileComplete -> stringResource(R.string.home_profile_status_complete)
+                            isProfileComplete -> stringResource(R.string.home_profile_status_missing_optional)
+                            else -> stringResource(R.string.home_profile_status_incomplete)
                         },
                         color = Color.White,
                         modifier = Modifier.padding(8.dp),

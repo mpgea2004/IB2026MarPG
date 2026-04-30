@@ -354,12 +354,12 @@ fun MyDatePickerDialog(
                     if (selectedDate.isNotEmpty()) onDateSelected(selectedDate)
                     onDismiss()
                 }) {
-                    Text("OK", color = GreenIberdrola, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
+                    Text(stringResource(R.string.common_ok), color = GreenIberdrola, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onDismiss() }) {
-                    Text("Cancelar", color = GreenIberdrola, fontFamily = IberPangeaFamily)
+                    Text(stringResource(R.string.common_cancel), color = GreenIberdrola, fontFamily = IberPangeaFamily)
                 }
             },
             colors = DatePickerDefaults.colors(

@@ -139,7 +139,7 @@ fun ProfileScreen(
             onDismissRequest = { showDiscardDialog = false },
             title = {
                 Text(
-                    text = "¿Descartar cambios?",
+                    text = stringResource(R.string.profile_discard_title),
                     fontFamily = IberPangeaFamily,
                     fontWeight = FontWeight.Bold,
                     color = GreenDarkIberdrola
@@ -147,7 +147,7 @@ fun ProfileScreen(
             },
             text = {
                 Text(
-                    text = "Tienes cambios sin guardar. ¿Estás seguro de que quieres salir y perder la información?",
+                    text = stringResource(R.string.profile_discard_text),
                     fontFamily = IberPangeaFamily,
                     color = Color.Black
                 )
@@ -157,12 +157,21 @@ fun ProfileScreen(
                     showDiscardDialog = false
                     onBack()
                 }) {
-                    Text("Descartar", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(R.string.profile_discard_button),
+                        color = Color(0xFFD32F2F),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = IberPangeaFamily,
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDiscardDialog = false }) {
-                    Text("Cancelar", color = GreenIberdrola)
+                    Text(
+                        text = stringResource(R.string.invoice_detail_dialog_cancel),
+                        color = GreenIberdrola,
+                        fontFamily = IberPangeaFamily,
+                    )
                 }
             },
             containerColor = WhiteApp,
@@ -175,7 +184,7 @@ fun ProfileScreen(
             onDismissRequest = { viewModel.onDismissLogoutDialog() },
             title = {
                 Text(
-                    text = "¿Cerrar sesión?",
+                    text = stringResource(R.string.profile_logout_title),
                     fontFamily = IberPangeaFamily,
                     fontWeight = FontWeight.Bold,
                     color = GreenDarkIberdrola
@@ -183,7 +192,7 @@ fun ProfileScreen(
             },
             text = {
                 Text(
-                    text = "¿Seguro que quieres cerrar sesión? Tendrás que volver a configurar tus datos la próxima vez.",
+                    text = stringResource(R.string.profile_logout_text),
                     fontFamily = IberPangeaFamily,
                     color = Color.Black
                 )
@@ -193,12 +202,21 @@ fun ProfileScreen(
                     viewModel.onDismissLogoutDialog()
                     viewModel.logout { onBack() } 
                 }) {
-                    Text("Cerrar sesión", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(R.string.profile_logout_button),
+                        color = Color(0xFFD32F2F),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = IberPangeaFamily,
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.onDismissLogoutDialog() }) {
-                    Text("Cancelar", color = Color.Gray)
+                    Text(
+                        text = stringResource(R.string.invoice_detail_dialog_cancel),
+                        color = Color.Gray,
+                        fontFamily = IberPangeaFamily,
+                    )
                 }
             },
             containerColor = WhiteApp,
@@ -264,10 +282,10 @@ fun ProfileScreen(
                                 shape = RoundedCornerShape(4.dp)
                             ) {
                                 Text(
-                                    text = "Cerrar sesión",
+                                    text = stringResource(R.string.profile_logout_button),
                                     color = Color.White,
                                     modifier = Modifier.padding(8.dp),
-                                    fontSize = 12.sp
+                                    fontSize = 12.sp,
                                 )
                             }
                         },
@@ -290,7 +308,7 @@ fun ProfileScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Logout,
-                                contentDescription = "Cerrar sesión",
+                                contentDescription = stringResource(R.string.profile_logout_button),
                                 tint = if (canLogout) Color(0xFFD32F2F) else Color.LightGray.copy(alpha = 0.5f),
                                 modifier = Modifier.size(26.dp)
                             )
@@ -322,7 +340,7 @@ fun ProfileScreen(
                             saveJustFinished = state.saveJustFinished,
                             onClick = { 
                                 events.onSaveClick { 
-                                    Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.profile_save_success), Toast.LENGTH_SHORT).show()
                                     events.onBackClick()
                                 }
                             },
@@ -452,7 +470,7 @@ fun SmartSaveButton(
                 ButtonState.Success -> {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = "Completado",
+                        contentDescription = stringResource(R.string.profile_complete_description),
                         tint = WhiteApp,
                         modifier = Modifier.size(28.dp)
                     )

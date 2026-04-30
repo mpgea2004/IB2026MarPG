@@ -17,6 +17,7 @@ import androidx.core.content.FileProvider
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
+import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import java.io.OutputStream
 
 object InvoicePdfGenerator {
@@ -62,33 +63,39 @@ object InvoicePdfGenerator {
         paint.color = Color.BLACK
         paint.textSize = 14f
         paint.isFakeBoldText = true
-        canvas.drawText("FACTURA DE SERVICIOS", 415f, 60f, paint)
+        canvas.drawText(context.getString(R.string.pdf_title_services), 415f, 60f, paint)
         
         paint.textSize = 10f
         paint.isFakeBoldText = false
         paint.color = Color.DKGRAY
-        canvas.drawText(if (invoice.contractType == ContractType.LUZ) "Suministro Eléctrico" else "Suministro de Gas", 415f, 75f, paint)
+        canvas.drawText(
+            if (invoice.contractType == ContractType.LUZ) 
+                context.getString(R.string.pdf_value_light) 
+            else 
+                context.getString(R.string.pdf_value_gas), 
+            415f, 75f, paint
+        )
 
         paint.color = Color.BLACK
         paint.textSize = 16f
         paint.isFakeBoldText = true
-        canvas.drawText("Resumen de la factura", 40f, 160f, paint)
+        canvas.drawText(context.getString(R.string.pdf_summary_title), 40f, 160f, paint)
 
         paint.textSize = 12f
         paint.isFakeBoldText = false
-        canvas.drawText("ID de Factura:", 40f, 200f, paint)
+        canvas.drawText(context.getString(R.string.pdf_label_id), 40f, 200f, paint)
         paint.isFakeBoldText = true
         canvas.drawText(invoice.id, 160f, 200f, paint)
 
         paint.isFakeBoldText = false
-        canvas.drawText("Fecha de emisión:", 40f, 225f, paint)
+        canvas.drawText(context.getString(R.string.pdf_label_issue_date), 40f, 225f, paint)
         canvas.drawText(invoice.issueDate, 160f, 225f, paint)
 
-        canvas.drawText("Periodo facturado:", 40f, 250f, paint)
+        canvas.drawText(context.getString(R.string.pdf_label_period), 40f, 250f, paint)
         canvas.drawText("${invoice.startDate} al ${invoice.endDate}", 160f, 250f, paint)
 
-        canvas.drawText("Estado actual:", 40f, 275f, paint)
-        paint.color = if (invoice.status.description == "Pagadas") colorGreen else Color.RED
+        canvas.drawText(context.getString(R.string.pdf_label_status), 40f, 275f, paint)
+        paint.color = if (invoice.status == InvoiceStatus.PAGADAS) colorGreen else Color.RED
         canvas.drawText(invoice.status.description, 160f, 275f, paint)
 
         paint.color = colorGreen
@@ -104,7 +111,7 @@ object InvoicePdfGenerator {
         paint.color = Color.BLACK
         paint.textSize = 18f
         paint.isFakeBoldText = true
-        canvas.drawText("TOTAL FACTURA", 60f, 375f, paint)
+        canvas.drawText(context.getString(R.string.pdf_total_label), 60f, 375f, paint)
         
         paint.textSize = 22f
         paint.color = colorGreen
@@ -114,8 +121,8 @@ object InvoicePdfGenerator {
         paint.color = Color.GRAY
         paint.textSize = 9f
         paint.isFakeBoldText = false
-        canvas.drawText("Iberdrola Clientes S.A.U. - Este documento es una representación gráfica de su factura.", 40f, 780f, paint)
-        canvas.drawText("Gracias por contribuir al medio ambiente con la factura digital.", 40f, 795f, paint)
+        canvas.drawText(context.getString(R.string.pdf_footer_legal), 40f, 780f, paint)
+        canvas.drawText(context.getString(R.string.pdf_footer_eco), 40f, 795f, paint)
 
         pdfDocument.finishPage(page)
 
@@ -165,6 +172,6 @@ object InvoicePdfGenerator {
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(Intent.createChooser(shareIntent, "Compartir factura con..."))
+        context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.pdf_share_title)))
     }
 }

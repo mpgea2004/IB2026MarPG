@@ -28,9 +28,6 @@ import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
-/** * Sección de filtros por rango de fechas.
- * Permite al usuario abrir selectores de fecha para los límites "Desde" y "Hasta".
- */
 @Composable
 fun DateRangeSection(
     dateFrom: String,

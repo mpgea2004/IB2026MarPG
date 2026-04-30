@@ -90,6 +90,7 @@
     <string name="edit_email_header_title">Modificar email</string>
     <string name="edit_email_question">¿En qué email deseas recibir tus facturas?</string>
     <string name="edit_email_placeholder">* Nuevo email</string>
+    <string name="edit_email_discard_message">Has modificado el email. ¿Estás seguro de que quieres volver atrás y perder los cambios?</string>
 
     <string name="invoice_detail_dialog_title">Desactivar Factura Electrónica</string>
     <string name="invoice_detail_dialog_text">No es recomendable desactivar este servicio. Recibirás tus facturas en papel y dejarás de disfrutar de las ventajas digitales. ¿Estás seguro?</string>
@@ -113,7 +114,7 @@
     <string name="form_data_protection_title">Información básica sobre protección de datos</string>
     <string name="form_legal_responsable">Responsable: Iberdrola Clientes S.A.U. </string>
     <string name="form_legal_finalidad">\n\nFinalidad: Gestión de la factura electrónica. </string>
-    <string name="form_legal_derechos">\n\nDerechos: Acceso, rectificación, supresión, limiteción del tratamineto, portabilidad de datos u oposición, incluida la oposición a decisiones individuales automatizadas. </string>
+    <string name="form_legal_derechos">\n\nRights: Acceso, rectificación, supresión, limiteción del tratamineto, portabilidad de datos u oposición, incluida la oposición a decisiones individuales automatizadas. </string>
     <string name="form_more_info">Más info</string>
     <string name="form_checkbox_prefix">He leído y acepto la Política de privacidad, acepto las </string>
     <string name="form_condiciones_generales"> Condiciones Generales </string>
@@ -158,12 +159,79 @@
     <string name="profile_label_password">* Contraseña de seguridad</string>
     <string name="profile_button_save">Guardar cambios</string>
     <string name="profile_empty_address">Sin dirección asignada</string>
+    <string name="profile_discard_title">¿Descartar cambios?</string>
+    <string name="profile_discard_text">Tienes cambios sin guardar. ¿Estás seguro de que quieres salir y perder la información?</string>
+    <string name="profile_discard_button">Descartar</string>
+    <string name="profile_logout_title">¿Cerrar sesión?</string>
+    <string name="profile_logout_text">¿Seguro que quieres cerrar sesión? Tendrás que volver a configurar tus datos la próxima vez.</string>
+    <string name="profile_logout_button">Cerrar sesión</string>
+    <string name="profile_save_success">Cambios guardados</string>
+    <string name="profile_complete_description">Completado</string>
     <string name="feedback_thanks_title">¡Gracias por opinar!</string>
     <string name="error_field_required">Este campo es obligatorio</string>
 
     <string name="warning_same_email_title">¡Cuidado!</string>
     <string name="warning_same_email_message">Cuidado, estás intentando poner el mismo email que ya tenías establecido. Si es lo que pretendías continua, si no, no te olvides de cambiarlo.</string>
     <string name="warning_same_email_confirm">Entendido</string>
+
+    <!-- Invoice List -->
+    <string name="invoice_list_info_title">Información</string>
+    <string name="invoice_list_single_invoice_msg">Solo tienes una factura disponible, por lo que no es necesario aplicar filtros.</string>
+    <string name="invoice_list_hide_amounts">Ocultar importes</string>
+    <string name="invoice_list_show_amounts">Mostrar importes</string>
+    <string name="invoice_list_view_consumption">Ver consumo</string>
+    <string name="invoice_list_change_visibility">Cambiar visibilidad</string>
+    <string name="invoice_list_search_placeholder">Buscar por id...</string>
+    <string name="invoice_list_search_desc">Buscar por número de factura</string>
+    <string name="invoice_list_clear_filters">Limpiar</string>
+    <string name="invoice_list_sort_by">Ordenar por: %1$s</string>
+    <string name="invoice_list_remove_filter">Quitar filtro</string>
+    <string name="invoice_list_filter_id">ID: %1$s</string>
+    <string name="invoice_list_filter_date_from">Desde %1$s</string>
+    <string name="invoice_list_filter_date_to">Hasta %1$s</string>
+    <string name="invoice_list_label_date">Fecha</string>
+    <string name="invoice_list_label_amount">Importe</string>
+    <string name="invoice_list_label_states">Estados</string>
+
+    <!-- Invoice Detail -->
+    <string name="invoice_detail_overdue_short">Factura fuera de plazo (&gt;6 meses)</string>
+    <string name="invoice_detail_pay_not_available">PAGO NO DISPONIBLE</string>
+    <string name="invoice_detail_pay_now">PAGAR FACTURA AHORA</string>
+    <string name="invoice_detail_title">Detalle de factura</string>
+    <string name="invoice_detail_download_pdf">Descargar factura</string>
+    <string name="invoice_detail_pay_success">¡Factura pagada correctamente!</string>
+    <string name="invoice_detail_pay_error">No se ha podido realizar el pago. Inténtalo de nuevo.</string>
+    <string name="invoice_detail_download_success">Factura descargada correctamente</string>
+    <string name="invoice_detail_section_supply">Datos del suministro</string>
+    <string name="invoice_detail_label_contract_type">Tipo de contrato</string>
+    <string name="invoice_detail_value_light">Suministro de Luz</string>
+    <string name="invoice_detail_value_gas">Suministro de Gas</string>
+    <string name="invoice_detail_label_id">Número de factura</string>
+    <string name="invoice_detail_copy_id">Copiar número de factura</string>
+    <string name="invoice_detail_copy_toast">ID copiado al portapapeles</string>
+    <string name="invoice_detail_section_period">Periodo de facturación</string>
+    <string name="invoice_detail_section_status">Estado del pago</string>
+    <string name="invoice_detail_status_paid">Factura cobrada</string>
+    <string name="invoice_detail_status_cancelled">Factura en anulación</string>
+    <string name="invoice_detail_status_pending">Pendiente de cobro</string>
+    <string name="invoice_detail_dialog_pay_title">Seguridad de pago</string>
+    <string name="invoice_detail_dialog_pay_text">Introduce tu contraseña para confirmar el pago de la factura.</string>
+    <string name="invoice_detail_label_password">Contraseña</string>
+    <string name="invoice_detail_error_password">Contraseña incorrecta</string>
+    <string name="invoice_detail_button_confirm_pay">Confirmar Pago</string>
+    <string name="invoice_detail_dialog_overdue_title">Factura fuera de plazo</string>
+    <string name="invoice_detail_dialog_overdue_text">Esta factura tiene más de 6 meses de antigüedad y no puede pagarse desde la aplicación. Por favor, póngase en contacto con Atención al Cliente de Iberdrola.</string>
+    <string name="invoice_detail_button_understood">Entendido</string>
+    <string name="invoice_detail_banner_overdue">Factura vencida. El periodo de pago online ha expirado. Contacte con Iberdrola para regularizar su situación.</string>
+    <string name="invoice_detail_preview_title">Vista Previa</string>
+    <string name="invoice_detail_preview_subtitle">Factura Iberdrola</string>
+    <string name="invoice_detail_share">Compartir</string>
+    <string name="invoice_detail_download_location">El archivo se encuentra en tu carpeta de descargas</string>
+    <string name="invoice_detail_banner_fixed_quota">Esta factura pertenece al Plan Cuota Fija. El importe se regularizará según tu consumo real.</string>
+    <string name="invoice_detail_total_amount">Importe total</string>
+    <string name="invoice_detail_issued_date">Emitida el %1$s</string>
+    <string name="invoice_detail_loading">Cargando...</string>
+    <string name="invoice_detail_clip_label">ID Factura</string>
 
     <!-- Errores de Validación -->
     <string name="error_invalid_email_format">El formato del correo no es válido</string>
@@ -181,5 +249,78 @@
     <string name="error_server_maintenance">El servidor de Iberdrola está temporalmente fuera de servicio (500). Inténtalo más tarde.</string>
     <string name="error_data_not_found">No se han encontrado facturas vinculadas a tu cuenta en el sistema (404).</string>
     <string name="error_local_data">Error al leer los datos de la memoria interna. Prueba a refrescar.</string>
+
+    <!-- New Strings -->
+    <string name="common_ok">OK</string>
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_confirm">Confirmar</string>
+    <string name="electronic_invoice_address_title">Dirección de envío</string>
+    <string name="electronic_invoice_no_address_message">No tienes una dirección en tu cuenta, introduce la dirección donde deseas recibir tus facturas en papel y confirma con tu contraseña:</string>
+    <string name="electronic_invoice_address_placeholder">Dirección completa</string>
+    <string name="form_discard_changes_title">¿Descartar cambios?</string>
+    <string name="form_discard_changes_message">Has empezado a completar los datos. ¿Estás seguro de que quieres salir y perder el progreso?</string>
+    <string name="home_toast_complete_profile">Completa tu Nombre, Email y Password en el perfil para habilitar la factura electrónica</string>
+
+    <string name="home_toast_complete_profile_access">Completa tu Nombre, Email y Password en el perfil para acceder</string>
+    <string name="home_toast_complete_profile_electronic">Completa tu perfil para gestionar la factura electrónica</string>
+    <string name="home_faq_help">¿Necesitas ayuda? Consulta las FAQ</string>
+    <string name="home_profile_status_complete">Perfil completo</string>
+    <string name="home_profile_status_missing_optional">Faltan datos opcionales</string>
+    <string name="home_profile_status_incomplete">Perfil incompleto</string>
+
+    <string name="pdf_title_services">FACTURA DE SERVICIOS</string>
+    <string name="pdf_value_light">Suministro Eléctrico</string>
+    <string name="pdf_value_gas">Suministro de Gas</string>
+    <string name="pdf_summary_title">Resumen de la factura</string>
+    <string name="pdf_label_id">ID de Factura:</string>
+    <string name="pdf_label_issue_date">Fecha de emisión:</string>
+    <string name="pdf_label_period">Periodo facturado:</string>
+    <string name="pdf_label_status">Estado actual:</string>
+    <string name="pdf_total_label">TOTAL FACTURA</string>
+    <string name="pdf_footer_legal">Iberdrola Clientes S.A.U. - Este documento es una representación gráfica de su factura.</string>
+    <string name="pdf_footer_eco">Gracias por contribuir al medio ambiente con la factura digital.</string>
+    <string name="pdf_share_title">Compartir factura con...</string>
+
+    <!-- Consumption Dashboard -->
+    <string name="consumption_title">Mi Consumo</string>
+    <string name="consumption_subtitle">Analiza tus gastos energéticos</string>
+    <string name="consumption_tab_electricity">Electricidad</string>
+    <string name="consumption_tab_gas">Gas Natural</string>
+    <string name="consumption_chart_title">Histórico de facturación</string>
+    <string name="consumption_tip_title">¿Sabías que?</string>
+    <string name="consumption_tip_message">Ajustar la temperatura de tu hogar 1°C puede suponer un ahorro del 7% en tu factura.</string>
+    <string name="consumption_empty_title">Sin datos de consumo</string>
+    <string name="consumption_empty_message">No hemos encontrado facturas históricas para este tipo de suministro.</string>
+
+    <!-- FAQ -->
+    <string name="faq_title">Preguntas Frecuentes</string>
+    <string name="faq_subtitle">Resolvemos tus dudas sobre la aplicación</string>
+    <string name="faq_contact_title">¿Aún tienes dudas?</string>
+    <string name="faq_contact_subtitle">Contacta con soporte técnico</string>
+
+    <!-- OTP -->
+    <string name="otp_notification_header">IBERDROLA</string>
+    <string name="otp_notification_time">ahora</string>
+
+    <!-- FAQ Items -->
+    <string name="faq_q1">¿Cómo puedo ver mis facturas?</string>
+    <string name="faq_a1">Puedes ver tus facturas pulsando en la tarjeta \'Mis Facturas\' de la pantalla principal. Allí podrás filtrar por fecha, importe o estado.</string>
+    <string name="faq_q2">¿Qué es el modo Nube?</string>
+    <string name="faq_a2">El modo Nube te permite sincronizar tus datos reales con el servidor. Si lo desactivas, la aplicación utilizará datos locales de demostración.</string>
+    <string name="faq_q3">¿Cómo activo la factura electrónica?</string>
+    <string name="faq_a3">En la pantalla de inicio, selecciona \'Factura Electrónica\'. Podrás elegir qué contratos quieres pasar a digital y configurar tu email de recepción.</string>
+    <string name="faq_q4">¿Dónde veo mi consumo energético?</string>
+    <string name="faq_a4">Dentro del listado de facturas, encontrarás un icono de gráfico en la parte superior derecha. Al pulsarlo, accederás al análisis detallado de tu consumo.</string>
+    <string name="faq_q5">¿Cómo actualizo mis datos personales?</string>
+    <string name="faq_a5">Pulsa en el icono de usuario en la esquina superior derecha de la pantalla de inicio para acceder a tu perfil y editar tu información.</string>
+
+    <string name="invoice_list_amount_hidden">... €</string>
+
+    <!-- Status Badge -->
+    <string name="status_paid">Pagada</string>
+    <string name="status_pending">Pendiente de pago</string>
+    <string name="status_processing">En trámite de cobro</string>
+    <string name="status_cancelled">Anulada</string>
+    <string name="status_fixed">Cuota fija</string>
 
 </resources>

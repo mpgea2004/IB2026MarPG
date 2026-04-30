@@ -51,11 +51,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
 import com.iberdrola.practicas2026.MarPG.ui.theme.*
@@ -126,14 +128,14 @@ fun ConsumptionDashboardScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Mi Consumo",
+                                text = stringResource(R.string.consumption_title),
                                 fontSize = 32.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 fontFamily = IberPangeaFamily,
                                 color = GreenIberdrola
                             )
                             Text(
-                                text = "Analiza tus gastos energéticos",
+                                text = stringResource(R.string.consumption_subtitle),
                                 fontSize = 16.sp,
                                 color = TextGrey,
                                 fontWeight = FontWeight.Medium,
@@ -261,13 +263,13 @@ fun SuministroToggle(
             val modifier = Modifier.weight(1f).fillMaxHeight()
             
             ToggleButton(
-                text = "Electricidad",
+                text = stringResource(R.string.consumption_tab_electricity),
                 isSelected = selectedType == ContractType.LUZ,
                 onClick = { onTypeSelected(ContractType.LUZ) },
                 modifier = modifier
             )
             ToggleButton(
-                text = "Gas Natural",
+                text = stringResource(R.string.consumption_tab_gas),
                 isSelected = selectedType == ContractType.GAS,
                 onClick = { onTypeSelected(ContractType.GAS) },
                 modifier = modifier
@@ -347,7 +349,7 @@ fun ConsumptionChart(data: List<Pair<String, Double>>) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Histórico de facturación",
+                    text = stringResource(R.string.consumption_chart_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -458,14 +460,14 @@ fun SavingsTipCard() {
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
-                    text = "¿Sabías que?",
+                    text = stringResource(R.string.consumption_tip_title),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     fontFamily = IberPangeaFamily
                 )
                 Text(
-                    text = "Ajustar la temperatura de tu hogar 1°C puede suponer un ahorro del 7% en tu factura.",
+                    text = stringResource(R.string.consumption_tip_message),
                     fontSize = 13.sp,
                     color = TextGrey,
                     fontFamily = IberPangeaFamily
@@ -491,7 +493,7 @@ fun EmptyConsumptionState() {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            "Sin datos de consumo",
+            stringResource(R.string.consumption_empty_title),
             fontFamily = IberPangeaFamily,
             fontWeight = FontWeight.Bold,
             color = Color.DarkGray,
@@ -499,7 +501,7 @@ fun EmptyConsumptionState() {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            "No hemos encontrado facturas históricas para este tipo de suministro.",
+            stringResource(R.string.consumption_empty_message),
             fontSize = 14.sp,
             color = Color.Gray,
             textAlign = TextAlign.Center,

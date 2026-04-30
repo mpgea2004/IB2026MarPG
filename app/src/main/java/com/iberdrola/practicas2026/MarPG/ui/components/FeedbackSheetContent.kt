@@ -33,12 +33,6 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
 
-/**
- * Contenido visual para el BottomSheet de Feedback
- * Presenta una escala de satisfacción mediante emojis y una opción para posponer
- * * @param onRatingClick Acción a ejecutar cuando el usuario pulsa cualquier emoji
- * @param onLaterClick Acción a ejecutar cuando el usuario pulsa "Responder más tarde"
- */
 @Composable
 fun FeedbackSheetContent(
     onRatingClick: () -> Unit,
@@ -93,7 +87,6 @@ fun FeedbackSheetContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        //Texto "Responder más tarde"
         Text(
             text = stringResource(R.string.feedback_sheet_later),
             color = Color(0xFF008244),

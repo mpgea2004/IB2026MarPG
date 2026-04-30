@@ -2,7 +2,6 @@ package com.iberdrola.practicas2026.MarPG.ui.factura_list
 
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 
-/** Estados posibles para la pantalla de listado de facturas */
 sealed class InvoiceListState {
     data object LOADING : InvoiceListState()
     data object NODATA : InvoiceListState()

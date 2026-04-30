@@ -21,7 +21,6 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
-/** Botón de acceso a filtros */
 @Composable
 fun FilterButton(onClick: () -> Unit) {
     OutlinedButton(
