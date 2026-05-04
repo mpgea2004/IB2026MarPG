@@ -253,7 +253,7 @@ fun FilterContent(
 
             AnimateFilterItemEntrance(index = 2) {
                 Column {
-                    Text(stringResource(R.string.invoice_filter_price), fontSize = 14.sp, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
+                    Text(stringResource(R.string.invoice_filter_price), fontSize = 14.sp, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily, color = Color.Black)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     PriceRangeSection(

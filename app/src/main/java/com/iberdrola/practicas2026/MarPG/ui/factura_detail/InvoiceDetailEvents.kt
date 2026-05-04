@@ -9,5 +9,6 @@ data class InvoiceDetailEvents(
     val onDismissPasswordDialog: () -> Unit = {},
     val onDismissOverdueDialog: () -> Unit = {},
     val onDismissPdf: () -> Unit = {},
-    val onToggleAmountVisibility: () -> Unit = {}
+    val onToggleAmountVisibility: () -> Unit = {},
+    val onShowSnackbar: (String) -> Unit
 )

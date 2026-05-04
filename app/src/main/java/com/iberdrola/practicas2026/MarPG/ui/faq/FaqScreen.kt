@@ -58,6 +58,7 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.BackgroundApp
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
+import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
@@ -85,7 +86,7 @@ fun FaqContent(
     events: FaqEvents
 ) {
     Scaffold(
-        containerColor = WhiteApp,
+        containerColor = LightGreenIberdrola,
         topBar = {
             Surface(color = Color.Transparent) {
                 Row(
@@ -218,11 +219,14 @@ fun FaqExpandableCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .clickable { onToggle() },
+            .padding(vertical = 4.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = WhiteApp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp,
+            pressedElevation = 2.dp
+        ),
+        onClick = onToggle
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(
@@ -290,7 +294,8 @@ fun ContactCard(onClick: () -> Unit) {
                     stringResource(R.string.faq_contact_title),
                     fontWeight = FontWeight.Bold,
                     fontFamily = IberPangeaFamily,
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    color = Color.Black
                 )
                 Text(
                     stringResource(R.string.faq_contact_subtitle),

@@ -325,7 +325,8 @@ fun ElectronicInvoiceDetailInfoScreenContent(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 16.dp),
-                    fontFamily = IberPangeaFamily
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Black
                 )
             }
 
@@ -334,7 +335,8 @@ fun ElectronicInvoiceDetailInfoScreenContent(
                     text = state.userProfile.address.ifEmpty { stringResource(R.string.profile_empty_address) },
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp),
+                    color = Color.Black
                 )
             }
 
@@ -357,7 +359,8 @@ fun ElectronicInvoiceDetailInfoScreenContent(
                         text = stringResource(R.string.invoice_detail_email_label),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.ExtraBold,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        color = Color.Black
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))

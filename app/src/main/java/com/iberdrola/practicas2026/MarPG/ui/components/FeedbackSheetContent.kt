@@ -44,7 +44,7 @@ fun FeedbackSheetContent(
             .padding(bottom = 32.dp, start = 24.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(stringResource(R.string.feedback_sheet_title), fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
+        Text(stringResource(R.string.feedback_sheet_title), fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily, color = Color.Black)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -59,18 +59,16 @@ fun FeedbackSheetContent(
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp), thickness = 0.5.dp, color = Color.LightGray)
 
-        //Fila de Emojis con los colores de la imagen
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            //el to color, hace que me pueda ahorrar el declarar 5 boton de iconos, asi lo hago con un foreach
             val emojis = listOf(
                 Icons.Outlined.SentimentVeryDissatisfied to Color.Red,
-                Icons.Outlined.SentimentDissatisfied to Color(0xFFFF9800), //Naranja
+                Icons.Outlined.SentimentDissatisfied to Color(0xFFFF9800),
                 Icons.Outlined.SentimentNeutral to Color.Gray,
-                Icons.Outlined.SentimentSatisfied to Color(0xFF2196F3),   //Azul
-                Icons.Outlined.SentimentVerySatisfied to Color(0xFF008244) //Verde
+                Icons.Outlined.SentimentSatisfied to Color(0xFF2196F3),
+                Icons.Outlined.SentimentVerySatisfied to Color(0xFF008244)
             )
 
             emojis.forEach { (icon, color) ->

@@ -58,6 +58,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -67,6 +68,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults.rememberPlainTooltipPositionProvider
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -163,6 +166,7 @@ fun InvoiceListScreen(
     val context = LocalContext.current
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val pullToRefreshState = rememberPullToRefreshState()
 
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
@@ -240,6 +244,16 @@ fun InvoiceListScreen(
         PullToRefreshBox(
             isRefreshing = viewModel.isRefreshing,
             onRefresh = { viewModel.refreshInvoices() },
+            state = pullToRefreshState,
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = pullToRefreshState,
+                    isRefreshing = viewModel.isRefreshing,
+                    containerColor = Color(0xFFF0F0F0),
+                    color = GreenIberdrola,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            },
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize(),
@@ -553,7 +567,7 @@ fun InvoiceListContent(
                         modifier = Modifier
                             .weight(1f)
                             .height(52.dp),
-                        placeholder = { Text(stringResource(R.string.invoice_list_search_placeholder), fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.invoice_list_search_placeholder), fontSize = 14.sp, color = Color.Black) },
                         leadingIcon = {
                             TooltipBox(
                                 positionProvider = rememberPlainTooltipPositionProvider(),
@@ -620,7 +634,8 @@ fun InvoiceListContent(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.ExtraBold,
                         fontFamily = IberPangeaFamily,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        color = Color.Black
                     )
                     
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -916,7 +931,7 @@ fun LastInvoiceItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> U
             .background(WhiteApp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text(stringResource(R.string.invoice_list_last_invoice_title), fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
+                    Text(stringResource(R.string.invoice_list_last_invoice_title), fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily, color = Color.Black)
                     Text(
                         text = stringResource(
                             id = R.string.invoice_list_invoice_type_label,
@@ -944,14 +959,16 @@ fun LastInvoiceItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> U
                     text = invoice.amount.toAnnotatedCurrencyFormat(28.sp),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(vertical = 8.dp),
-                    fontFamily = IberPangeaFamily
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Black
                 )
             } else {
                 Text(
                     text = getHiddenAmountAnnotatedString(28.sp),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(vertical = 8.dp),
-                    fontFamily = IberPangeaFamily
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Black
                 )
             }
 
@@ -984,7 +1001,7 @@ fun InvoiceHistoricalItem(invoice: Invoice, isAmountVisible: Boolean, onClick: (
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(dateDisplay, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
+                Text(dateDisplay, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily, color = Color.Black)
                 Text(text = stringResource(
                     id = R.string.invoice_list_invoice_type_label,
                     invoice.contractType.name.lowercase().replaceFirstChar { it.uppercase() }),

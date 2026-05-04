@@ -1,6 +1,5 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_home
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -40,6 +39,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
@@ -94,6 +96,9 @@ fun HomeScreen(
     val state = viewModel.state
     val sheetState = rememberModalBottomSheetState()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    
     var isNavigating by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -114,7 +119,9 @@ fun HomeScreen(
                     isNavigating = true
                     onNavigateToInvoices()
                 } else {
-                    Toast.makeText(context, context.getString(R.string.home_toast_complete_profile_access), Toast.LENGTH_LONG).show()
+                    scope.launch {
+                        snackbarHostState.showSnackbar(context.getString(R.string.home_toast_complete_profile_access))
+                    }
                 }
             }
         },
@@ -124,7 +131,9 @@ fun HomeScreen(
                     isNavigating = true
                     onNavigateToElectronicInvoice()
                 } else {
-                    Toast.makeText(context, context.getString(R.string.home_toast_complete_profile_electronic), Toast.LENGTH_LONG).show()
+                    scope.launch {
+                        snackbarHostState.showSnackbar(context.getString(R.string.home_toast_complete_profile_electronic))
+                    }
                 }
             }
         },
@@ -145,11 +154,9 @@ fun HomeScreen(
         onSheetOptionSelected = { tregua ->
             viewModel.onOptionSelected(tregua)
             if (tregua == 10) {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.feedback_thanks_title),
-                    Toast.LENGTH_SHORT
-                ).show()
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.feedback_thanks_title))
+                }
             }
         }
     )
@@ -158,7 +165,8 @@ fun HomeScreen(
         state = state,
         events = events,
         isCloudEnabled = isCloudEnabled,
-        sheetState = sheetState
+        sheetState = sheetState,
+        snackbarHostState = snackbarHostState
     )
 }
 
@@ -168,10 +176,22 @@ fun HomeContent(
     state: HomeState,
     events: HomeEvents,
     isCloudEnabled: Boolean,
-    sheetState: SheetState
+    sheetState: SheetState,
+    snackbarHostState: SnackbarHostState
 ) {
     Scaffold(
-        containerColor = Color.Transparent
+        containerColor = Color.Transparent,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    containerColor = Color.White,
+                    contentColor = Color.Black,
+                    shape = RoundedCornerShape(12.dp),
+                    snackbarData = data,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
+        }
     ) { padding ->
         Box(
             modifier = Modifier

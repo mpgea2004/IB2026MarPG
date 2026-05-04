@@ -245,7 +245,7 @@
     <string name="error_incorrect_otp">El código introducido no es correcto</string>
 
     <!-- Errores Personalizados de Red -->
-    <string name="error_network_connection">No se ha podido conectar con el servidor. Comprueba tu conexión a internet o Mockoon.</string>
+    <string name="error_network_connection">No se ha podido conectar con el servidor. Comprueba tu conexión a internet o Mockoon. Los datos que se te muestran están desactualizados.</string>
     <string name="error_server_maintenance">El servidor de Iberdrola está temporalmente fuera de servicio (500). Inténtalo más tarde.</string>
     <string name="error_data_not_found">No se han encontrado facturas vinculadas a tu cuenta en el sistema (404).</string>
     <string name="error_local_data">Error al leer los datos de la memoria interna. Prueba a refrescar.</string>
@@ -261,8 +261,8 @@
     <string name="form_discard_changes_message">Has empezado a completar los datos. ¿Estás seguro de que quieres salir y perder el progreso?</string>
     <string name="home_toast_complete_profile">Completa tu Nombre, Email y Password en el perfil para habilitar la factura electrónica</string>
 
-    <string name="home_toast_complete_profile_access">Completa tu Nombre, Email y Password en el perfil para acceder</string>
-    <string name="home_toast_complete_profile_electronic">Completa tu perfil para gestionar la factura electrónica</string>
+    <string name="home_toast_complete_profile_access">Completa tu perfil para acceder a tus facturas</string>
+    <string name="home_toast_complete_profile_electronic">Completa tu perfil para gestionar las facturas electrónicas</string>
     <string name="home_faq_help">¿Necesitas ayuda? Consulta las FAQ</string>
     <string name="home_profile_status_complete">Perfil completo</string>
     <string name="home_profile_status_missing_optional">Faltan datos opcionales</string>

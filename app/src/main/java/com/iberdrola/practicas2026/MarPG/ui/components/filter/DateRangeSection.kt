@@ -36,7 +36,7 @@ fun DateRangeSection(
     onToClick: () -> Unit
 ) {
     Column {
-        Text(text = stringResource(R.string.filter_date_section_title), fontSize = 14.sp, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
+        Text(text = stringResource(R.string.filter_date_section_title), fontSize = 14.sp, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily, color = Color.Black)
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             horizontalArrangement = Arrangement.spacedBy(24.dp),

@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.graphics.Bitmap.createBitmap
 import android.graphics.pdf.PdfRenderer
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
@@ -64,6 +63,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -102,6 +104,7 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
+import com.iberdrola.practicas2026.MarPG.ui.components.IberdrolaSnackbar
 import com.iberdrola.practicas2026.MarPG.ui.components.detail.InvoiceStepper
 import com.iberdrola.practicas2026.MarPG.ui.components.detail.ShimmerInvoiceDetail
 import com.iberdrola.practicas2026.MarPG.ui.components.list.StatusBadge
@@ -129,6 +132,8 @@ fun InvoiceDetailScreen(
     val context = LocalContext.current
     val state = viewModel.state
     val haptic = LocalHapticFeedback.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     var isNavigating by remember { mutableStateOf(false) }
 
@@ -155,12 +160,18 @@ fun InvoiceDetailScreen(
         onDismissPasswordDialog = { viewModel.dismissPasswordDialog() },
         onDismissOverdueDialog = { viewModel.dismissOverdueDialog() },
         onDismissPdf = { viewModel.dismissPdfViewer() },
-        onToggleAmountVisibility = { viewModel.toggleAmountVisibility() }
+        onToggleAmountVisibility = { viewModel.toggleAmountVisibility() },
+        onShowSnackbar = { message -> 
+            scope.launch {
+                snackbarHostState.showSnackbar(message)
+            }
+        }
     )
 
     InvoiceDetailContent(
         state = state,
-        events = events
+        events = events,
+        snackbarHostState = snackbarHostState
     )
 }
 
@@ -168,7 +179,8 @@ fun InvoiceDetailScreen(
 @Composable
 fun InvoiceDetailContent(
     state: InvoiceDetailState,
-    events: InvoiceDetailEvents
+    events: InvoiceDetailEvents,
+    snackbarHostState: SnackbarHostState
 ) {
     val invoice = state.invoice
     val context = LocalContext.current
@@ -205,7 +217,11 @@ fun InvoiceDetailContent(
         topBar = {
             FilterTopBar(onBack = events.onBack)
         },
-
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                IberdrolaSnackbar(snackbarData = data)
+            }
+        },
         bottomBar = {
             if(invoice!= null) {
                 val isPayable = invoice.status != InvoiceStatus.PAGADAS && 
@@ -514,7 +530,7 @@ fun InvoiceDetailContent(
                                                             val clip = ClipData.newPlainText(context.getString(R.string.invoice_detail_clip_label), invoice.id)
                                                             clipboard.setPrimaryClip(clip)
                                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                            Toast.makeText(context, context.getString(R.string.invoice_detail_copy_toast), Toast.LENGTH_SHORT).show()
+                                                            events.onShowSnackbar(context.getString(R.string.invoice_detail_copy_toast))
                                                         },
                                                         onLongClick = {
                                                             scope.launch { copyTooltipState.show() }

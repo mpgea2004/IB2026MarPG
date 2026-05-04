@@ -247,7 +247,8 @@ fun ElectronicInvoiceOtpContent(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 16.sp,
-                        fontFamily = IberPangeaFamily
+                        fontFamily = IberPangeaFamily,
+                        color = Color.Black
                     )
                 }
 

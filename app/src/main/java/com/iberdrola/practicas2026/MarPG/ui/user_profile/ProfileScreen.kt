@@ -1,6 +1,5 @@
 package com.iberdrola.practicas2026.MarPG.ui.user_profile
 
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -64,6 +63,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -99,6 +100,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.components.IberdrolaSnackbar
 import com.iberdrola.practicas2026.MarPG.ui.components.profile.ShimmerProfile
 import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
 import com.iberdrola.practicas2026.MarPG.ui.theme.BackgroundApp
@@ -107,6 +109,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -121,6 +124,7 @@ fun ProfileScreen(
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val handleBackAction = {
         if (!state.isSaved) {
@@ -340,8 +344,11 @@ fun ProfileScreen(
                             saveJustFinished = state.saveJustFinished,
                             onClick = { 
                                 events.onSaveClick { 
-                                    Toast.makeText(context, context.getString(R.string.profile_save_success), Toast.LENGTH_SHORT).show()
-                                    events.onBackClick()
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(context.getString(R.string.profile_save_success))
+                                        delay(500)
+                                        events.onBackClick()
+                                    }
                                 }
                             },
                             modifier = Modifier
@@ -351,6 +358,11 @@ fun ProfileScreen(
                         )
                     }
                 }
+            }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                IberdrolaSnackbar(snackbarData = data)
             }
         },
         containerColor = BackgroundApp

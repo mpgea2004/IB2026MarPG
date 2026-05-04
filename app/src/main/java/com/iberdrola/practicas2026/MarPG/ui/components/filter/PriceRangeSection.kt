@@ -54,7 +54,8 @@ fun PriceRangeSection(
                 ),
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp,
-                fontFamily = IberPangeaFamily
+                fontFamily = IberPangeaFamily,
+                color = Color.Black
             )
         }
 
