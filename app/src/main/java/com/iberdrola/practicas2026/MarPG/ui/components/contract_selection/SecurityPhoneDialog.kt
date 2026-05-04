@@ -59,7 +59,7 @@ fun SecurityPhoneDialog(
 
                 TextField(
                     value = state.newPhoneInput,
-                    label = { Text(stringResource(R.string.security_dialog_phone_label),fontFamily = IberPangeaFamily) },
+                    label = { Text(stringResource(R.string.security_dialog_phone_label),fontFamily = IberPangeaFamily, color = Color.Gray) },
                     onValueChange = { viewModel.onNewPhoneChanged(it) },
                     placeholder = { Text(stringResource(R.string.security_dialog_phone_label), fontFamily = IberPangeaFamily, color = Color.Gray) },
                     textStyle = TextStyle(fontFamily = IberPangeaFamily, color = Color.Black,fontSize = 16.sp),
@@ -83,7 +83,7 @@ fun SecurityPhoneDialog(
                 TextField(
                     value = state.passwordInput,
                     onValueChange = { viewModel.onPasswordChanged(it) },
-                    label = { Text(stringResource(R.string.security_dialog_password_label),fontFamily = IberPangeaFamily) },
+                    label = { Text(stringResource(R.string.security_dialog_password_label),fontFamily = IberPangeaFamily, color = Color.Gray) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     textStyle = TextStyle(fontFamily = IberPangeaFamily, color = Color.Black, fontSize = 16.sp),

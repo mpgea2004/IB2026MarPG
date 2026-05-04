@@ -270,7 +270,7 @@ fun ContactCard(onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(50))
+            .clip(RoundedCornerShape(24.dp))
             .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = GreenIberdrola.copy(alpha = 0.05f))

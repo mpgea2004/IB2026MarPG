@@ -33,6 +33,7 @@ private val LightColorScheme = lightColorScheme(
 fun IB2026MarPGTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
+    darkIcons: Boolean = true, // Nuevo parámetro: true = iconos negros, false = iconos blancos
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -53,8 +54,8 @@ fun IB2026MarPGTheme(
             window.statusBarColor = Color.TRANSPARENT
 
             val windowInsetsController = WindowCompat.getInsetsController(window, view)
-            windowInsetsController.isAppearanceLightStatusBars = !darkTheme
-            windowInsetsController.isAppearanceLightNavigationBars = !darkTheme
+            windowInsetsController.isAppearanceLightStatusBars = darkIcons
+            windowInsetsController.isAppearanceLightNavigationBars = darkIcons
         }
     }
 

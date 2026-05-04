@@ -32,16 +32,17 @@ class ElectronicInvoiceListViewModel @Inject constructor(
         private set
 
     private val isCloud: Boolean = savedStateHandle["isCloud"] ?: false
+    
+    private var localData: List<ElectronicInvoice> = emptyList()
+    private var isFirstEmission = true
 
     init {
         loadInvoices()
     }
 
-    /**
-     * Carga inicial y reintento
-     */
     fun loadInvoices() {
         viewModelScope.launch {
+            isFirstEmission = true
             if (!isRefreshing) state = ElectronicInvoiceListState.Loading
             errorMessage = null
 
@@ -57,16 +58,28 @@ class ElectronicInvoiceListViewModel @Inject constructor(
                         is InvoiceException.LocalDataError -> R.string.error_local_data
                         else -> R.string.error_unknown
                     }
-                    errorMessage = errorRes
                     
-                    if (state !is ElectronicInvoiceListState.Success) {
-                        state = ElectronicInvoiceListState.Error(errorRes)
+                    errorMessage = errorRes
+                    if (localData.isEmpty()) {
+                        state = ElectronicInvoiceListState.NoData
+                    } else {
+                        state = ElectronicInvoiceListState.Success(localData)
                     }
                     isRefreshing = false
                 }
                 .collect { invoiceList ->
-                    state = ElectronicInvoiceListState.Success(invoiceList)
-                    isRefreshing = false
+                    localData = invoiceList
+                    if (isCloud && isFirstEmission) {
+                        isFirstEmission = false
+                    } else {
+                        if (invoiceList.isEmpty()) {
+                            state = ElectronicInvoiceListState.NoData
+                        } else {
+                            state = ElectronicInvoiceListState.Success(invoiceList)
+                            errorMessage = null
+                        }
+                        isRefreshing = false
+                    }
                 }
         }
     }
@@ -78,6 +91,10 @@ class ElectronicInvoiceListViewModel @Inject constructor(
             delay(500)
             isRefreshing = false
         }
+    }
+
+    fun clearErrorMessage() {
+        errorMessage = null
     }
 
 }

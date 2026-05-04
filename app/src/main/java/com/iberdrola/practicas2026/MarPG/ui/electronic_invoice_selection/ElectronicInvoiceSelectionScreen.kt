@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.ui.components.ErrorBanner
+import com.iberdrola.practicas2026.MarPG.ui.components.InvoiceEmptyState
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ContractCard
-import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ErrorComponent
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ShimmerElectronicInvoiceList
 import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
@@ -102,11 +102,10 @@ fun ElectronicInvoiceSelectionScreen(
                         )
                     }
 
-                    is ElectronicInvoiceListState.Error -> {
-                        ErrorComponent(
-                            message = stringResource(state.messageRes),
-                            onRetry = events.onRetry,
-                            modifier = Modifier.align(Alignment.Center)
+                    is ElectronicInvoiceListState.NoData -> {
+                        InvoiceEmptyState(
+                            message = errorMessage?.let { stringResource(it) },
+                            onRefresh = events.onRetry
                         )
                     }
                 }
