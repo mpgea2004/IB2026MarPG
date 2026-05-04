@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -29,15 +31,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
+import com.iberdrola.practicas2026.MarPG.ui.components.ErrorBanner
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ContractCard
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ErrorComponent
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ShimmerElectronicInvoiceList
 import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
-import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ElectronicInvoiceSelectionScreen(
     viewModel: ElectronicInvoiceListViewModel,
@@ -45,11 +49,13 @@ fun ElectronicInvoiceSelectionScreen(
     onNavigate: (ElectronicInvoice) -> Unit
 ) {
     val state = viewModel.state
+    val errorMessage = viewModel.errorMessage
+    val pullToRefreshState = rememberPullToRefreshState()
+
 
     val events = ElectronicInvoiceListEvents(
         onRetry = { viewModel.loadInvoices() },
         onElectronicInvoiceClick = { invoice ->
-            viewModel.onElectronicInvoiceClick(invoice)
             onNavigate(invoice)
         }
     )
@@ -58,33 +64,51 @@ fun ElectronicInvoiceSelectionScreen(
         containerColor = WhiteApp,
         topBar = {
             FilterTopBar(onBack = onBack)
-        }
+        },
     ) { padding ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(top = padding.calculateTopPadding())) {
-            when (state) {
-                is ElectronicInvoiceListState.Loading -> {
-                    ShimmerElectronicInvoiceList(
-                        brush = shimmerBrush(),
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+        PullToRefreshBox(
+            isRefreshing = viewModel.isRefreshing,
+            onRefresh = { viewModel.refreshInvoices() },
+            state = pullToRefreshState,
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = pullToRefreshState,
+                    isRefreshing = viewModel.isRefreshing,
+                    containerColor = Color(0xFFF0F0F0),
+                    color = GreenIberdrola,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            },
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (state) {
+                    is ElectronicInvoiceListState.Loading -> {
+                        ShimmerElectronicInvoiceList(
+                            brush = shimmerBrush(),
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
 
-                is ElectronicInvoiceListState.Success -> {
-                    ElectronicInvoiceSelectionContent(
-                        invoices = state.contracts,
-                        events = events,
-                        modifier = Modifier.navigationBarsPadding()
-                    )
-                }
+                    is ElectronicInvoiceListState.Success -> {
+                        ElectronicInvoiceSelectionContent(
+                            invoices = state.contracts,
+                            errorMessage = errorMessage?.let { stringResource(it) },
+                            events = events,
+                            modifier = Modifier.navigationBarsPadding()
+                        )
+                    }
 
-                is ElectronicInvoiceListState.Error -> {
-                    ErrorComponent(
-                        message = state.message,
-                        onRetry = events.onRetry,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    is ElectronicInvoiceListState.Error -> {
+                        ErrorComponent(
+                            message = stringResource(state.messageRes),
+                            onRetry = events.onRetry,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
                 }
             }
         }
@@ -94,6 +118,7 @@ fun ElectronicInvoiceSelectionScreen(
 @Composable
 fun ElectronicInvoiceSelectionContent(
     invoices: List<ElectronicInvoice>,
+    errorMessage: String?,
     events: ElectronicInvoiceListEvents,
     modifier: Modifier = Modifier
 ) {
@@ -102,6 +127,12 @@ fun ElectronicInvoiceSelectionContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
+        if (errorMessage != null) {
+            Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
+                ErrorBanner(message = errorMessage)
+            }
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         AnimateElectronicInvoiceItem(index = 0) {

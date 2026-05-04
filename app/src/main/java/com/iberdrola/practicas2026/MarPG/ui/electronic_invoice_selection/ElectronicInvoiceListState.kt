@@ -5,5 +5,5 @@ import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 sealed class ElectronicInvoiceListState {
     object Loading : ElectronicInvoiceListState()
     data class Success(val contracts: List<ElectronicInvoice>) : ElectronicInvoiceListState()
-    data class Error(val message: String) : ElectronicInvoiceListState()
+    data class Error(val messageRes: Int) : ElectronicInvoiceListState()
 }
