@@ -42,6 +42,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -49,6 +50,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -80,6 +82,7 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Loadin
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
+import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -93,6 +96,7 @@ fun ElectronicInvoiceOtpScreen(
 ) {
     val state = viewModel.state
     val haptic = LocalHapticFeedback.current
+    var showDiscardDialog by remember { mutableStateOf(false) }
     
     var isNavigating by remember { mutableStateOf(true) }
 
@@ -118,12 +122,35 @@ fun ElectronicInvoiceOtpScreen(
 
     val handleClose = {
         if (!isNavigating) {
-            isNavigating = true
-            onCloseToHome()
+            showDiscardDialog = true
         }
     }
 
-    BackHandler(enabled = true) { handleBack() }
+    BackHandler(enabled = !showDiscardDialog) { handleBack() }
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(stringResource(R.string.form_discard_changes_title), color = GreenDarkIberdrola, fontFamily = IberPangeaFamily, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.form_discard_changes_message), color = Color.Black, fontFamily = IberPangeaFamily) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDiscardDialog = false
+                    isNavigating = true
+                    onCloseToHome()
+                }) {
+                    Text(stringResource(R.string.profile_discard_button), color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text(stringResource(R.string.security_dialog_cancel), color = GreenDarkIberdrola)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {

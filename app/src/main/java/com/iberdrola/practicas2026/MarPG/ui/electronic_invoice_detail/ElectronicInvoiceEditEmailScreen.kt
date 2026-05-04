@@ -72,13 +72,16 @@ fun ElectronicInvoiceEditEmailScreen(
     }
 
     val handleClose = {
-        if (!isNavigating) {
+        val hasChanges = state.emailInput != (state.selectedContract?.email ?: "")
+        if (hasChanges) {
+            showDiscardDialog = true
+        } else if (!isNavigating) {
             isNavigating = true
             onCloseToHome()
         }
     }
 
-    BackHandler(enabled = true) { handleBackAction() }
+    BackHandler(enabled = !showDiscardDialog) { handleBackAction() }
 
     if (showDiscardDialog) {
         AlertDialog(
@@ -86,7 +89,10 @@ fun ElectronicInvoiceEditEmailScreen(
             title = { Text(stringResource(R.string.form_discard_changes_title), fontFamily = IberPangeaFamily, fontWeight = FontWeight.Bold, color = GreenDarkIberdrola) },
             text = { Text(stringResource(R.string.edit_email_discard_message), fontFamily = IberPangeaFamily, color = Color.Black) },
             confirmButton = {
-                TextButton(onClick = onBack) {
+                TextButton(onClick = {
+                    showDiscardDialog = false
+                    onCloseToHome()
+                }) {
                     Text(stringResource(R.string.profile_discard_button), color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
                 }
             },

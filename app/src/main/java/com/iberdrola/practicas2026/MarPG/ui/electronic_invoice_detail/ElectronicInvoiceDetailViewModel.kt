@@ -368,4 +368,8 @@ class ElectronicInvoiceViewModel @Inject constructor(
     fun closeDeactivationDialog() {
         state = state.copy(showDeactivationConfirmDialog = false)
     }
+
+    fun discardChanges() {
+        state.selectedContract?.let { selectContract(it) }
+    }
 }

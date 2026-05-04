@@ -262,8 +262,9 @@ fun IberdrolaNavHost(navController: NavHostController) {
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
             }
+            val viewModel: ElectronicInvoiceViewModel = hiltViewModel(parentEntry)
             ElectronicInvoiceDetailFormScreen(
-                viewModel = hiltViewModel(parentEntry),
+                viewModel = viewModel,
                 onBack = {
                     if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_FORM) {
                         navController.popBackStack()
@@ -271,7 +272,8 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 },
                 onNext = { navController.navigate(Routes.ELECTRONIC_INVOICE_OTP) },
                 onCloseToHome = {
-                    navController.popBackStack(Routes.HOME, false)
+                    viewModel.discardChanges()
+                    navController.popBackStack(Routes.ELECTRONIC_INVOICE_SELECTION, false)
                 },
             )
         }
@@ -286,8 +288,9 @@ fun IberdrolaNavHost(navController: NavHostController) {
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
             }
+            val viewModel: ElectronicInvoiceViewModel = hiltViewModel(parentEntry)
             ElectronicInvoiceEditEmailScreen(
-                viewModel = hiltViewModel(parentEntry),
+                viewModel = viewModel,
                 onBack = {
                     if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) {
                         navController.popBackStack()
@@ -295,7 +298,8 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 },
                 onNext = { navController.navigate(Routes.ELECTRONIC_INVOICE_OTP) },
                 onCloseToHome = {
-                    navController.popBackStack(Routes.HOME, false)
+                    viewModel.discardChanges()
+                    navController.popBackStack(Routes.ELECTRONIC_INVOICE_SELECTION, false)
                 },
             )
         }
@@ -310,8 +314,9 @@ fun IberdrolaNavHost(navController: NavHostController) {
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
             }
+            val viewModel: ElectronicInvoiceViewModel = hiltViewModel(parentEntry)
             ElectronicInvoiceOtpScreen(
-                viewModel = hiltViewModel(parentEntry),
+                viewModel = viewModel,
                 onBack = {
                     if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_OTP) {
                         navController.popBackStack()
@@ -321,7 +326,8 @@ fun IberdrolaNavHost(navController: NavHostController) {
                     navController.navigate(Routes.ELECTRONIC_INVOICE_SUCCESS)
                 },
                 onCloseToHome = {
-                    navController.popBackStack(Routes.HOME, false)
+                    viewModel.discardChanges()
+                    navController.popBackStack(Routes.ELECTRONIC_INVOICE_SELECTION, false)
                 },
             )
         }

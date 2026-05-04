@@ -198,13 +198,15 @@ fun AnimateFaqItemEntrance(
     AnimatedVisibility(
         visibleState = visibleState,
         enter = fadeIn(
-            animationSpec = tween(durationMillis = 500, delayMillis = (index * 60).coerceAtMost(400))
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(500))
         ) + slideInVertically(
-            animationSpec = tween(durationMillis = 500, delayMillis = (index * 60).coerceAtMost(400)),
-            initialOffsetY = { it / 2 }
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(500)),
+            initialOffsetY = { 40 }
         )
     ) {
-        content()
+        Box(modifier = Modifier.padding(bottom = 12.dp).padding( horizontal = 4.dp)) {
+            content()
+        }
     }
 }
 
@@ -217,13 +219,11 @@ fun FaqExpandableCard(
     val rotation by animateFloatAsState(if (isExpanded) 180f else 0f, label = "rotate")
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = WhiteApp),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp,
+            defaultElevation = 8.dp,
             pressedElevation = 2.dp
         ),
         onClick = onToggle
@@ -270,10 +270,10 @@ fun ContactCard(onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
             .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = GreenIberdrola.copy(alpha = 0.05f))
+        colors = CardDefaults.cardColors(containerColor = GreenIberdrola.copy(alpha = 0.05f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier.padding(24.dp),
