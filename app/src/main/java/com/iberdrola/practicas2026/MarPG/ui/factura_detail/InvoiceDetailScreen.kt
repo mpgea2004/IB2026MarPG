@@ -670,9 +670,16 @@ fun PayPasswordDialog(
                         }
                     },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = GreenIberdrola,
-                        focusedLabelColor = GreenIberdrola,
-                        cursorColor = GreenIberdrola
+                        focusedContainerColor = Color(0xFFF5F5F5),
+                        unfocusedContainerColor = Color(0xFFF5F5F5),
+                        focusedBorderColor = GreenDarkIberdrola,
+                        unfocusedBorderColor = Color.Gray,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        cursorColor = GreenDarkIberdrola,
+                        focusedLabelColor = GreenDarkIberdrola,
+                        unfocusedLabelColor = Color.Gray,
+                        errorBorderColor = Color.Red
                     )
                 )
                 if (isError) {
@@ -691,7 +698,7 @@ fun PayPasswordDialog(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(containerColor = GreenIberdrola)
             ) {
-                Text(stringResource(R.string.invoice_detail_button_confirm_pay), fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.invoice_detail_button_confirm_pay), fontWeight = FontWeight.Bold, color = WhiteApp)
             }
         },
         dismissButton = {
