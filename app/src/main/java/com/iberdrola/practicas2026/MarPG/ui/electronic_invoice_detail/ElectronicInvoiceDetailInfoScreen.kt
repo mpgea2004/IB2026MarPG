@@ -190,7 +190,7 @@ fun ElectronicInvoiceDetailInfoScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = {
                             IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
-                                Icon(imageVector = if (state.isPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility, null, modifier = Modifier.size(24.dp))
+                                Icon(imageVector = if (state.isPasswordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff, null, modifier = Modifier.size(24.dp))
                             }
                         },
                         colors = TextFieldDefaults.colors(
@@ -332,7 +332,7 @@ fun ElectronicInvoiceDetailInfoScreenContent(
 
             AnimateElectronicDetailItem(index = 1) {
                 Text(
-                    text = state.userProfile.address.ifEmpty { stringResource(R.string.profile_empty_address) },
+                    text = if (state.userProfile.address.length > 50) state.userProfile.address.take(50) + "..." else state.userProfile.address.ifEmpty { stringResource(R.string.profile_empty_address) },
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 8.dp),
