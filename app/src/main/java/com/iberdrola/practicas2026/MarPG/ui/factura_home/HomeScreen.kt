@@ -39,7 +39,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -72,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.components.IberdrolaSnackbar
 import com.iberdrola.practicas2026.MarPG.ui.components.home.DataSourceConfigSection
 import com.iberdrola.practicas2026.MarPG.ui.components.home.ElectronicInvoiceCard
 import com.iberdrola.practicas2026.MarPG.ui.components.home.FeedbackBottomSheet
@@ -158,7 +158,8 @@ fun HomeScreen(
                     snackbarHostState.showSnackbar(context.getString(R.string.feedback_thanks_title))
                 }
             }
-        }
+        },
+        onSheetDontAskAgain = { viewModel.onDontAskAgain() }
     )
 
     HomeContent(
@@ -183,13 +184,7 @@ fun HomeContent(
         containerColor = Color.Transparent,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
-                Snackbar(
-                    containerColor = Color.White,
-                    contentColor = Color.Black,
-                    shape = RoundedCornerShape(12.dp),
-                    snackbarData = data,
-                    modifier = Modifier.padding(12.dp)
-                )
+                IberdrolaSnackbar(snackbarData = data)
             }
         }
     ) { padding ->
@@ -279,7 +274,8 @@ fun HomeContent(
             FeedbackBottomSheet(
                 sheetState = sheetState,
                 onDismiss = events.onSheetDismiss,
-                onOptionSelected = events.onSheetOptionSelected
+                onOptionSelected = events.onSheetOptionSelected,
+                onDontAskAgain = events.onSheetDontAskAgain
             )
         }
     }

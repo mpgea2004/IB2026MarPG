@@ -23,6 +23,7 @@
     <string name="feedback_sheet_title">Tu opinión nos importa</string>
     <string name="feedback_sheet_subtitle">¿Cómo de probable es que recomiendes esta app a amigos o familiares para que realicen sus gestiones?</string>
     <string name="feedback_sheet_later">Responder más tarde</string>
+    <string name="feedback_sheet_dont_ask">No volver a preguntar</string>
     <string name="invoice_empty_state_message">No tienes facturas disponibles</string>
     <string name="invoice_empty_state_subtitle">En este momento no hay facturas para mostrar. Si crees que es un error, contacta con atención al cliente.</string>
     <string name="invoice_not_available_title">Información</string>
@@ -202,6 +203,7 @@
     <string name="invoice_detail_pay_success">¡Factura pagada correctamente!</string>
     <string name="invoice_detail_pay_error">No se ha podido realizar el pago. Inténtalo de nuevo.</string>
     <string name="invoice_detail_download_success">Factura descargada correctamente</string>
+    <string name="invoice_detail_download_error">No se ha podido descargar la factura</string>
     <string name="invoice_detail_section_supply">Datos del suministro</string>
     <string name="invoice_detail_label_contract_type">Tipo de contrato</string>
     <string name="invoice_detail_value_light">Suministro de Luz</string>

@@ -36,7 +36,8 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 @Composable
 fun FeedbackSheetContent(
     onRatingClick: () -> Unit,
-    onLaterClick: () -> Unit
+    onLaterClick: () -> Unit,
+    onDontAskAgainClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -91,6 +92,17 @@ fun FeedbackSheetContent(
             fontWeight = FontWeight.Bold,
             textDecoration = TextDecoration.Underline,
             modifier = Modifier.clickable { onLaterClick() },
+            fontFamily = IberPangeaFamily
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = stringResource(R.string.feedback_sheet_dont_ask),
+            color = Color.Gray,
+            fontSize = 13.sp,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable { onDontAskAgainClick() },
             fontFamily = IberPangeaFamily
         )
     }

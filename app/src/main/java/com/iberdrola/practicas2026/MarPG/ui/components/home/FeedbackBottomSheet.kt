@@ -12,7 +12,8 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 fun FeedbackBottomSheet(
     sheetState: SheetState,
     onDismiss: () -> Unit,
-    onOptionSelected: (Int) -> Unit
+    onOptionSelected: (Int) -> Unit,
+    onDontAskAgain: () -> Unit
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -21,7 +22,8 @@ fun FeedbackBottomSheet(
     ) {
         FeedbackSheetContent(
             onRatingClick = { onOptionSelected(10) },
-            onLaterClick = { onOptionSelected(3) }
+            onLaterClick = { onOptionSelected(3) },
+            onDontAskAgainClick = onDontAskAgain
         )
     }
 }

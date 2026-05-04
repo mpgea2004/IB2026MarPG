@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
@@ -44,7 +44,7 @@ fun IberdrolaSnackbar(snackbarData: SnackbarData) {
                 .padding(16.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.Center
         ) {
             Box(
                 modifier = Modifier
@@ -68,7 +68,8 @@ fun IberdrolaSnackbar(snackbarData: SnackbarData) {
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = IberPangeaFamily,
-                lineHeight = 18.sp
+                lineHeight = 18.sp,
+                textAlign = TextAlign.Center
             )
         }
     }

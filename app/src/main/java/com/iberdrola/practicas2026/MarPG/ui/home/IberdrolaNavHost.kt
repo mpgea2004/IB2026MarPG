@@ -42,7 +42,7 @@ object Routes {
     const val INVOICE_LIST = "invoice_list/{isCloud}"
     const val FILTER = "filter"
     const val INVOICE_DETAIL = "invoice_detail/{invoiceId}"
-    const val ELECTRONIC_INVOICE_SELECTION = "electronic_invoice_selection"
+    const val ELECTRONIC_INVOICE_SELECTION = "electronic_invoice_selection/{isCloud}"
     const val ELECTRONIC_INVOICE_DETAIL = "electronic_invoice_detail"
     const val ELECTRONIC_INVOICE_FORM = "electronic_invoice_form"
     const val ELECTRONIC_INVOICE_EDIT_EMAIL = "electronic_invoice_edit"
@@ -71,7 +71,7 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 onNavigateToInvoices = { navController.navigate("invoice_list/$isCloudEnabled") },
                 isCloudEnabled = isCloudEnabled,
                 onToggleCloud = { isCloudEnabled = it },
-                onNavigateToElectronicInvoice = { navController.navigate(Routes.ELECTRONIC_INVOICE_SELECTION) },
+                onNavigateToElectronicInvoice = { navController.navigate("electronic_invoice_selection/$isCloudEnabled") },
                 onNavigateToProfile = { navController.navigate(Routes.USER_PROFILE) },
                 onNavigateToFaq = { navController.navigate(Routes.FAQ) }
             )
@@ -200,6 +200,7 @@ fun IberdrolaNavHost(navController: NavHostController) {
 
         composable(
             route = Routes.ELECTRONIC_INVOICE_SELECTION,
+            arguments = listOf(navArgument("isCloud") { type = NavType.BoolType }),
             enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
             exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },

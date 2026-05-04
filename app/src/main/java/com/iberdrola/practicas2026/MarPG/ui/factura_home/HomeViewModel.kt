@@ -57,4 +57,11 @@ class HomeViewModel @Inject constructor(
             state = state.copy(isSheetVisible = false)
         }
     }
+
+    fun onDontAskAgain() {
+        viewModelScope.launch {
+            checkFeedbackUseCase.dontAskAgain()
+            state = state.copy(isSheetVisible = false)
+        }
+    }
 }

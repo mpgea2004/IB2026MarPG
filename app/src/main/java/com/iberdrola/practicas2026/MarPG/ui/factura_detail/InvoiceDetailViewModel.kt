@@ -53,7 +53,8 @@ class InvoiceDetailViewModel @Inject constructor(
                 isLoading = true,
                 paymentSuccess = false,
                 paymentError = false,
-                pdfDownloaded = false
+                pdfDownloaded = false,
+                pdfError = false
             )
 
             repository.getInvoiceById(id).collect { foundInvoice ->
@@ -80,21 +81,37 @@ class InvoiceDetailViewModel @Inject constructor(
     fun downloadPdf(context: Context) {
         val invoice = state.invoice ?: return
         viewModelScope.launch {
-            state = state.copy(isDownloadingPdf = true)
-            val uri = generateAndSaveInvoicePdf(context, invoice)
-            delay(1500)
+            state = state.copy(isDownloadingPdf = true, pdfError = false, pdfDownloaded = false)
             
-            state = state.copy(
-                isDownloadingPdf = false, 
-                pdfDownloaded = uri != null,
-                pdfUri = uri,
-                showPdfViewer = uri != null
-            )
+            try {
+                val uri = generateAndSaveInvoicePdf(context, invoice)
+                delay(1500)
+                
+                if (uri != null) {
+                    state = state.copy(
+                        isDownloadingPdf = false, 
+                        pdfDownloaded = true,
+                        pdfUri = uri,
+                        showPdfViewer = true
+                    )
+                } else {
+                    state = state.copy(
+                        isDownloadingPdf = false,
+                        pdfError = true
+                    )
+                }
+            } catch (e: Exception) {
+                state = state.copy(
+                    isDownloadingPdf = false,
+                    pdfError = true
+                )
+            }
 
             delay(5000)
-            state = state.copy(pdfDownloaded = false)
+            state = state.copy(pdfDownloaded = false, pdfError = false)
         }
     }
+
     fun dismissPdfViewer() {
         state = state.copy(showPdfViewer = false)
     }

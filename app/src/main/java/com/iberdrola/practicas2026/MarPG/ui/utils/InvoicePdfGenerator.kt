@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Bitmap.createScaledBitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
@@ -19,21 +20,22 @@ import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import java.io.OutputStream
+import androidx.core.graphics.toColorInt
 
 object InvoicePdfGenerator {
 
     fun generateAndSaveInvoicePdf(context: Context, invoice: Invoice): Uri? {
         val pdfDocument = PdfDocument()
-        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create() // A4
+        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
         val page = pdfDocument.startPage(pageInfo)
         val canvas: Canvas = page.canvas
         val paint = Paint()
 
         canvas.drawColor(Color.WHITE)
 
-        val colorGreen = Color.parseColor("#148f32")
-        val colorBlue = Color.parseColor("#004d8c")
-        val colorOrange = Color.parseColor("#fbb034")
+        val colorGreen = "#148f32".toColorInt()
+        val colorBlue = "#004d8c".toColorInt()
+        val colorOrange = "#fbb034".toColorInt()
 
         paint.style = Paint.Style.FILL
         
@@ -50,7 +52,7 @@ object InvoicePdfGenerator {
                 val ratio = logoBitmap.height.toFloat() / logoBitmap.width.toFloat()
                 val targetWidth = 140f
                 val targetHeight = targetWidth * ratio
-                val scaledLogo = Bitmap.createScaledBitmap(logoBitmap, targetWidth.toInt(), targetHeight.toInt(), true)
+                val scaledLogo = createScaledBitmap(logoBitmap, targetWidth.toInt(), targetHeight.toInt(), true)
                 canvas.drawBitmap(scaledLogo, 40f, 35f, null)
             }
         } catch (e: Exception) {
@@ -105,7 +107,7 @@ object InvoicePdfGenerator {
         paint.color = colorOrange
         canvas.drawRect(382f, 310f, 555f, 312f, paint)
 
-        paint.color = Color.parseColor("#F4F4F4")
+        paint.color = "#F4F4F4".toColorInt()
         canvas.drawRect(40f, 340f, 555f, 400f, paint)
         
         paint.color = Color.BLACK
@@ -131,18 +133,40 @@ object InvoicePdfGenerator {
 
     private fun savePdfToDownloads(context: Context, pdfDocument: PdfDocument, fileName: String): Uri? {
         val resolver = context.contentResolver
-        
+        var finalFileName = fileName
+
+        val downloadsUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Downloads.EXTERNAL_CONTENT_URI
+        } else {
+            MediaStore.Files.getContentUri("external")
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            try {
+            val nameWithoutExt = fileName.substringBeforeLast(".")
+            val ext = fileName.substringAfterLast(".", "pdf")
+            var count = 1
+            
+            while (true) {
                 val selection = "${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
-                val selectionArgs = arrayOf(fileName)
-                resolver.delete(MediaStore.Downloads.EXTERNAL_CONTENT_URI, selection, selectionArgs)
-            } catch (e: Exception) {
+                val selectionArgs = arrayOf(finalFileName)
+                val cursor = resolver.query(
+                    downloadsUri,
+                    arrayOf(MediaStore.MediaColumns.DISPLAY_NAME),
+                    selection,
+                    selectionArgs,
+                    null
+                )
+                
+                val exists = cursor?.use { it.count > 0 } ?: false
+                if (!exists) break
+                
+                finalFileName = "$nameWithoutExt($count).$ext"
+                count++
             }
         }
 
         val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+            put(MediaStore.MediaColumns.DISPLAY_NAME, finalFileName)
             put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
@@ -150,7 +174,7 @@ object InvoicePdfGenerator {
         }
 
         return try {
-            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+            val uri = resolver.insert(downloadsUri, contentValues)
             uri?.let {
                 val outputStream: OutputStream? = resolver.openOutputStream(it)
                 outputStream?.use { os ->

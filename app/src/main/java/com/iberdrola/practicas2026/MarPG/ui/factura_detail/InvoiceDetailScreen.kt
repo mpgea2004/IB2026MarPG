@@ -484,6 +484,10 @@ fun InvoiceDetailContent(
                             StatusMessage(message = stringResource(R.string.invoice_detail_download_success), color = GreenIberdrola)
                         }
 
+                        if (state.pdfError) {
+                            StatusMessage(message = stringResource(R.string.invoice_detail_download_error), color = Color.Red)
+                        }
+
                         AnimateDetailItemEntrance(index = 4) {
                             InfoCard(
                                 title = stringResource(R.string.invoice_detail_section_supply),

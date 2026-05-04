@@ -8,6 +8,8 @@ data class InvoiceDetailState(
     val isLoading: Boolean = false,
     val isDownloadingPdf: Boolean = false,
     val pdfDownloaded: Boolean = false,
+    val pdfError: Boolean = false,
+    val loadError: Boolean = false,
     val paymentSuccess: Boolean = false,
     val paymentError: Boolean = false,
     val pdfUri: Uri? = null,
