@@ -193,6 +193,7 @@ fun FilterContent(
         MyDatePickerDialog(
             minDateStr = minDateLimit,
             maxDateStr = state.dateTo.ifEmpty { maxDateLimit },
+            initialDateStr = state.dateFrom,
             onDateSelected = { 
                 events.onDateFromChange(it)
                 showFromPicker = false
@@ -205,6 +206,7 @@ fun FilterContent(
         MyDatePickerDialog(
             minDateStr = state.dateFrom.ifEmpty { minDateLimit },
             maxDateStr = maxDateLimit,
+            initialDateStr = state.dateTo.ifEmpty { maxDateLimit },
             onDateSelected = { 
                 events.onDateToChange(it)
                 showToPicker = false
@@ -310,6 +312,7 @@ fun AnimateFilterItemEntrance(
 fun MyDatePickerDialog(
     minDateStr: String? = null,
     maxDateStr: String? = null,
+    initialDateStr: String? = null,
     onDateSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -331,6 +334,12 @@ fun MyDatePickerDialog(
         } else null
     }
 
+    val initialDateMillis = remember(initialDateStr) {
+        if (!initialDateStr.isNullOrEmpty()) {
+            try { dateFormatter.parse(initialDateStr)?.time } catch (e: Exception) { null }
+        } else null
+    }
+
     val yearRange = remember(minDateMillis, maxDateMillis) {
         val calendar = Calendar.getInstance()
         val startYear = minDateMillis?.let {
@@ -345,7 +354,7 @@ fun MyDatePickerDialog(
     }
 
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = minDateMillis,
+        initialSelectedDateMillis = initialDateMillis ?: minDateMillis,
         yearRange = yearRange,
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {

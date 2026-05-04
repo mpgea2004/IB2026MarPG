@@ -182,7 +182,7 @@
     <string name="invoice_list_show_amounts">Mostrar importes</string>
     <string name="invoice_list_view_consumption">Ver consumo</string>
     <string name="invoice_list_change_visibility">Cambiar visibilidad</string>
-    <string name="invoice_list_search_placeholder">Buscar por id...</string>
+    <string name="invoice_list_search_placeholder">Buscar por num de factura...</string>
     <string name="invoice_list_search_desc">Buscar por número de factura</string>
     <string name="invoice_list_clear_filters">Limpiar</string>
     <string name="invoice_list_sort_by">Ordenar por: %1$s</string>
@@ -210,7 +210,7 @@
     <string name="invoice_detail_value_gas">Suministro de Gas</string>
     <string name="invoice_detail_label_id">Número de factura</string>
     <string name="invoice_detail_copy_id">Copiar número de factura</string>
-    <string name="invoice_detail_copy_toast">ID copiado al portapapeles</string>
+    <string name="invoice_detail_copy_toast">Num factura copiado al portapapeles</string>
     <string name="invoice_detail_section_period">Periodo de facturación</string>
     <string name="invoice_detail_section_status">Estado del pago</string>
     <string name="invoice_detail_status_paid">Factura cobrada</string>

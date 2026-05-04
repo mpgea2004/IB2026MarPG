@@ -470,7 +470,7 @@ fun InvoiceListHeader(
             }
             
             Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily, color = Color.Black)
-            
+
             val displayedAddress = address.ifEmpty { stringResource(R.string.profile_empty_address) }
             Text(
                 text = if (displayedAddress.length > 50) displayedAddress.take(50) + "..." else displayedAddress,
