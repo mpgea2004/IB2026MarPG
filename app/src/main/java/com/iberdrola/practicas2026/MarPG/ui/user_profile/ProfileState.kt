@@ -16,5 +16,12 @@ data class ProfileState(
     val showLogoutDialog: Boolean = false,
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
-    val saveJustFinished: Boolean = false
+    val saveJustFinished: Boolean = false,
+    val isEditMode: Boolean = false,
+    val isSaveClicked: Boolean = false,
+    val isVerifying: Boolean = false,
+    val showSecurityDialog: Boolean = false,
+    val securityPasswordInput: String = "",
+    @StringRes val securityPasswordError: Int? = null,
+    val isSecurityPasswordVisible: Boolean = false
 )

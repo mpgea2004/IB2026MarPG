@@ -3,6 +3,8 @@ package com.iberdrola.practicas2026.MarPG.ui.user_profile
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.RepeatMode
@@ -14,11 +16,15 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +48,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
@@ -72,6 +80,7 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -120,6 +129,8 @@ fun ProfileScreen(
 ) {
     val state = viewModel.state
     var showDiscardDialog by remember { mutableStateOf(false) }
+    var isBackTriggeredDuringSave by remember { mutableStateOf(false) }
+
     val logoutTooltipState = rememberTooltipState(isPersistent = false)
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
@@ -127,10 +138,22 @@ fun ProfileScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val handleBackAction = {
-        if (!state.isSaved) {
-            showDiscardDialog = true
+        if (state.isSaving || state.isSaveClicked) {
+            isBackTriggeredDuringSave = true
+        } else if (state.isEditMode) {
+            if (!state.isSaved) {
+                showDiscardDialog = true
+            } else {
+                viewModel.onDiscardClick()
+            }
         } else {
             onBack()
+        }
+    }
+
+    LaunchedEffect(state.saveJustFinished) {
+        if (state.saveJustFinished && isBackTriggeredDuringSave) {
+            isBackTriggeredDuringSave = false
         }
     }
 
@@ -159,7 +182,7 @@ fun ProfileScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showDiscardDialog = false
-                    onBack()
+                    if (state.isEditMode) viewModel.onDiscardClick() else onBack()
                 }) {
                     Text(
                         text = stringResource(R.string.profile_discard_button),
@@ -202,9 +225,9 @@ fun ProfileScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = { 
+                TextButton(onClick = {
                     viewModel.onDismissLogoutDialog()
-                    viewModel.logout { onBack() } 
+                    viewModel.logout { onBack() }
                 }) {
                     Text(
                         text = stringResource(R.string.profile_logout_button),
@@ -228,15 +251,123 @@ fun ProfileScreen(
         )
     }
 
+    if (state.showSecurityDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.onSecurityDismiss() },
+            title = {
+                Text(
+                    text = stringResource(R.string.security_dialog_title),
+                    fontFamily = IberPangeaFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = GreenDarkIberdrola
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Introduce tu contraseña actual para realizar cambios en el perfil.",
+                        fontFamily = IberPangeaFamily,
+                        color = Color.Black,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = state.securityPasswordInput,
+                        onValueChange = { viewModel.onSecurityPasswordChanged(it) },
+                        label = { Text("Contraseña", fontFamily = IberPangeaFamily) },
+                        modifier = Modifier.fillMaxWidth(),
+                        visualTransformation = if (state.isSecurityPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { viewModel.onToggleSecurityPasswordVisibility() }) {
+                                Icon(
+                                    imageVector = if (state.isSecurityPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    contentDescription = null,
+                                    tint =  if (state.isSecurityPasswordVisible) Color.DarkGray else Color.Gray
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        isError = state.securityPasswordError != null,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            focusedContainerColor = WhiteApp,
+                            unfocusedContainerColor = WhiteApp,
+                            errorContainerColor = WhiteApp,
+                            disabledContainerColor = WhiteApp,
+                            focusedBorderColor = GreenIberdrola,
+                            unfocusedBorderColor = Color.LightGray,
+                            errorBorderColor = Color.Red,
+                            disabledBorderColor = Color.LightGray,
+                            focusedLabelColor = GreenIberdrola,
+                            unfocusedLabelColor = Color.LightGray,
+                            errorLabelColor = Color.Red,
+                            disabledLabelColor = Color.LightGray,
+                            cursorColor = GreenIberdrola,
+                            errorCursorColor = Color.Red,
+                            errorTextColor = Color.Red,
+                            disabledTextColor = Color.Black
+                        )
+                    )
+                    if (state.securityPasswordError != null) {
+                        Text(
+                            text = stringResource(state.securityPasswordError),
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(start = 4.dp, top = 4.dp),
+                            fontFamily = IberPangeaFamily
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.onSecurityConfirmClick() }) {
+                    Text(
+                        text = "Confirmar",
+                        color = GreenIberdrola,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = IberPangeaFamily
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.onSecurityDismiss() }) {
+                    Text(
+                        text = stringResource(R.string.invoice_detail_dialog_cancel),
+                        color = Color.Gray,
+                        fontFamily = IberPangeaFamily
+                    )
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
     val events = ProfileEvents(
         onNameChanged = { viewModel.onNameChange(it) },
         onEmailChanged = { viewModel.onEmailChange(it) },
         onPhoneChanged = { viewModel.onPhoneChange(it) },
         onAddressChanged = { viewModel.onAddressChanged(it) },
         onSaveClick = { onSuccess -> viewModel.saveChanges(onSuccess) },
-        onBackClick = onBack,
+        onBackClick = handleBackAction,
         onPasswordChanged = { viewModel.onPasswordChanged(it) },
-        onLogout = { viewModel.onLogoutClick() }
+        onLogout = { viewModel.onLogoutClick() },
+        onEditClick = { viewModel.onEditClick() },
+        onDiscardClick = {
+            if (state.isSaving || state.isSaveClicked) {
+                isBackTriggeredDuringSave = true
+            } else if (!state.isSaved) {
+                showDiscardDialog = true
+            } else {
+                viewModel.onDiscardClick()
+            }
+        },
+        onSecurityPasswordChanged = { viewModel.onSecurityPasswordChanged(it) },
+        onSecurityConfirmClick = { viewModel.onSecurityConfirmClick() },
+        onSecurityDismiss = { viewModel.onSecurityDismiss() },
+        onToggleSecurityPasswordVisibility = { viewModel.onToggleSecurityPasswordVisibility() }
     )
 
     Scaffold(
@@ -337,25 +468,83 @@ fun ProfileScreen(
                             .padding(bottom = 8.dp)
                     ) {
                         HorizontalDivider(thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.2f))
-                        
-                        SmartSaveButton(
-                            isSaving = state.isSaving,
-                            isSaved = state.isSaved,
-                            saveJustFinished = state.saveJustFinished,
-                            onClick = { 
-                                events.onSaveClick { 
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(context.getString(R.string.profile_save_success))
-                                        delay(500)
-                                        events.onBackClick()
-                                    }
-                                }
+
+                        AnimatedContent(
+                            targetState = state.isEditMode,
+                            transitionSpec = {
+                                fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
                             },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 20.dp)
-                                .height(56.dp)
-                        )
+                            label = "bottomButtonTransition"
+                        ) { isEditMode ->
+                            if (isEditMode) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 24.dp, vertical = 20.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Button(
+                                        onClick = events.onDiscardClick,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(56.dp),
+                                        shape = RoundedCornerShape(28.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = WhiteApp,
+                                            contentColor = GreenDarkIberdrola
+                                        ),
+                                        border = BorderStroke(1.5.dp, GreenDarkIberdrola)
+                                    ) {
+                                        Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(20.dp))
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "Volver",
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontFamily = IberPangeaFamily
+                                        )
+                                    }
+
+                                    SmartSaveButton(
+                                        isSaving = state.isSaving,
+                                        isSaved = state.isSaved,
+                                        saveJustFinished = state.saveJustFinished,
+                                        onClick = {
+                                            events.onSaveClick {
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar(context.getString(R.string.profile_save_success))
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .weight(1.3f)
+                                            .height(56.dp)
+                                    )
+                                }
+                            } else {
+                                Button(
+                                    onClick = events.onEditClick,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 24.dp, vertical = 20.dp)
+                                        .height(56.dp),
+                                    shape = RoundedCornerShape(28.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = GreenIberdrola,
+                                        contentColor = WhiteApp
+                                    )
+                                ) {
+                                    Icon(Icons.Default.Edit, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.profile_button_edit),
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = IberPangeaFamily
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -376,13 +565,48 @@ fun ProfileScreen(
             )
         ) {
             if (state.isLoading) {
-                ShimmerProfile(brush = shimmerBrush())
+                ShimmerProfile(
+                    brush = shimmerBrush(),
+                    modifier = Modifier.padding(padding)
+                )
             } else {
                 ProfileContent(
                     state = state,
                     events = events,
                     modifier = Modifier.padding(padding)
                 )
+            }
+
+            if (isBackTriggeredDuringSave && (state.isSaving || state.isSaveClicked)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f))
+                        .clickable(enabled = true, onClick = {}),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Card(
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = WhiteApp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(color = GreenIberdrola, strokeWidth = 3.dp)
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Text(
+                                text = "Guardando cambios...",
+                                fontFamily = IberPangeaFamily,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -563,49 +787,125 @@ fun ProfileContent(
                         )
                     }
 
-                    ProfileField(
-                        value = state.name,
-                        errorMessage = state.nameError,
-                        label = stringResource(R.string.profile_label_name),
-                        icon = Icons.Default.Person,
-                        onValueChange = events.onNameChanged
-                    )
+                    AnimatedContent(
+                        targetState = state.isEditMode,
+                        transitionSpec = {
+                            if (targetState) {
+                                (slideInHorizontally(initialOffsetX = { it }) + fadeIn(animationSpec = tween(500)))
+                                    .togetherWith(slideOutHorizontally(targetOffsetX = { -it }) + fadeOut(animationSpec = tween(500)))
+                            } else {
+                                (slideInHorizontally(initialOffsetX = { -it }) + fadeIn(animationSpec = tween(500)))
+                                    .togetherWith(slideOutHorizontally(targetOffsetX = { it }) + fadeOut(animationSpec = tween(500)))
+                            }.using(SizeTransform(clip = false))
+                        },
+                        label = "profileFieldsTransition"
+                    ) { isEditMode ->
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            if (isEditMode) {
+                                ProfileField(
+                                    value = state.name,
+                                    errorMessage = state.nameError,
+                                    label = stringResource(R.string.profile_label_name),
+                                    icon = Icons.Default.Person,
+                                    onValueChange = events.onNameChanged
+                                )
 
-                    ProfileField(
-                        value = state.email,
-                        errorMessage = state.emailError,
-                        label = stringResource(R.string.profile_label_email),
-                        icon = Icons.Default.Email,
-                        keyboardType = KeyboardType.Email,
-                        onValueChange = events.onEmailChanged
-                    )
+                                ProfileField(
+                                    value = state.email,
+                                    errorMessage = state.emailError,
+                                    label = stringResource(R.string.profile_label_email),
+                                    icon = Icons.Default.Email,
+                                    keyboardType = KeyboardType.Email,
+                                    onValueChange = events.onEmailChanged
+                                )
 
-                    ProfileField(
-                        value = state.phone,
-                        errorMessage = state.phoneError,
-                        label = stringResource(R.string.profile_label_phone),
-                        icon = Icons.Default.Phone,
-                        keyboardType = KeyboardType.Phone,
-                        onValueChange = events.onPhoneChanged
-                    )
+                                ProfileField(
+                                    value = state.phone,
+                                    errorMessage = state.phoneError,
+                                    label = stringResource(R.string.profile_label_phone),
+                                    icon = Icons.Default.Phone,
+                                    keyboardType = KeyboardType.Phone,
+                                    onValueChange = events.onPhoneChanged
+                                )
 
-                    ProfileField(
-                        value = state.address,
-                        label = stringResource(R.string.profile_label_address),
-                        icon = Icons.Default.Home,
-                        onValueChange = events.onAddressChanged
-                    )
-                    PasswordField(
-                        value = state.password,
-                        errorMessage = state.passwordError,
-                        isVisible = passwordVisible,
-                        onValueChange = events.onPasswordChanged,
-                        onToggleVisibility = { passwordVisible = !passwordVisible }
-                    )
+                                ProfileField(
+                                    value = state.address,
+                                    label = stringResource(R.string.profile_label_address),
+                                    icon = Icons.Default.Home,
+                                    onValueChange = events.onAddressChanged
+                                )
+                                PasswordField(
+                                    value = state.password,
+                                    errorMessage = state.passwordError,
+                                    isVisible = passwordVisible,
+                                    onValueChange = events.onPasswordChanged,
+                                    onToggleVisibility = { passwordVisible = !passwordVisible }
+                                )
+                            } else {
+                                ProfileInfoItem(
+                                    label = stringResource(R.string.profile_label_name),
+                                    value = state.name.ifEmpty { "No configurado" },
+                                    icon = Icons.Default.Person
+                                )
+                                ProfileInfoItem(
+                                    label = stringResource(R.string.profile_label_email),
+                                    value = state.email.ifEmpty { "No configurado" },
+                                    icon = Icons.Default.Email
+                                )
+                                ProfileInfoItem(
+                                    label = stringResource(R.string.profile_label_phone),
+                                    value = state.phone.ifEmpty { "No configurado" },
+                                    icon = Icons.Default.Phone
+                                )
+                                ProfileInfoItem(
+                                    label = stringResource(R.string.profile_label_address),
+                                    value = state.address.ifEmpty { "No configurado" },
+                                    icon = Icons.Default.Home
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+@Composable
+fun ProfileInfoItem(
+    label: String,
+    value: String,
+    icon: ImageVector
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = GreenIberdrola,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+            Text(
+                text = label.replace("*", "").trim(),
+                style = MaterialTheme.typography.labelMedium,
+                color = TextGrey,
+                fontFamily = IberPangeaFamily
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                fontFamily = IberPangeaFamily
+            )
+        }
     }
 }
 
@@ -683,13 +983,13 @@ fun PasswordField(
                 fontFamily = IberPangeaFamily,
                 color = Color(0xFF333333)
             ),
-            label = { 
+            label = {
                 Text(
                     text = stringResource(R.string.profile_label_password),
                     fontFamily = IberPangeaFamily,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium
-                ) 
+                )
             },
             leadingIcon = { Icon(Icons.Default.Lock, null, tint = GreenIberdrola.copy(alpha = 0.7f), modifier = Modifier.size(20.dp)) },
             trailingIcon = {
@@ -744,13 +1044,13 @@ fun ProfileField(
                 fontFamily = IberPangeaFamily,
                 color = Color(0xFF333333)
             ),
-            label = { 
+            label = {
                 Text(
                     text = label,
                     fontFamily = IberPangeaFamily,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium
-                ) 
+                )
             },
             leadingIcon = { Icon(icon, null, tint = GreenIberdrola.copy(alpha = 0.7f), modifier = Modifier.size(20.dp)) },
             modifier = Modifier.fillMaxWidth(),

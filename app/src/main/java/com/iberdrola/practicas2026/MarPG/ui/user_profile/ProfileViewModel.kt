@@ -32,8 +32,55 @@ class ProfileViewModel @Inject constructor(
             state = state.copy(isLoading = true)
             delay(800)
             val savedState = userPrefs.userProfileFlow.first()
-            state = savedState.copy(isSaved = true, isLoading = false)
+            state = savedState.copy(isSaved = true, isLoading = false, isEditMode = false, isSaveClicked = false, isVerifying = false)
         }
+    }
+
+    fun onEditClick() {
+        if (state.password.isNotEmpty()) {
+            state = state.copy(
+                showSecurityDialog = true,
+                securityPasswordInput = "",
+                securityPasswordError = null
+            )
+        } else {
+            state = state.copy(isEditMode = true)
+        }
+    }
+
+    fun onSecurityPasswordChanged(input: String) {
+        state = state.copy(securityPasswordInput = input, securityPasswordError = null)
+    }
+
+    fun onToggleSecurityPasswordVisibility() {
+        state = state.copy(isSecurityPasswordVisible = !state.isSecurityPasswordVisible)
+    }
+
+    fun onSecurityConfirmClick() {
+        if (state.securityPasswordInput == state.password) {
+            viewModelScope.launch {
+                state = state.copy(
+                    showSecurityDialog = false,
+                    isVerifying = true
+                )
+                delay(1500)
+                state = state.copy(
+                    isVerifying = false,
+                    isEditMode = true,
+                    securityPasswordInput = ""
+                )
+            }
+        } else {
+            state = state.copy(securityPasswordError = R.string.error_incorrect_password)
+        }
+    }
+
+    fun onSecurityDismiss() {
+        state = state.copy(showSecurityDialog = false, securityPasswordInput = "", securityPasswordError = null)
+    }
+
+    fun onDiscardClick() {
+        loadSavedProfile()
     }
 
     fun onNameChange(newName: String) {
@@ -100,9 +147,10 @@ class ProfileViewModel @Inject constructor(
         }
 
         if (!hasError) {
+            state = state.copy(isSaveClicked = true)
             viewModelScope.launch {
                 state = state.copy(isSaving = true)
-                delay(1500)
+                delay(2000) 
                 userPrefs.updateProfile(state)
                 state = state.copy(
                     isSaving = false,
@@ -110,8 +158,12 @@ class ProfileViewModel @Inject constructor(
                     saveJustFinished = true
                 )
                 onSuccess()
-                delay(2500)
-                state = state.copy(saveJustFinished = false)
+                delay(2000) 
+                state = state.copy(
+                    saveJustFinished = false,
+                    isEditMode = false,
+                    isSaveClicked = false
+                )
             }
         }
     }
