@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -95,10 +96,24 @@ fun ConsumptionDashboardScreen(
         handleBack()
     }
 
+    ConsumptionDashboardContent(
+        state = state,
+        events = ConsumptionDashboardEvents(
+            onBack = handleBack,
+            onTypeSelected = { viewModel.onTypeSelected(it) }
+        )
+    )
+}
+
+@Composable
+fun ConsumptionDashboardContent(
+    state: ConsumptionState,
+    events: ConsumptionDashboardEvents
+) {
     Scaffold(
         containerColor = Color.White,
         topBar = {
-            FilterTopBar(onBack = { handleBack() })
+            FilterTopBar(onBack = { events.onBack() })
         }
     ) { padding ->
         Box(
@@ -165,7 +180,7 @@ fun ConsumptionDashboardScreen(
                 AnimateConsumptionItem(index = 1) {
                     SuministroToggle(
                         selectedType = state.selectedType,
-                        onTypeSelected = { viewModel.onTypeSelected(it) }
+                        onTypeSelected = { events.onTypeSelected(it) }
                     )
                 }
 
@@ -506,6 +521,25 @@ fun EmptyConsumptionState() {
             color = Color.Gray,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 32.dp)
+        )
+    }
+}
+@Preview(showBackground = true)
+@Composable
+fun ConsumptionDashboardPreview() {
+    IB2026MarPGTheme {
+        ConsumptionDashboardContent(
+            state = ConsumptionState(
+                isLoading = false,
+                selectedType = ContractType.LUZ,
+                chartData = listOf("Ene" to 50.0, "Feb" to 45.0, "Mar" to 60.0),
+                comparisonMessage = "Has gastado un 10% menos que el mes pasado",
+                isPositiveTrend = true
+            ),
+            events = ConsumptionDashboardEvents(
+                onBack = {},
+                onTypeSelected = {}
+            )
         )
     }
 }
