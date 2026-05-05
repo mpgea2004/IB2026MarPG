@@ -45,6 +45,7 @@ import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -223,6 +224,48 @@ fun InvoiceListScreen(
         )
     }
 
+    if (viewModel.showRefreshDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.cancelRefreshDialog() },
+            icon = { Icon(Icons.Outlined.Refresh, null, tint = GreenIberdrola) },
+            title = {
+                Text(
+                    text = stringResource(R.string.invoice_list_refresh_filters_title),
+                    fontFamily = IberPangeaFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.invoice_list_refresh_filters_message),
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Black
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmRefresh(keepFilters = true) }) {
+                    Text(
+                        text = stringResource(R.string.invoice_list_refresh_filters_keep),
+                        color = GreenIberdrola,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.confirmRefresh(keepFilters = false) }) {
+                    Text(
+                        text = stringResource(R.string.invoice_list_refresh_filters_clear),
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
     Scaffold(
         containerColor = WhiteApp,
         topBar = {
@@ -234,7 +277,7 @@ fun InvoiceListScreen(
                 errorMessage = if (errorMessage != null) stringResource(errorMessage) else null,
                 showErrorBanner = currentState is InvoiceListState.SUCCESS && errorMessage != null,
                 onNavigateToConsumption = handleNavigateToConsumption,
-                isLoading = currentState is InvoiceListState.LOADING,
+                isActionEnabled = currentState is InvoiceListState.SUCCESS,
                 isAmountVisible = isAmountVisible,
                 onToggleAmountVisibility = { viewModel.toggleAmountVisibility() }
             )
@@ -243,7 +286,7 @@ fun InvoiceListScreen(
     ) { padding ->
         PullToRefreshBox(
             isRefreshing = viewModel.isRefreshing,
-            onRefresh = { viewModel.refreshInvoices() },
+            onRefresh = { viewModel.handleRefresh() },
             state = pullToRefreshState,
             indicator = {
                 PullToRefreshDefaults.Indicator(
@@ -274,7 +317,7 @@ fun InvoiceListScreen(
                     InvoiceListState.NODATA -> {
                         InvoiceEmptyState(
                             message = if (errorMessage != null) stringResource(errorMessage) else null,
-                            onRefresh = { viewModel.refreshInvoices() }
+                            onRefresh = { viewModel.handleRefresh() }
                         )
                     }
 
@@ -338,7 +381,7 @@ fun InvoiceListHeader(
     onTabSelected: (Int) -> Unit,
     onBack: () -> Unit,
     onNavigateToConsumption: () -> Unit,
-    isLoading: Boolean,
+    isActionEnabled: Boolean,
     isAmountVisible: Boolean,
     onToggleAmountVisibility: () -> Unit
 ){
@@ -398,10 +441,10 @@ fun InvoiceListHeader(
                                 .size(40.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isLoading) Color.LightGray.copy(alpha = 0.1f) else GreenIberdrola.copy(alpha = 0.1f)
+                                    if (!isActionEnabled) Color.LightGray.copy(alpha = 0.1f) else GreenIberdrola.copy(alpha = 0.1f)
                                 )
                                 .combinedClickable(
-                                    enabled = !isLoading,
+                                    enabled = isActionEnabled,
                                     onClick = onToggleAmountVisibility,
                                     onLongClick = {
                                         haptic.performHapticFeedback(LongPress)
@@ -413,7 +456,7 @@ fun InvoiceListHeader(
                             Icon(
                                 imageVector = if (isAmountVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = stringResource(R.string.invoice_list_change_visibility),
-                                tint = if (isLoading) Color.Gray else GreenIberdrola,
+                                tint = if (!isActionEnabled) Color.Gray else GreenIberdrola,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -442,10 +485,10 @@ fun InvoiceListHeader(
                                 .size(40.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isLoading) Color.LightGray.copy(alpha = 0.1f) else GreenIberdrola.copy(alpha = 0.1f)
+                                    if (!isActionEnabled) Color.LightGray.copy(alpha = 0.1f) else GreenIberdrola.copy(alpha = 0.1f)
                                 )
                                 .combinedClickable(
-                                    enabled = !isLoading,
+                                    enabled = isActionEnabled,
                                     onClick = onNavigateToConsumption,
                                     onLongClick = {
                                         haptic.performHapticFeedback(LongPress)
@@ -457,7 +500,7 @@ fun InvoiceListHeader(
                             Icon(
                                 imageVector = Icons.Outlined.BarChart,
                                 contentDescription = stringResource(R.string.invoice_list_view_consumption),
-                                tint = if (isLoading) Color.Gray else GreenIberdrola,
+                                tint = if (!isActionEnabled) Color.Gray else GreenIberdrola,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -1094,7 +1137,7 @@ fun InvoiceListScreenPreview() {
                     onBack = {},
                     address = "Calle falsa 123",
                     onNavigateToConsumption = {},
-                    isLoading = false,
+                    isActionEnabled = true,
                     isAmountVisible = true,
                     onToggleAmountVisibility = {}
                 )
@@ -1147,7 +1190,7 @@ fun InvoiceListNoDataPreview() {
                     onBack = {},
                     address = "Sin dirección",
                     onNavigateToConsumption = {},
-                    isLoading = false,
+                    isActionEnabled = false,
                     isAmountVisible = true,
                     onToggleAmountVisibility = {}
                 )

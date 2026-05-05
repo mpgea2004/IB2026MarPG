@@ -72,6 +72,10 @@ class InvoiceListViewModel @Inject constructor(
 
     var showSingleInvoiceDialog by mutableStateOf(false)
         private set
+
+    var showRefreshDialog by mutableStateOf(false)
+        private set
+
     var searchQuery by mutableStateOf("")
         private set
     
@@ -121,8 +125,15 @@ class InvoiceListViewModel @Inject constructor(
         }
     }
 
-    private fun loadInvoices() {
+    private fun loadInvoices(resetFilters: Boolean = false) {
         viewModelScope.launch {
+            if (resetFilters) {
+                currentFilterState = FilterState()
+                searchQuery = ""
+                lastMinLimit = 0f
+                lastMaxLimit = 500f
+            }
+            
             prepareLoadingState()
 
             getInvoicesUseCase(isCloud)
@@ -256,10 +267,27 @@ class InvoiceListViewModel @Inject constructor(
         errorMessage = null
     }
 
-    fun refreshInvoices() {
+    fun handleRefresh() {
+        if (hasActiveFilters()) {
+            showRefreshDialog = true
+        } else {
+            refreshInvoices(keepFilters = true)
+        }
+    }
+
+    fun confirmRefresh(keepFilters: Boolean) {
+        showRefreshDialog = false
+        refreshInvoices(keepFilters = keepFilters)
+    }
+
+    fun cancelRefreshDialog() {
+        showRefreshDialog = false
+    }
+
+    private fun refreshInvoices(keepFilters: Boolean) {
         viewModelScope.launch {
             isRefreshing = true
-            loadInvoices()
+            loadInvoices(resetFilters = !keepFilters)
             delay(500)
             isRefreshing = false
         }

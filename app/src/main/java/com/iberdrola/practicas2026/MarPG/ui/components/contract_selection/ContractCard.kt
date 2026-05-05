@@ -40,34 +40,37 @@ fun ContractCard(
     elecInvoice: ElectronicInvoice,
     onClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-    ) {
-        Row(
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Card(
             modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .clickable { onClick() },
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            shape = RoundedCornerShape(0.dp)
         ) {
-            ContractIcon(type = elecInvoice.type)
+            Row(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ContractIcon(type = elecInvoice.type)
 
-            Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
-            ContractInfo(
-                type = elecInvoice.type,
-                isEnabled = elecInvoice.isEnabled,
-                modifier = Modifier.weight(1f)
-            )
+                ContractInfo(
+                    type = elecInvoice.type,
+                    isEnabled = elecInvoice.isEnabled,
+                    modifier = Modifier.weight(1f)
+                )
 
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                modifier = Modifier.size(32.dp),
-                tint = Color.Gray
-            )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = Color.Gray
+                )
+            }
         }
         HorizontalDivider(
             modifier = Modifier.fillMaxWidth(),

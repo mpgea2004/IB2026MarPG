@@ -194,6 +194,10 @@
     <string name="invoice_list_label_date">Fecha</string>
     <string name="invoice_list_label_amount">Importe</string>
     <string name="invoice_list_label_states">Estados</string>
+    <string name="invoice_list_refresh_filters_title">¿Mantener filtros?</string>
+    <string name="invoice_list_refresh_filters_message">Has aplicado filtros o una búsqueda. ¿Deseas mantenerlos al actualizar la lista?</string>
+    <string name="invoice_list_refresh_filters_keep">Mantener</string>
+    <string name="invoice_list_refresh_filters_clear">Limpiar</string>
 
     <!-- Invoice Detail -->
     <string name="invoice_detail_overdue_short">Factura fuera de plazo (&gt;6 meses)</string>
@@ -325,5 +329,10 @@
     <string name="status_processing">En trámite de cobro</string>
     <string name="status_cancelled">Anulada</string>
     <string name="status_fixed">Cuota fija</string>
+
+    <!-- Profile Extra -->
+    <string name="profile_security_dialog_text">Introduce tu contraseña actual para realizar cambios en el perfil.</string>
+    <string name="profile_saving_changes">Guardando cambios...</string>
+    <string name="profile_not_configured">No configurado</string>
 
 </resources>

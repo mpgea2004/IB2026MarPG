@@ -265,7 +265,7 @@ fun ProfileScreen(
             text = {
                 Column {
                     Text(
-                        text = "Introduce tu contraseña actual para realizar cambios en el perfil.",
+                        text = stringResource(R.string.profile_security_dialog_text),
                         fontFamily = IberPangeaFamily,
                         color = Color.Black,
                         fontSize = 14.sp
@@ -274,7 +274,7 @@ fun ProfileScreen(
                     OutlinedTextField(
                         value = state.securityPasswordInput,
                         onValueChange = { viewModel.onSecurityPasswordChanged(it) },
-                        label = { Text("Contraseña", fontFamily = IberPangeaFamily) },
+                        label = { Text(text = stringResource(R.string.invoice_detail_label_password), fontFamily = IberPangeaFamily) },
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (state.isSecurityPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -324,7 +324,7 @@ fun ProfileScreen(
             confirmButton = {
                 TextButton(onClick = { viewModel.onSecurityConfirmClick() }) {
                     Text(
-                        text = "Confirmar",
+                        text = stringResource(R.string.common_confirm),
                         color = GreenIberdrola,
                         fontWeight = FontWeight.Bold,
                         fontFamily = IberPangeaFamily
@@ -498,7 +498,7 @@ fun ProfileScreen(
                                         Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(20.dp))
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = "Volver",
+                                            text = stringResource(R.string.profile_header_back),
                                             fontSize = 15.sp,
                                             fontWeight = FontWeight.Bold,
                                             fontFamily = IberPangeaFamily
@@ -608,7 +608,7 @@ fun ProfileScreen(
                             CircularProgressIndicator(color = GreenIberdrola, strokeWidth = 3.dp)
                             Spacer(modifier = Modifier.height(20.dp))
                             Text(
-                                text = "Guardando cambios...",
+                                text = stringResource(R.string.profile_saving_changes),
                                 fontFamily = IberPangeaFamily,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.Black,
@@ -856,22 +856,22 @@ fun ProfileContent(
                             } else {
                                 ProfileInfoItem(
                                     label = stringResource(R.string.profile_label_name),
-                                    value = state.name.ifEmpty { "No configurado" },
+                                    value = state.name.ifEmpty { stringResource(R.string.profile_not_configured) },
                                     icon = Icons.Default.Person
                                 )
                                 ProfileInfoItem(
                                     label = stringResource(R.string.profile_label_email),
-                                    value = state.email.ifEmpty { "No configurado" },
+                                    value = state.email.ifEmpty { stringResource(R.string.profile_not_configured) },
                                     icon = Icons.Default.Email
                                 )
                                 ProfileInfoItem(
                                     label = stringResource(R.string.profile_label_phone),
-                                    value = state.phone.ifEmpty { "No configurado" },
+                                    value = state.phone.ifEmpty { stringResource(R.string.profile_not_configured) },
                                     icon = Icons.Default.Phone
                                 )
                                 ProfileInfoItem(
                                     label = stringResource(R.string.profile_label_address),
-                                    value = state.address.ifEmpty { "No configurado" },
+                                    value = state.address.ifEmpty { stringResource(R.string.profile_not_configured) },
                                     icon = Icons.Default.Home
                                 )
                             }
