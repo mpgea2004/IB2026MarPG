@@ -528,20 +528,30 @@ fun ProfileScreen(
                                         .fillMaxWidth()
                                         .padding(horizontal = 24.dp, vertical = 20.dp)
                                         .height(56.dp),
+                                    enabled = !state.isVerifying,
                                     shape = RoundedCornerShape(28.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = GreenIberdrola,
-                                        contentColor = WhiteApp
+                                        contentColor = WhiteApp,
+                                        disabledContainerColor = Color.Gray
                                     )
                                 ) {
-                                    Icon(Icons.Default.Edit, contentDescription = null)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = stringResource(R.string.profile_button_edit),
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        fontFamily = IberPangeaFamily
-                                    )
+                                    if (state.isVerifying) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(24.dp),
+                                            color = WhiteApp,
+                                            strokeWidth = 2.dp
+                                        )
+                                    } else {
+                                        Icon(Icons.Default.Edit, contentDescription = null)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = stringResource(R.string.profile_button_edit),
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontFamily = IberPangeaFamily
+                                        )
+                                    }
                                 }
                             }
                         }
