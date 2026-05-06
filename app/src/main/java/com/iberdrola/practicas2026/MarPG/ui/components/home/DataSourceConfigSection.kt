@@ -72,7 +72,7 @@ fun DataSourceConfigSection(
         )
 
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = WhiteApp),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)

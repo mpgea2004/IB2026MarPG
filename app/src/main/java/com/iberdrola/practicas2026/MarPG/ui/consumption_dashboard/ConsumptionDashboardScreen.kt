@@ -48,7 +48,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -189,9 +188,9 @@ fun ConsumptionDashboardContent(
                 AnimatedContent(
                     targetState = state.isLoading,
                     transitionSpec = {
-                        fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
+                        fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
                     },
-                    label = "loading_content"
+                    label = "loading_content_transition"
                 ) { isLoading ->
                     if (isLoading) {
                         Box(
@@ -206,24 +205,28 @@ fun ConsumptionDashboardContent(
                                 modifier = Modifier.size(48.dp)
                             )
                         }
-                    } else if (state.chartData.isEmpty()) {
-                        EmptyConsumptionState()
                     } else {
-                        Column {
-                            AnimateConsumptionItem(index = 2) {
-                                ConsumptionChart(state.chartData)
+                        if (state.chartData.isEmpty()) {
+                            AnimateConsumptionItem(index = 0) {
+                                EmptyConsumptionState()
                             }
-                            Spacer(modifier = Modifier.height(24.dp))
-                            AnimateConsumptionItem(index = 3) {
-                                ComparisonCard(
-                                    message = state.comparisonMessage,
-                                    isPositive = state.isPositiveTrend
-                                )
-                            }
-                            
-                            Spacer(modifier = Modifier.height(24.dp))
-                            AnimateConsumptionItem(index = 4) {
-                                SavingsTipCard()
+                        } else {
+                            Column {
+                                AnimateConsumptionItem(index = 1) {
+                                    ConsumptionChart(state.chartData)
+                                }
+                                Spacer(modifier = Modifier.height(24.dp))
+                                AnimateConsumptionItem(index = 2) {
+                                    ComparisonCard(
+                                        message = state.comparisonMessage,
+                                        isPositive = state.isPositiveTrend
+                                    )
+                                }
+                                
+                                Spacer(modifier = Modifier.height(24.dp))
+                                AnimateConsumptionItem(index = 3) {
+                                    SavingsTipCard()
+                                }
                             }
                         }
                     }
