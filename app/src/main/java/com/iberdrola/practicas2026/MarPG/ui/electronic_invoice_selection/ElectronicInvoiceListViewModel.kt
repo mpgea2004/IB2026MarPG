@@ -48,7 +48,7 @@ class ElectronicInvoiceListViewModel @Inject constructor(
     }
 
     fun loadInvoices() {
-        val currentShowGas = isGasEnabledConfig ?: return
+        val currentShowGas = isGasEnabledConfig ?: true
 
         viewModelScope.launch {
             isFirstEmission = true
@@ -57,6 +57,7 @@ class ElectronicInvoiceListViewModel @Inject constructor(
 
             getElectronicInvoiceUseCase(isCloud = isCloud)
                 .catch { e ->
+
                     val errorRes = when (e) {
                         is InvoiceException.NetworkError -> R.string.error_network_connection
                         is InvoiceException.NotFoundError -> R.string.error_data_not_found
@@ -82,25 +83,24 @@ class ElectronicInvoiceListViewModel @Inject constructor(
                     isRefreshing = false
                 }
                 .collect { invoiceList ->
-                    val filteredList = if (!currentShowGas) {
+                    val filteredList = if (isGasEnabledConfig == false) {
                         invoiceList.filter { it.type != ContractType.GAS }
                     } else {
                         invoiceList
                     }
-
-                    state = ElectronicInvoiceListState.Success(filteredList)
-                    logAnalyticsUseCase(
-                        "elec_invoice_load_success",
-                        mapOf("count" to filteredList.size)
-                    )
                     localData = invoiceList
+
                     if (isCloud && isFirstEmission) {
                         isFirstEmission = false
                     } else {
                         if (invoiceList.isEmpty()) {
                             state = ElectronicInvoiceListState.NoData
                         } else {
-                            state = ElectronicInvoiceListState.Success(invoiceList)
+                            state = ElectronicInvoiceListState.Success(filteredList)
+                            logAnalyticsUseCase(
+                                "elec_invoice_load_success",
+                                mapOf("count" to filteredList.size)
+                            )
                             errorMessage = null
                         }
                         isRefreshing = false

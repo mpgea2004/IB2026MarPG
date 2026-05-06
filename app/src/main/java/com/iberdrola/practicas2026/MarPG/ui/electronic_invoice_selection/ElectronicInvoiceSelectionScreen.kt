@@ -70,6 +70,9 @@ fun ElectronicInvoiceSelectionScreen(
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
 
+        val defaults = mapOf("show_gas_contracts" to true)
+        remoteConfig.setDefaultsAsync(defaults)
+
         remoteConfig.fetchAndActivate().addOnCompleteListener {
             viewModel.updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
         }

@@ -135,7 +135,6 @@ class InvoiceListViewModel @Inject constructor(
         ))
     }
     private fun observeAmountVisibility() {
-        if (isGasEnabled == null) return
         viewModelScope.launch {
             userPrefs.amountVisibleFlow.collect { visible ->
                 isAmountVisible = visible

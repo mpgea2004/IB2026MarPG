@@ -179,28 +179,33 @@ fun InvoiceListScreen(
     val pullToRefreshState = rememberPullToRefreshState()
     val remoteConfig = Firebase.remoteConfig
 
+    LaunchedEffect(Unit) {
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 0
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+
+        val defaults = mapOf("show_gas_contracts" to true)
+        remoteConfig.setDefaultsAsync(defaults)
+
+        remoteConfig.fetchAndActivate().addOnCompleteListener {
+            val isEnabled = remoteConfig.getBoolean("show_gas_contracts")
+            viewModel.updateGasAvailability(isEnabled)
+        }
+
+        remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
+            override fun onUpdate(configUpdate: ConfigUpdate) {
+                remoteConfig.activate().addOnCompleteListener {
+                    viewModel.updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
+                }
+            }
+            override fun onError(error: FirebaseRemoteConfigException) {}
+        })
+    }
+
+
     if (isGasEnabled == null) {
         LoadingScreen()
-
-        LaunchedEffect(Unit) {
-            val configSettings = remoteConfigSettings {
-                minimumFetchIntervalInSeconds = 0
-            }
-            remoteConfig.setConfigSettingsAsync(configSettings)
-
-            remoteConfig.fetchAndActivate().addOnCompleteListener {
-                viewModel.updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
-            }
-
-            remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
-                override fun onUpdate(configUpdate: ConfigUpdate) {
-                    remoteConfig.activate().addOnCompleteListener {
-                        viewModel.updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
-                    }
-                }
-                override fun onError(error: FirebaseRemoteConfigException) {}
-            })
-        }
         return
     }
 
