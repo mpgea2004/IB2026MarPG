@@ -15,6 +15,8 @@ object DateMapper {
     /** Formato de salida para la interfaz de usuario (Ej: 4 de marzo) */
     private val outputFormatter = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale("es", "ES"))
 
+    private val shortOutputFormatter = DateTimeFormatter.ofPattern("dd MMM. yyyy", Locale("es", "ES"))
+
     /**
      * Convierte un String de fecha en un objeto [LocalDate]
      * @param dateString Fecha en formato "dd/MM/yyyy"
@@ -40,6 +42,15 @@ object DateMapper {
             date.format(outputFormatter)
         } catch (e: Exception) {
             dateString //Devuelvo el original si hay error
+        }
+    }
+
+    fun formatToShortDisplay(dateString: String): String {
+        return try {
+            val date = toLocalDate(dateString)
+            date.format(shortOutputFormatter).lowercase()
+        } catch (e: Exception) {
+            dateString
         }
     }
 

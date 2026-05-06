@@ -27,12 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 
-/**
- * Sección de filtro por importe que utiliza un RangeSlider personalizado
- * Permite seleccionar un rango de precios entre un límite mínimo y máximo
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PriceRangeSection(
@@ -56,16 +53,31 @@ fun PriceRangeSection(
                     maxPrice.toInt()
                 ),
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
+                fontSize = 12.sp,
+                fontFamily = IberPangeaFamily,
+                color = Color.Black
             )
         }
 
         RangeSlider(
             value = minPrice..maxPrice,
             onValueChange = { range ->
-                val startValue = if (range.start < minLimit + 0.1f) minLimit else range.start
-                val endValue = if (range.endInclusive > maxLimit - 0.1f) maxLimit else range.endInclusive
-                onRangeChange(startValue, endValue)
+                val minDistance = 1f
+                var newStart = range.start
+                var newEnd = range.endInclusive
+
+                if (newEnd - newStart < minDistance) {
+                    if (newStart != minPrice) {
+                        newStart = newEnd - minDistance
+                    } else {
+                        newEnd = newStart + minDistance
+                    }
+                }
+                
+                onRangeChange(
+                    newStart.coerceIn(minLimit, maxLimit),
+                    newEnd.coerceIn(minLimit, maxLimit)
+                )
             },
             valueRange = minLimit..maxLimit,
             steps = 0,
@@ -119,8 +131,8 @@ fun PriceRangeSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = stringResource(id = R.string.filter_price_limit, minLimit.toInt()), color = Color.Gray, fontSize = 14.sp)
-            Text(stringResource(id = R.string.filter_price_limit, maxLimit.toInt()), color = Color.Gray, fontSize = 14.sp)
+            Text(text = stringResource(id = R.string.filter_price_limit, minLimit.toInt()), color = Color.Gray, fontSize = 14.sp,fontFamily = IberPangeaFamily)
+            Text(stringResource(id = R.string.filter_price_limit, maxLimit.toInt()), color = Color.Gray, fontSize = 14.sp,fontFamily = IberPangeaFamily)
         }
     }
 }

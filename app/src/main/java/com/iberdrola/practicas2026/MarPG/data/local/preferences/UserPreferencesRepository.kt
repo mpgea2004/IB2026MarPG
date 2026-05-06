@@ -1,6 +1,7 @@
 package com.iberdrola.practicas2026.MarPG.data.local.preferences
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -21,6 +22,7 @@ class UserPreferencesRepository @Inject constructor(
         val PHONE = stringPreferencesKey("phone")
         val ADDRESS = stringPreferencesKey("address")
         val PASSWORD = stringPreferencesKey("password")
+        val AMOUNT_VISIBLE = booleanPreferencesKey("amount_visible")
     }
 
     val userProfileFlow: Flow<ProfileState> = context.dataStore.data.map { prefs ->
@@ -33,6 +35,10 @@ class UserPreferencesRepository @Inject constructor(
         )
     }
 
+    val amountVisibleFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.AMOUNT_VISIBLE] ?: true
+    }
+
     suspend fun updateProfile(state: ProfileState) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.NAME] = state.name
@@ -43,9 +49,33 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    suspend fun clearProfile() {
+        context.dataStore.edit { prefs ->
+            prefs.clear()
+        }
+    }
+
     suspend fun updatePhone(newPhone: String) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.PHONE] = newPhone
+        }
+    }
+
+    suspend fun updatePassword(newPass: String) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.PASSWORD] = newPass
+        }
+    }
+
+    suspend fun updateAddress(newAddress: String) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.ADDRESS] = newAddress
+        }
+    }
+
+    suspend fun updateAmountVisibility(visible: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.AMOUNT_VISIBLE] = visible
         }
     }
 }

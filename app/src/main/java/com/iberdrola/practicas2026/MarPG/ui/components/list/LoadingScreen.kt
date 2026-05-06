@@ -1,4 +1,4 @@
-package com.iberdrola.practicas2026.MarPG.ui.factura_list
+package com.iberdrola.practicas2026.MarPG.ui.components.list
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

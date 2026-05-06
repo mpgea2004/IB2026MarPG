@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.Flow
 
 /**
  * Interfaz de acceso a datos (DAO) para la entidad [InvoiceEntity]
- * Define las operaciones SQL necesarias para gestionar la caché local de facturas
  */
 @Dao
 interface InvoiceDao {
@@ -19,6 +18,14 @@ interface InvoiceDao {
 
     @Query("SELECT * FROM invoices")
     suspend fun getAllInvoicesOnce(): List<InvoiceEntity>
+
+
+    @Query("SELECT * FROM invoices WHERE id = :id")
+    suspend fun getInvoiceById(id: String): InvoiceEntity?
+
+    @Query("SELECT * FROM invoices WHERE id = :id")
+    fun getInvoiceByIdFlow(id: String): Flow<InvoiceEntity?>
+
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertInvoices(invoices: List<InvoiceEntity>)
@@ -31,4 +38,8 @@ interface InvoiceDao {
         clearCache()
         insertInvoices(invoices)
     }
+
+    @Query("UPDATE invoices SET status = 'Pagadas' WHERE id = :id")
+    suspend fun updateInvoiceToPaid(id: String)
+
 }

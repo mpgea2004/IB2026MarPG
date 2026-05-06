@@ -32,49 +32,50 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 
-/**
- * Tarjeta que representa un contrato de luz o gas.
- */
 @Composable
 fun ContractCard(
     elecInvoice: ElectronicInvoice,
     onClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-    ) {
-        Row(
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Card(
             modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .clickable { onClick() },
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            shape = RoundedCornerShape(0.dp)
         ) {
-            ContractIcon(type = elecInvoice.type)
+            Row(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ContractIcon(type = elecInvoice.type)
 
-            Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
-            ContractInfo(
-                type = elecInvoice.type,
-                isEnabled = elecInvoice.isEnabled,
-                modifier = Modifier.weight(1f)
-            )
+                ContractInfo(
+                    type = elecInvoice.type,
+                    isEnabled = elecInvoice.isEnabled,
+                    modifier = Modifier.weight(1f)
+                )
 
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                modifier = Modifier.size(32.dp),
-                tint = Color.Gray
-            )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = Color.Gray
+                )
+            }
         }
         HorizontalDivider(
             modifier = Modifier.fillMaxWidth(),
             thickness = 1.dp,
-            color = Color.LightGray.copy(alpha = 0.5f) // Un gris suave
+            color = Color.LightGray.copy(alpha = 0.5f)
         )
     }
 }
@@ -119,7 +120,8 @@ fun ContractInfo(
             text = title,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            color = Color.Black
+            color = Color.Black,
+            fontFamily = IberPangeaFamily
         )
 
         Spacer(modifier = Modifier.height(6.dp))
@@ -133,7 +135,8 @@ fun ContractInfo(
                 color = contentColor,
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontFamily = IberPangeaFamily
             )
         }
     }

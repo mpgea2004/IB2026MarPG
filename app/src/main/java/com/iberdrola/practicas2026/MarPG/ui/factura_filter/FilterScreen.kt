@@ -1,17 +1,27 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_filter
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -20,6 +30,7 @@ import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
@@ -34,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -52,40 +64,46 @@ import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.ui.components.filter.DateRangeSection
 import com.iberdrola.practicas2026.MarPG.ui.components.filter.FilterActionButtons
 import com.iberdrola.practicas2026.MarPG.ui.components.filter.PriceRangeSection
+import com.iberdrola.practicas2026.MarPG.ui.components.filter.ShimmerFilter
 import com.iberdrola.practicas2026.MarPG.ui.components.filter.StatusFilterSection
+import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
-/**
- * Pantalla principal de filtrado de facturas
- * Se encarga de coordinar la sincronización entre el ViewModel de la lista y el de filtros,
- * además de gestionar la navegación de retorno
- */
 @Composable
 fun FilterScreen(
     listViewModel: InvoiceListViewModel,
     filterViewModel: FilterViewModel = hiltViewModel(),
     onBack: () -> Unit
 ) {
+    val state = filterViewModel.state
 
     LaunchedEffect(Unit) {
         filterViewModel.setInitialState(listViewModel.currentFilterState)
     }
 
-    val events = filterViewModel.events.copy(
+    val events = FilterEvents(
+        onDateFromChange = { filterViewModel.onDateFromChange(it) },
+        onDateToChange = { filterViewModel.onDateToChange(it) },
+        onPriceRangeChange = { min, max -> filterViewModel.onPriceRangeChange(min, max) },
+        onStatusToggle = { filterViewModel.onStatusToggle(it) },
         onClear = {
-            filterViewModel.events.onClear()
-            filterViewModel.onClearWithLimits(
-                listViewModel.minInvoiceAmount,
-                listViewModel.maxInvoiceAmount
+            filterViewModel.clearFilters(
+                minLimit = listViewModel.minInvoiceAmount,
+                maxLimit = listViewModel.maxInvoiceAmount
             )
+            listViewModel.applyFilters(filterViewModel.state)
         },
         onApply = {
-            filterViewModel.events.onApply()
+            filterViewModel.onApply()
             listViewModel.applyFilters(filterViewModel.state)
             onBack()
         }
@@ -94,25 +112,35 @@ fun FilterScreen(
     Scaffold(
         containerColor = WhiteApp,
         topBar = {
-            FilterTopBar(onBack = {
-                onBack()
-            })
+            FilterTopBar(onBack)
+        },
+        bottomBar = {
+            if (!state.isLoading) {
+                Box(modifier = Modifier.navigationBarsPadding()) {
+                    FilterActionButtons(
+                        onApply = { events.onApply() },
+                        onClear = { events.onClear() }
+                    )
+                }
+            }
         }
     ) { padding ->
-
-        FilterContent(
-            modifier = Modifier.padding(padding),
-            state = filterViewModel.state,
-            events = events,
-            minLimit = listViewModel.minInvoiceAmount,
-            maxLimit = listViewModel.maxInvoiceAmount,
-        )
+        if (state.isLoading) {
+            ShimmerFilter(brush = shimmerBrush())
+        } else {
+            FilterContent(
+                modifier = Modifier.padding(padding),
+                state = state,
+                events = events,
+                minLimit = listViewModel.minInvoiceAmount,
+                maxLimit = listViewModel.maxInvoiceAmount,
+                minDateLimit = listViewModel.minInvoiceDate,
+                maxDateLimit = listViewModel.maxInvoiceDate
+            )
+        }
     }
 }
-/**
- * Barra superior personalizada para la pantalla de filtros
- * Incluye el botón de volver atrás
- */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterTopBar(onBack: () -> Unit) {
@@ -122,13 +150,15 @@ fun FilterTopBar(onBack: () -> Unit) {
     ) {
         Column(
             modifier = Modifier
+                .statusBarsPadding()
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(top = 24.dp, bottom = 0.dp)
+                    .padding(top = 16.dp, bottom = 8.dp)
+                    .clip(RoundedCornerShape(50))
                     .clickable { onBack() }
             ) {
                 Icon(
@@ -141,18 +171,14 @@ fun FilterTopBar(onBack: () -> Unit) {
                     text = stringResource(R.string.invoice_list_back),
                     color = GreenIberdrola,
                     fontWeight = FontWeight.Bold,
-                    textDecoration = TextDecoration.Underline
+                    textDecoration = TextDecoration.Underline,
+                    fontFamily = IberPangeaFamily
                 )
             }
         }
     }
 }
 
-/**
- * Contenedor del formulario de filtrado
- * Organiza las secciones de Fecha, Importe y Estado, además de gestionar
- * la visibilidad de los diálogos de selección de fecha
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterContent(
@@ -160,26 +186,35 @@ fun FilterContent(
     state: FilterState,
     events: FilterEvents,
     minLimit: Float = 0f,
-    maxLimit: Float = 500f
+    maxLimit: Float = 500f,
+    minDateLimit: String? = null,
+    maxDateLimit: String? = null
 ) {
-    val context = LocalContext.current
-
     var showFromPicker by remember { mutableStateOf(false) }
     var showToPicker by remember { mutableStateOf(false) }
 
     if (showFromPicker) {
         MyDatePickerDialog(
+            minDateStr = minDateLimit,
+            maxDateStr = state.dateTo.ifEmpty { maxDateLimit },
+            initialDateStr = state.dateFrom,
             onDateSelected = {
-                events.onDateFromChange(it) },
+                events.onDateFromChange(it)
+                showFromPicker = false
+            },
             onDismiss = { showFromPicker = false }
         )
     }
 
     if (showToPicker) {
         MyDatePickerDialog(
-            minDateStr = state.dateFrom,
+            minDateStr = state.dateFrom.ifEmpty { minDateLimit },
+            maxDateStr = maxDateLimit,
+            initialDateStr = state.dateTo.ifEmpty { maxDateLimit },
             onDateSelected = {
-                events.onDateToChange(it) },
+                events.onDateToChange(it)
+                showToPicker = false
+            },
             onDismiss = { showToPicker = false }
         )
     }
@@ -198,137 +233,203 @@ fun FilterContent(
                 .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            AnimateFilterItemEntrance(index = 0) {
+                Text(
+                    text = stringResource(R.string.invoice_filter_title),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.Black,
+                    modifier = Modifier.padding(top = 16.dp),
+                    fontFamily = IberPangeaFamily
+                )
+            }
 
-            Text(
-                text = stringResource(R.string.invoice_filter_title),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.Black,
-                modifier = Modifier.padding(top = 16.dp)
-            )
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.height(32.dp))
+            AnimateFilterItemEntrance(index = 1) {
+                DateRangeSection(
+                    dateFrom = state.dateFrom,
+                    dateTo = state.dateTo,
+                    onFromClick = { showFromPicker = true },
+                    onToClick = { showToPicker = true }
+                )
+            }
 
-            DateRangeSection(
-                dateFrom = state.dateFrom,
-                dateTo = state.dateTo,
-                onFromClick = { showFromPicker = true },
-                onToClick = {
-                    if (state.dateFrom.isNotEmpty()) {
-                        showToPicker = true
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Selecciona primero una fecha de inicio",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+            Spacer(modifier = Modifier.height(40.dp))
+
+            AnimateFilterItemEntrance(index = 2) {
+                Column {
+                    Text(stringResource(R.string.invoice_filter_price), fontSize = 14.sp, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily, color = Color.Black)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    PriceRangeSection(
+                        minPrice = state.minPrice,
+                        maxPrice = state.maxPrice,
+                        minLimit = minLimit,
+                        maxLimit = maxLimit,
+                        onRangeChange = { min, max -> events.onPriceRangeChange(min, max) }
+                    )
                 }
-            )
-            Spacer(modifier = Modifier.height(40.dp))
-
-            Text(stringResource(R.string.invoice_filter_price), fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            PriceRangeSection(
-                minPrice = state.minPrice,
-                maxPrice = state.maxPrice,
-                minLimit = minLimit,
-                maxLimit = maxLimit,
-                onRangeChange = { min, max -> events.onPriceRangeChange(min, max) }
-            )
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            StatusFilterSection(
-                statusOptions = statusOptions,
-                selectedStatuses = state.selectedStatuses,
-                onStatusToggle = {
-                    events.onStatusToggle(it) }
-            )
+            AnimateFilterItemEntrance(index = 3) {
+                StatusFilterSection(
+                    statusOptions = statusOptions,
+                    selectedStatuses = state.selectedStatuses,
+                    onStatusToggle = { events.onStatusToggle(it) }
+                )
+            }
 
             Spacer(modifier = Modifier.height(48.dp))
-
-            FilterActionButtons(
-                onApply = { events.onApply() },
-                onClear = { events.onClear() }
-            )
         }
     }
 }
 
-/**
- * Diálogo personalizado para la selección de fechas
- * Permite configurar una fecha mínima seleccionable para validar rangos coherentes
- */
+@Composable
+fun AnimateFilterItemEntrance(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(400))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(400)),
+            initialOffsetY = { it / 4 }
+        )
+    ) {
+        content()
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDatePickerDialog(
     minDateStr: String? = null,
+    maxDateStr: String? = null,
+    initialDateStr: String? = null,
     onDateSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val dateFormatter = remember {
+        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+    }
+
     val minDateMillis = remember(minDateStr) {
         if (!minDateStr.isNullOrEmpty()) {
-            try {
-                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(minDateStr)?.time
-            } catch (e: Exception) { null }
+            try { dateFormatter.parse(minDateStr)?.time } catch (e: Exception) { null }
         } else null
     }
 
+    val maxDateMillis = remember(maxDateStr) {
+        if (!maxDateStr.isNullOrEmpty()) {
+            try { dateFormatter.parse(maxDateStr)?.time } catch (e: Exception) { null }
+        } else null
+    }
+
+    val initialDateMillis = remember(initialDateStr) {
+        if (!initialDateStr.isNullOrEmpty()) {
+            try { dateFormatter.parse(initialDateStr)?.time } catch (e: Exception) { null }
+        } else null
+    }
+
+    val yearRange = remember(minDateMillis, maxDateMillis) {
+        val calendar = Calendar.getInstance()
+        val startYear = minDateMillis?.let {
+            calendar.timeInMillis = it
+            calendar.get(Calendar.YEAR)
+        } ?: 2000
+        val endYear = maxDateMillis?.let {
+            calendar.timeInMillis = it
+            calendar.get(Calendar.YEAR)
+        } ?: 2030
+        startYear..endYear
+    }
+
     val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = initialDateMillis ?: minDateMillis,
+        yearRange = yearRange,
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                return minDateMillis == null || utcTimeMillis >= minDateMillis
+                val isAfterMin = minDateMillis == null || utcTimeMillis >= minDateMillis
+                val isBeforeMax = maxDateMillis == null || utcTimeMillis <= maxDateMillis
+                return isAfterMin && isBeforeMax
             }
         }
     )
 
     val selectedDate = datePickerState.selectedDateMillis?.let {
-        val date = java.util.Date(it)
-        val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        format.format(date)
+        dateFormatter.format(Date(it))
     } ?: ""
 
-    DatePickerDialog(
-        onDismissRequest = { onDismiss() },
-        confirmButton = {
-            TextButton(onClick = {
-                if (selectedDate.isNotEmpty()) onDateSelected(selectedDate)
-                onDismiss()
-            }) {
-                Text("OK", color = GreenIberdrola, fontWeight = FontWeight.Bold)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = { onDismiss() }) {
-                Text("Cancelar", color = GreenIberdrola)
-            }
-        }
-    ) {
-        DatePicker(
-            state = datePickerState,
-            colors = DatePickerDefaults.colors(
-                todayContentColor = GreenIberdrola,
-                todayDateBorderColor = GreenIberdrola,
-                selectedDayContainerColor = GreenIberdrola,
-                selectedDayContentColor = Color.White
-            )
+    MaterialTheme(
+        colorScheme = MaterialTheme.colorScheme.copy(
+            surface = Color.White,
+            onSurface = Color.Black,
+            onSurfaceVariant = Color.DarkGray,
+            primary = GreenIberdrola,
+            onPrimary = Color.White
         )
+    ) {
+        DatePickerDialog(
+            onDismissRequest = { onDismiss() },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (selectedDate.isNotEmpty()) onDateSelected(selectedDate)
+                    onDismiss()
+                }) {
+                    Text(stringResource(R.string.common_ok), color = GreenIberdrola, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onDismiss() }) {
+                    Text(stringResource(R.string.common_cancel), color = GreenIberdrola, fontFamily = IberPangeaFamily)
+                }
+            },
+            colors = DatePickerDefaults.colors(
+                    containerColor = Color.White
+            )
+        ) {
+            DatePicker(
+                state = datePickerState,
+                colors = DatePickerDefaults.colors(
+                    containerColor = Color.White,
+                    titleContentColor = Color.Black,
+                    headlineContentColor = Color.Black,
+                    weekdayContentColor = Color.Gray,
+                    subheadContentColor = Color.Black,
+                    navigationContentColor = GreenIberdrola,
+                    yearContentColor = Color.Black,
+                    currentYearContentColor = GreenIberdrola,
+                    selectedYearContentColor = Color.White,
+                    selectedYearContainerColor = GreenIberdrola,
+                    dayContentColor = Color.Black,
+                    disabledDayContentColor = Color.LightGray,
+                    selectedDayContainerColor = GreenIberdrola,
+                    selectedDayContentColor = Color.White,
+                    todayContentColor = GreenIberdrola,
+                    todayDateBorderColor = GreenIberdrola
+                )
+            )
+        }
     }
 }
 
-/**
- * Vista previa de la pantalla de filtros con datos de ejemplo cargados
- */
-@Preview(
-    showBackground = true,
-)
+@Preview(showBackground = true)
 @Composable
 fun FilterScreenFilledPreview() {
-
     IB2026MarPGTheme {
-
         FilterContent(
             state = FilterState(
                 dateFrom = "01/01/2026",

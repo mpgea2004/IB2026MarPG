@@ -20,6 +20,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        buildConfigField("String", "SERVER_IP", "\"localhost\"")
     }
 
     buildTypes {
@@ -40,6 +42,24 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+}
+
+tasks.register<Exec>("adbReverse") {
+    group = "custom"
+    description = "Configura el túnel ADB para Mockoon"
+    
+    val adbPath = "${System.getenv("LOCALAPPDATA")}\\Android\\Sdk\\platform-tools\\adb.exe"
+    
+    commandLine(adbPath, "-s", "QWI7ZXDEDICYORXO", "reverse", "tcp:3000", "tcp:3000")
+    
+    isIgnoreExitValue = true
+}
+
+afterEvaluate {
+    tasks.named("preBuild") {
+        dependsOn("adbReverse")
     }
 }
 
@@ -55,7 +75,10 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.runtime)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    implementation(libs.androidx.navigation.compose)
 
     // Hilt
     implementation(libs.androidx.hilt.navigation.compose)
@@ -74,6 +97,11 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.retromock)
+
+    // Vico Charts
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+    implementation(libs.vico.core)
 
     // Testing
     testImplementation(libs.junit)

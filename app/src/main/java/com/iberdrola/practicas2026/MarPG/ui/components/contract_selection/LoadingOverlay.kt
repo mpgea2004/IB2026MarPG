@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 
@@ -18,14 +19,21 @@ fun LoadingOverlay() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.4f))
+            .background(Color.Black.copy(alpha = 0.6f))
             .clickable(enabled = false) {},
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
             color = GreenDarkIberdrola,
-            strokeWidth = 4.dp,
-            modifier = Modifier.size(48.dp)
+            trackColor = Color.LightGray.copy(alpha = 0.5f),
+            strokeWidth = 6.dp,
+            modifier = Modifier.size(80.dp)
         )
     }
+}
+
+@Composable
+@Preview
+fun LoadingOverlayPreview(){
+    LoadingOverlay()
 }

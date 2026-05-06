@@ -4,7 +4,10 @@ data class HomeEvents(
     val onProfileClick: () -> Unit = {},
     val onNavigateToInvoices: () -> Unit = {},
     val onNavigateToElectronicInvoice: () -> Unit = {},
+    val onNavigateToProfile: () -> Unit = {},
+    val onNavigateToFaq: () -> Unit = {},
     val onToggleCloud: (Boolean) -> Unit = {},
-    val onFeedbackOption: (Int) -> Unit = {},
-    val onDismissFeedback: () -> Unit = {}
+    val onSheetDismiss: () -> Unit = {},
+    val onSheetOptionSelected: (Int) -> Unit = {},
+    val onSheetDontAskAgain: () -> Unit = {}
 )
