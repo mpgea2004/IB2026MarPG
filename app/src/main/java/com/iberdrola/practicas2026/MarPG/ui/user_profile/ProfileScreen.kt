@@ -42,6 +42,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -90,6 +91,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -97,9 +99,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -136,6 +140,7 @@ fun ProfileScreen(
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val focusManager = LocalFocusManager.current
 
     val handleBackAction = {
         if (state.isSaving || state.isSaveClicked) {
@@ -278,7 +283,10 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (state.isSecurityPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
-                            IconButton(onClick = { viewModel.onToggleSecurityPasswordVisibility() }) {
+                            IconButton(onClick = { 
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                viewModel.onToggleSecurityPasswordVisibility() 
+                            }) {
                                 Icon(
                                     imageVector = if (state.isSecurityPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                     contentDescription = null,
@@ -286,7 +294,16 @@ fun ProfileScreen(
                                 )
                             }
                         },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { 
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.onSecurityConfirmClick() 
+                            }
+                        ),
                         isError = state.securityPasswordError != null,
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -322,7 +339,10 @@ fun ProfileScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { viewModel.onSecurityConfirmClick() }) {
+                TextButton(onClick = { 
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.onSecurityConfirmClick() 
+                }) {
                     Text(
                         text = stringResource(R.string.common_confirm),
                         color = GreenIberdrola,
@@ -336,7 +356,7 @@ fun ProfileScreen(
                     Text(
                         text = stringResource(R.string.invoice_detail_dialog_cancel),
                         color = Color.Gray,
-                        fontFamily = IberPangeaFamily
+                        fontFamily = IberPangeaFamily,
                     )
                 }
             },
@@ -350,11 +370,17 @@ fun ProfileScreen(
         onEmailChanged = { viewModel.onEmailChange(it) },
         onPhoneChanged = { viewModel.onPhoneChange(it) },
         onAddressChanged = { viewModel.onAddressChanged(it) },
-        onSaveClick = { onSuccess -> viewModel.saveChanges(onSuccess) },
+        onSaveClick = { onSuccess -> 
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            viewModel.saveChanges(onSuccess) 
+        },
         onBackClick = handleBackAction,
         onPasswordChanged = { viewModel.onPasswordChanged(it) },
         onLogout = { viewModel.onLogoutClick() },
-        onEditClick = { viewModel.onEditClick() },
+        onEditClick = { 
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            viewModel.onEditClick() 
+        },
         onDiscardClick = {
             if (state.isSaving || state.isSaveClicked) {
                 isBackTriggeredDuringSave = true
@@ -726,17 +752,15 @@ fun SmartSaveButton(
     }
 }
 
-enum class ButtonState {
-    Idle, Saving, Success
-}
-
 @Composable
 fun ProfileContent(
     state: ProfileState,
     events: ProfileEvents,
     modifier: Modifier = Modifier
 ) {
+    val focusManager = LocalFocusManager.current
     var passwordVisible by remember { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
 
     Column(
         modifier = modifier
@@ -819,7 +843,9 @@ fun ProfileContent(
                                     errorMessage = state.nameError,
                                     label = stringResource(R.string.profile_label_name),
                                     icon = Icons.Default.Person,
-                                    onValueChange = events.onNameChanged
+                                    onValueChange = events.onNameChanged,
+                                    imeAction = ImeAction.Next,
+                                    onAction = { focusManager.moveFocus(FocusDirection.Down) }
                                 )
 
                                 ProfileField(
@@ -828,7 +854,9 @@ fun ProfileContent(
                                     label = stringResource(R.string.profile_label_email),
                                     icon = Icons.Default.Email,
                                     keyboardType = KeyboardType.Email,
-                                    onValueChange = events.onEmailChanged
+                                    onValueChange = events.onEmailChanged,
+                                    imeAction = ImeAction.Next,
+                                    onAction = { focusManager.moveFocus(FocusDirection.Down) }
                                 )
 
                                 ProfileField(
@@ -837,21 +865,30 @@ fun ProfileContent(
                                     label = stringResource(R.string.profile_label_phone),
                                     icon = Icons.Default.Phone,
                                     keyboardType = KeyboardType.Phone,
-                                    onValueChange = events.onPhoneChanged
+                                    onValueChange = events.onPhoneChanged,
+                                    imeAction = ImeAction.Next,
+                                    onAction = { focusManager.moveFocus(FocusDirection.Down) }
                                 )
 
                                 ProfileField(
                                     value = state.address,
                                     label = stringResource(R.string.profile_label_address),
                                     icon = Icons.Default.Home,
-                                    onValueChange = events.onAddressChanged
+                                    onValueChange = events.onAddressChanged,
+                                    imeAction = ImeAction.Next,
+                                    onAction = { focusManager.moveFocus(FocusDirection.Down) }
                                 )
                                 PasswordField(
                                     value = state.password,
                                     errorMessage = state.passwordError,
                                     isVisible = passwordVisible,
                                     onValueChange = events.onPasswordChanged,
-                                    onToggleVisibility = { passwordVisible = !passwordVisible }
+                                    onToggleVisibility = { 
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        passwordVisible = !passwordVisible 
+                                    },
+                                    imeAction = ImeAction.Done,
+                                    onAction = { focusManager.clearFocus() }
                                 )
                             } else {
                                 ProfileInfoItem(
@@ -983,7 +1020,9 @@ fun PasswordField(
     errorMessage: Int?,
     isVisible: Boolean,
     onValueChange: (String) -> Unit,
-    onToggleVisibility: () -> Unit
+    onToggleVisibility: () -> Unit,
+    imeAction: ImeAction = ImeAction.Default,
+    onAction: () -> Unit = {}
 ) {
     Column {
         OutlinedTextField(
@@ -1013,7 +1052,13 @@ fun PasswordField(
             singleLine = true,
             isError = errorMessage != null,
             visualTransformation = if (isVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = imeAction
+            ),
+            keyboardActions = KeyboardActions(
+                onAny = { onAction() }
+            ),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color(0xFFF9FBF9),
                 unfocusedContainerColor = Color.Transparent,
@@ -1044,7 +1089,9 @@ fun ProfileField(
     icon: ImageVector,
     errorMessage: Int? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
+    imeAction: ImeAction = ImeAction.Default,
+    onAction: () -> Unit = {}
 ) {
     Column {
         OutlinedTextField(
@@ -1067,7 +1114,13 @@ fun ProfileField(
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             isError = errorMessage != null,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType,
+                imeAction = imeAction
+            ),
+            keyboardActions = KeyboardActions(
+                onAny = { onAction() }
+            ),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color(0xFFF9FBF9),
                 unfocusedContainerColor = Color.Transparent,
@@ -1089,4 +1142,8 @@ fun ProfileField(
             )
         }
     }
+}
+
+enum class ButtonState {
+    Idle, Saving, Success
 }

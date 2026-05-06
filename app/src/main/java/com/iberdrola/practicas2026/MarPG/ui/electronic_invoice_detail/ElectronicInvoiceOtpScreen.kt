@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -51,8 +52,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -66,16 +65,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.components.IberdrolaTextField
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.LoadingOverlay
@@ -200,6 +202,7 @@ fun ElectronicInvoiceOtpContent(
     onDismissNotification: () -> Unit = {}
 ) {
     val haptic = LocalHapticFeedback.current
+    val focusManager = LocalFocusManager.current
     
     var bufferedHasAttempts by remember { mutableStateOf(true) }
     
@@ -252,7 +255,10 @@ fun ElectronicInvoiceOtpContent(
             bottomBar = {
                 ElectronicInvoiceBottomBar(
                     onBack = events.onBack,
-                    onNext = events.onNext,
+                    onNext = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        events.onNext()
+                    },
                     isNextEnabled = isButtonEnabled,
                     showBanner = state.showResendSuccess,
                     onCloseBanner = events.onCloseBanner
@@ -291,39 +297,42 @@ fun ElectronicInvoiceOtpContent(
                 }
 
                 AnimateElectronicOtpItem(index = 2) {
-                    TextField(
+                    IberdrolaTextField(
                         value = state.otpInput,
-                        onValueChange = events.onOtpChange,
-                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
-                        placeholder = { Text(stringResource(R.string.otp_placeholder), fontSize = 14.sp, color = Color.DarkGray,style = MaterialTheme.typography.bodyLarge, fontFamily = IberPangeaFamily) },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.NumberPassword
-                        ),
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(
-                            color = Color.Black,
-                            fontSize = 16.sp,
-                            fontFamily = IberPangeaFamily
-                        ),
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.DarkGray,
-                            focusedIndicatorColor = GreenDarkIberdrola,
-                            cursorColor = GreenDarkIberdrola
-                        ),
-                        isError = state.error != null,
-                        supportingText = {
-                            if (state.error != null) {
-                                Text(
-                                    text = stringResource(state.error),
-                                    color = MaterialTheme.colorScheme.error,
-                                    fontSize = 12.sp,
-                                    fontFamily = IberPangeaFamily
-                                )
+                        onValueChange = { 
+                            if (it.length <= 6) {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                events.onOtpChange(it) 
                             }
                         },
-                        singleLine = true
+                        label = stringResource(R.string.otp_placeholder),
+                        isError = state.error != null,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.NumberPassword,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                if (isButtonEnabled && !state.isLoading) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    focusManager.clearFocus()
+                                    events.onNext()
+                                } else {
+                                    focusManager.clearFocus()
+                                }
+                            }
+                        )
                     )
+                    
+                    if (state.error != null) {
+                        Text(
+                            text = stringResource(state.error),
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp,
+                            fontFamily = IberPangeaFamily,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -400,10 +409,11 @@ fun ElectronicInvoiceOtpContent(
                                         fontFamily = IberPangeaFamily
                                     )
                                     Text(
-                                        text = if (targetHasAttempts)
-                                            stringResource(R.string.otp_not_received_desc, state.resendAttempts)
-                                        else
-                                            stringResource(R.string.otp_no_attempts_left),
+                                        text = when {
+                                            !targetHasAttempts -> stringResource(R.string.otp_no_attempts_left)
+                                            state.resendAttempts == 2 -> stringResource(R.string.otp_not_received_desc_initial)
+                                            else -> stringResource(R.string.otp_not_received_desc, state.resendAttempts)
+                                        },
                                         fontSize = 12.sp,
                                         lineHeight = 18.sp,
                                         color = if (targetHasAttempts) Color(0xFF455A64) else Color(0xFFD32F2F),
@@ -419,7 +429,10 @@ fun ElectronicInvoiceOtpContent(
                                             textDecoration = TextDecoration.Underline,
                                             modifier = Modifier
                                                 .clip(RoundedCornerShape(8.dp))
-                                                .clickable { events.onResendOtp() }
+                                                .clickable { 
+                                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                    events.onResendOtp()
+                                                }
                                                 .padding(vertical = 2.dp),
                                             fontFamily = IberPangeaFamily
                                         )
@@ -442,7 +455,10 @@ fun ElectronicInvoiceOtpContent(
         ) {
             SimulatedNotification(
                 message = state.simulatedNotificationMessage,
-                onDismiss = onDismissNotification
+                onDismiss = {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onDismissNotification()
+                }
             )
         }
 

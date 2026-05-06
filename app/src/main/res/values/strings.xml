@@ -82,15 +82,16 @@
     <string name="otp_title">Activa tu factura electrónica</string>
     <string name="otp_input_header">Introduce tu código de verificación</string>
     <string name="otp_description">Para verificar tu identidad, hemos enviado un código al teléfono %1$s. Por favor, introdúcelo a continuación:</string>
-    <string name="otp_placeholder">* Código de verificación</string>
+    <string name="otp_placeholder">Código de verificación</string>
     <string name="otp_not_received_title">¿No has recibido el código?</string>
+    <string name="otp_not_received_desc_initial">Si no lo encuentras, podemos volver a enviar el SMS.</string>
     <string name="otp_not_received_desc">Si no lo encuentras, podemos volver a enviar el SMS. Recuerda que aún te quedan %1$d intentos.</string>
     <string name="otp_resend_link">Volver a enviar</string>
     <string name="otp_no_attempts_left">Has agotado el número máximo de intentos. Por favor, vuelve a probar más tarde.</string>
 
     <string name="edit_email_header_title">Modificar email</string>
     <string name="edit_email_question">¿En qué email deseas recibir tus facturas?</string>
-    <string name="edit_email_placeholder">* Nuevo email</string>
+    <string name="edit_email_placeholder">Nuevo email</string>
     <string name="edit_email_discard_message">Has modificado el email. ¿Estás seguro de que quieres volver atrás y perder los cambios?</string>
 
     <string name="invoice_detail_dialog_title">Desactivar Factura Electrónica</string>
@@ -111,11 +112,11 @@
     <string name="form_linked_email_label">Email vinculado a tu cuenta:</string>
     <string name="form_no_email_assigned">Sin email asignado</string>
     <string name="form_email_question">¿En qué email deseas recibir tus facturas?</string>
-    <string name="form_email_placeholder">* Email</string>
+    <string name="form_email_placeholder">Email</string>
     <string name="form_data_protection_title">Información básica sobre protección de datos</string>
     <string name="form_legal_responsable">Responsable: Iberdrola Clientes S.A.U. </string>
     <string name="form_legal_finalidad">\n\nFinalidad: Gestión de la factura electrónica. </string>
-    <string name="form_legal_derechos">\n\nRights: Acceso, rectificación, supresión, limiteción del tratamineto, portabilidad de datos u oposición, incluida la oposición a decisiones individuales automatizadas. </string>
+    <string name="form_legal_derechos">\n\nDerechos: Acceso, rectificación, supresión, limiteción del tratamineto, portabilidad de datos u oposición, incluida la oposición a decisiones individuales automatizadas. </string>
     <string name="form_more_info">Más info</string>
     <string name="form_checkbox_prefix">He leído y acepto la Política de privacidad, acepto las </string>
     <string name="form_condiciones_generales"> Condiciones Generales </string>
@@ -334,5 +335,6 @@
     <string name="profile_security_dialog_text">Introduce tu contraseña actual para realizar cambios en el perfil.</string>
     <string name="profile_saving_changes">Guardando cambios...</string>
     <string name="profile_not_configured">No configurado</string>
+    <string name="invoice_list_refresh_filters_submessage">Aún así se perderán los filtros que no sean compatibles.</string>
 
 </resources>

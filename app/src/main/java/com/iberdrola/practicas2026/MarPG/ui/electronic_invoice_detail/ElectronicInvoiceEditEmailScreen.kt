@@ -12,14 +12,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,13 +32,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.components.IberdrolaTextField
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.SecurityPhoneDialog
@@ -141,6 +150,9 @@ fun ElectronicInvoiceEditEmailContent(
     events: ElectronicInvoiceEvents,
     isButtonEnabled: Boolean
 ) {
+    val focusManager = LocalFocusManager.current
+    val haptic = LocalHapticFeedback.current
+
     Scaffold(
         containerColor = WhiteApp,
         topBar = {
@@ -153,7 +165,12 @@ fun ElectronicInvoiceEditEmailContent(
         bottomBar = {
             ElectronicInvoiceBottomBar(
                 onBack = events.onBack,
-                onNext = events.onNext,
+                onNext = {
+                    if (isButtonEnabled) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        events.onNext()
+                    }
+                },
                 isNextEnabled = isButtonEnabled
             )
         }
@@ -178,30 +195,25 @@ fun ElectronicInvoiceEditEmailContent(
             }
 
             AnimateEditEmailItem(index = 1) {
-                TextField(
+                IberdrolaTextField(
                     value = state.emailInput,
                     onValueChange = events.onEmailChange,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    textStyle = TextStyle(
-                        color = Color.Black,
-                        fontSize = 14.sp,
-                        fontFamily = IberPangeaFamily
+                    label = stringResource(R.string.edit_email_placeholder),
+                    modifier = Modifier.padding(top = 16.dp),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Done
                     ),
-                    placeholder = {
-                        Text(stringResource(R.string.edit_email_placeholder), fontSize = 14.sp, color = Color.Gray, fontFamily = IberPangeaFamily)
-                    },
-                    colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.LightGray,
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Gray,
-                        focusedIndicatorColor = GreenDarkIberdrola,
-                        cursorColor = GreenDarkIberdrola
+                    keyboardActions = KeyboardActions(
+                        onDone = { 
+                            if (isButtonEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onNext()
+                            } else {
+                                focusManager.clearFocus()
+                            }
+                        }
                     ),
-                    singleLine = true
                 )
             }
         }

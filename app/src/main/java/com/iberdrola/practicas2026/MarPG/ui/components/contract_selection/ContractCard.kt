@@ -73,7 +73,7 @@ fun ContractCard(
             }
         }
         HorizontalDivider(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
             thickness = 1.dp,
             color = Color.LightGray.copy(alpha = 0.5f)
         )

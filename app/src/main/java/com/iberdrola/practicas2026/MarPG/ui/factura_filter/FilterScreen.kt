@@ -342,15 +342,19 @@ fun MyDatePickerDialog(
 
     val yearRange = remember(minDateMillis, maxDateMillis) {
         val calendar = Calendar.getInstance()
+        val currentYear = calendar.get(Calendar.YEAR)
+        
         val startYear = minDateMillis?.let {
             calendar.timeInMillis = it
             calendar.get(Calendar.YEAR)
-        } ?: 2000
+        } ?: (currentYear - 10)
+        
         val endYear = maxDateMillis?.let {
             calendar.timeInMillis = it
             calendar.get(Calendar.YEAR)
-        } ?: 2030
-        startYear..endYear
+        } ?: currentYear
+        
+        if (startYear <= endYear) startYear..endYear else endYear..startYear
     }
 
     val datePickerState = rememberDatePickerState(

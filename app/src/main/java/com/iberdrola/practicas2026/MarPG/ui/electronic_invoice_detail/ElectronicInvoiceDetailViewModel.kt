@@ -178,9 +178,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
             
             if (simulationId != currentSimulationId) return@launch
 
-            val simulatedCode = if (state.simulatedOtpCode.isNotEmpty()) {
-                state.simulatedOtpCode
-            } else {
+            val simulatedCode = state.simulatedOtpCode.ifEmpty {
                 val newCode = (100000..999999).random().toString()
                 state = state.copy(simulatedOtpCode = newCode)
                 newCode

@@ -7,28 +7,31 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,19 +43,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.components.IberdrolaTextField
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.SecurityPhoneDialog
@@ -178,6 +185,9 @@ fun ElectronicInvoiceDetailFormContent(
     isButtonEnabled: Boolean,
     sheetState: SheetState
 ) {
+    val focusManager = LocalFocusManager.current
+    val haptic = LocalHapticFeedback.current
+
     val emailParaOfuscar = when {
         state.userProfile.email.isNotEmpty() -> state.userProfile.email
         !state.selectedContract?.email.isNullOrEmpty() -> state.selectedContract.email
@@ -238,27 +248,21 @@ fun ElectronicInvoiceDetailFormContent(
             Spacer(modifier = Modifier.height(32.dp))
 
             AnimateElectronicFormItem(index = 1) {
-                Column {
+                Column{
                     Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, color = Color.Black)
 
-                    TextField(
+                    IberdrolaTextField(
                         value = state.emailInput,
                         onValueChange = events.onEmailChange,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        textStyle = TextStyle(color = Color.Black, fontSize = 14.sp),
-                        placeholder = { Text(stringResource(R.string.form_email_placeholder), fontSize = 14.sp, color = Color.Gray)},
-                        colors = TextFieldDefaults.colors(
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black,
-                            unfocusedContainerColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.LightGray,
-                            focusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = GreenDarkIberdrola,
-                            cursorColor = GreenDarkIberdrola
+                        label = stringResource(R.string.form_email_placeholder),
+                        modifier = Modifier.padding(top = 8.dp),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Done
                         ),
-                        singleLine = true
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        )
                     )
                 }
             }
@@ -278,18 +282,21 @@ fun ElectronicInvoiceDetailFormContent(
                         append(stringResource(R.string.form_legal_responsable))
                         append(" ")
                         appendLink(moreInfo) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             events.onShowLegal(legalTitleResp, legalContentResp)
                         }
 
                         append(stringResource(R.string.form_legal_finalidad))
                         append(" ")
                         appendLink(moreInfo) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             events.onShowLegal(legalTitleFin, legalContentFin)
                         }
 
                         append(stringResource(R.string.form_legal_derechos))
                         append(" ")
                         appendLink(moreInfo) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             events.onShowLegal(legalTitleDer, legalContentDer)
                         }
                     }
@@ -312,10 +319,12 @@ fun ElectronicInvoiceDetailFormContent(
                         append(stringResource(R.string.form_checkbox_prefix))
                         append(" ")
                         appendLink(stringResource(R.string.form_condiciones_generales)) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             events.onShowLegal(legalTitleGen, legalContentGen)
                         }
                         append(" ")
                         appendLink(stringResource(R.string.form_condiciones_particulares)) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             events.onShowLegal(legalTitlePart, legalContentPart)
                         }
                         append(" ")
@@ -330,7 +339,10 @@ fun ElectronicInvoiceDetailFormContent(
                     ) {
                         Checkbox(
                             checked = state.isLegalAccepted,
-                            onCheckedChange = { events.onLegalCheckChange(it) },
+                            onCheckedChange = { 
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onLegalCheckChange(it) 
+                            },
                             colors = CheckboxDefaults.colors(
                                 checkedColor = GreenDarkIberdrola,
                                 uncheckedColor = GreenDarkIberdrola,

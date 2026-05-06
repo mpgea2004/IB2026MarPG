@@ -134,6 +134,7 @@ fun InvoiceListScreen(
 
     var isNavigating by remember { mutableStateOf(true) }
 
+
     LaunchedEffect(Unit) {
         delay(100)
         isNavigating = false
@@ -242,6 +243,11 @@ fun InvoiceListScreen(
                     fontFamily = IberPangeaFamily,
                     color = Color.Black
                 )
+                Text(
+                    text = stringResource(R.string.invoice_list_refresh_filters_submessage),
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Gray
+                )
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.confirmRefresh(keepFilters = true) }) {
@@ -302,13 +308,13 @@ fun InvoiceListScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ){
-            val listState = rememberLazyListState()
-            
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
                 userScrollEnabled = currentState !is InvoiceListState.LOADING
             ) { page ->
+                val listState = rememberLazyListState()
+
                 when (currentState) {
                     InvoiceListState.LOADING -> {
                         ShimmerInvoiceList(brush = shimmerBrush())
@@ -513,6 +519,8 @@ fun InvoiceListHeader(
             }
             
             Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily, color = Color.Black)
+
+            Spacer(modifier = Modifier.height(6.dp))
 
             val displayedAddress = address.ifEmpty { stringResource(R.string.profile_empty_address) }
             Text(
@@ -1002,7 +1010,7 @@ fun LastInvoiceItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> U
                 Text(
                     text = invoice.amount.toAnnotatedCurrencyFormat(28.sp),
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(bottom = 8.dp, top = 12.dp),
                     fontFamily = IberPangeaFamily,
                     color = Color.Black
                 )
@@ -1010,7 +1018,7 @@ fun LastInvoiceItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> U
                 Text(
                     text = getHiddenAmountAnnotatedString(28.sp),
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(bottom = 8.dp, top = 12.dp),
                     fontFamily = IberPangeaFamily,
                     color = Color.Black
                 )
