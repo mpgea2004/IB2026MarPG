@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
@@ -59,6 +61,7 @@ fun ElectronicInvoiceSelectionScreen(
 ) {
     val state = viewModel.state
     val errorMessage = viewModel.errorMessage
+    val isGasEnabled = viewModel.isGasEnabledConfig
     val pullToRefreshState = rememberPullToRefreshState()
 
 
@@ -120,28 +123,35 @@ fun ElectronicInvoiceSelectionScreen(
             contentAlignment = Alignment.TopCenter
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                when (state) {
-                    is ElectronicInvoiceListState.Loading -> {
-                        ShimmerElectronicInvoiceList(
-                            brush = shimmerBrush(),
-                            modifier = Modifier.fillMaxSize()
-                        )
+                if (isGasEnabled == null) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = GreenIberdrola)
                     }
+                } else {
+                    when (state) {
+                        is ElectronicInvoiceListState.Loading -> {
+                            ShimmerElectronicInvoiceList(
+                                brush = shimmerBrush(),
+                                showGas = isGasEnabled,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
 
-                    is ElectronicInvoiceListState.Success -> {
-                        ElectronicInvoiceSelectionContent(
-                            invoices = state.contracts,
-                            errorMessage = errorMessage?.let { stringResource(it) },
-                            events = events,
-                            modifier = Modifier.navigationBarsPadding()
-                        )
-                    }
+                        is ElectronicInvoiceListState.Success -> {
+                            ElectronicInvoiceSelectionContent(
+                                invoices = state.contracts,
+                                errorMessage = errorMessage?.let { stringResource(it) },
+                                events = events,
+                                modifier = Modifier.navigationBarsPadding()
+                            )
+                        }
 
-                    is ElectronicInvoiceListState.NoData -> {
-                        InvoiceEmptyState(
-                            message = errorMessage?.let { stringResource(it) },
-                            onRefresh = events.onRetry
-                        )
+                        is ElectronicInvoiceListState.NoData -> {
+                            InvoiceEmptyState(
+                                message = errorMessage?.let { stringResource(it) },
+                                onRefresh = events.onRetry
+                            )
+                        }
                     }
                 }
             }

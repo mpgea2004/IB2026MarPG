@@ -25,7 +25,8 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 @Composable
 fun ShimmerElectronicInvoiceList(
     brush: Brush,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showGas: Boolean = true
 ) {
     Column(
         modifier = modifier
@@ -44,7 +45,8 @@ fun ShimmerElectronicInvoiceList(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        repeat(2) {
+        val count = if (showGas) 2 else 1
+        repeat(count) {
             ShimmerContractCard(brush)
         }
     }

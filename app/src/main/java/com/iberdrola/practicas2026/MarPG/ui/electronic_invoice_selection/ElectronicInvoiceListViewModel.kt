@@ -57,7 +57,7 @@ class ElectronicInvoiceListViewModel @Inject constructor(
 
             getElectronicInvoiceUseCase(isCloud = isCloud)
                 .catch { e ->
-
+                    delay(1500)
                     val errorRes = when (e) {
                         is InvoiceException.NetworkError -> R.string.error_network_connection
                         is InvoiceException.NotFoundError -> R.string.error_data_not_found
@@ -89,6 +89,8 @@ class ElectronicInvoiceListViewModel @Inject constructor(
                         invoiceList
                     }
                     localData = invoiceList
+
+                    delay(1500)
 
                     if (isCloud && isFirstEmission) {
                         isFirstEmission = false
