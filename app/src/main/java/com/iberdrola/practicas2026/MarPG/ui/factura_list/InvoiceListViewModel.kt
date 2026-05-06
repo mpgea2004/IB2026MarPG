@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceException
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
@@ -21,10 +22,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.abs
 import kotlin.math.ceil
+import kotlin.math.floor
 
+enum class SortOption {
+    DATE,
+    PRICE,
+    TYPE
+}
 
-/** Lógica de carga, filtrado y agrupación de facturas por tipo y año */
 @HiltViewModel
 class InvoiceListViewModel @Inject constructor(
     private val checkFeedbackUseCase: CheckFeedbackUseCase,
@@ -53,25 +60,59 @@ class InvoiceListViewModel @Inject constructor(
 
     private val isCloud: Boolean = savedStateHandle["isCloud"] ?: false
 
-    var errorMessage by mutableStateOf<String?>(null)
+    var errorMessage by mutableStateOf<Int?>(null)
         private set
 
     var currentFilterState by mutableStateOf(FilterState())
         private set
 
+    var currentSortOption by mutableStateOf(SortOption.DATE)
+        private set
+
     var isRefreshing by mutableStateOf(false)
         private set
 
+    var selectedInvoice by mutableStateOf<Invoice?>(null)
+        private set
+
+    var showSingleInvoiceDialog by mutableStateOf(false)
+        private set
+
+    var showRefreshDialog by mutableStateOf(false)
+        private set
+
+    var searchQuery by mutableStateOf("")
+        private set
+
+    var isAmountVisible by mutableStateOf(true)
+        private set
+
+    var shouldScrollToHistoric by mutableStateOf(false)
+        private set
+
+    var shouldScrollToTop by mutableStateOf(false)
+        private set
+
+    private var lastMinLimit: Float = 0f
+    private var lastMaxLimit: Float = 500f
+
     val minInvoiceAmount: Float
-        get() = allInvoices.minOfOrNull { it.amount.toFloat() } ?: 0f
+        get() = allInvoices.minOfOrNull { it.amount.toFloat() }?.let { floor(it) } ?: 0f
 
     val maxInvoiceAmount: Float
         get() = allInvoices.maxOfOrNull { it.amount.toFloat() }?.let { ceil(it) } ?: 500f
+
+    val minInvoiceDate: String?
+        get() = allInvoices.minByOrNull { DateMapper.toLocalDate(it.issueDate) }?.issueDate
+
+    val maxInvoiceDate: String?
+        get() = allInvoices.maxByOrNull { DateMapper.toLocalDate(it.issueDate) }?.issueDate
 
     init {
         logAnalyticsUseCase("view_invoice_list_mar")
         observeFeedback()
         observeUserProfile()
+        observeAmountVisibility()
     }
     private fun observeUserProfile() {
         viewModelScope.launch {
@@ -93,10 +134,24 @@ class InvoiceListViewModel @Inject constructor(
             "amount" to invoice.amount.toString()
         ))
     }
-    private fun loadInvoices() {
+    private fun observeAmountVisibility() {
         if (isGasEnabled == null) return
-
         viewModelScope.launch {
+            userPrefs.amountVisibleFlow.collect { visible ->
+                isAmountVisible = visible
+            }
+        }
+    }
+
+    private fun loadInvoices(resetFilters: Boolean = false) {
+        viewModelScope.launch {
+            if (resetFilters) {
+                currentFilterState = FilterState()
+                searchQuery = ""
+                lastMinLimit = 0f
+                lastMaxLimit = 500f
+            }
+
             prepareLoadingState()
 
             getInvoicesUseCase(isCloud)
@@ -105,41 +160,69 @@ class InvoiceListViewModel @Inject constructor(
                     logAnalyticsUseCase("invoice_load_error", mapOf("message" to (e.message ?: "unknown")))}
                 .collect { invoices ->
                     allInvoices = invoices
+                    setupDynamicFilterPrices(invoices)
 
-                    setupInitialFilterPrices(invoices)
-                    logAnalyticsUseCase("invoice_load_success", mapOf("count" to invoices.size))
-
-                    if (invoices.isNotEmpty()) {
+                    if (invoices.isEmpty()) {
+                        state = InvoiceListState.NODATA
+                    } else {
                         errorMessage = null
+                        updateFilteredInvoices()
                     }
-
-                    updateFilteredInvoices()
                 }
         }
     }
 
     private fun prepareLoadingState() {
-        if (allInvoices.isEmpty()) {
-            state = InvoiceListState.LOADING
-        }
+        allInvoices = emptyList()
+        state = InvoiceListState.LOADING
         errorMessage = null
     }
 
     private fun handleLoadError(e: Throwable) {
-        errorMessage = if (e is InvoiceException) e.message else InvoiceException.Unknown.message
+        errorMessage = when(e) {
+            is InvoiceException.NetworkError -> R.string.error_network_connection
+            is InvoiceException.NotFoundError -> R.string.error_data_not_found
+            is InvoiceException.ServerError -> {
+                if (e.code == 404) R.string.error_data_not_found
+                else R.string.error_server_maintenance
+            }
+            is InvoiceException.LocalDataError -> R.string.error_local_data
+            else -> R.string.error_unknown
+        }
+
         if (allInvoices.isEmpty()) {
             state = InvoiceListState.NODATA
         }
     }
 
-    private fun setupInitialFilterPrices(invoices: List<Invoice>) {
-        val isFilterDefault = currentFilterState.minPrice == 0f && currentFilterState.maxPrice == 500f
+    private fun setupDynamicFilterPrices(invoices: List<Invoice>) {
+        if (invoices.isEmpty()) return
 
-        if (invoices.isNotEmpty() && isFilterDefault) {
+        val newMin = minInvoiceAmount
+        val newMax = maxInvoiceAmount
+
+        val isAtFullRange = abs(currentFilterState.minPrice - lastMinLimit) < 0.1f &&
+                            abs(currentFilterState.maxPrice - lastMaxLimit) < 0.1f
+
+        val isFirstLoad = lastMinLimit == 0f && lastMaxLimit == 500f
+
+        if (isFirstLoad || isAtFullRange) {
             currentFilterState = currentFilterState.copy(
-                minPrice = minInvoiceAmount,
-                maxPrice = maxInvoiceAmount
+                minPrice = newMin,
+                maxPrice = newMax
             )
+        }
+
+        lastMinLimit = newMin
+        lastMaxLimit = newMax
+    }
+    fun onSearchQueryChange(query: String) {
+        searchQuery = query
+        updateFilteredInvoices()
+        if (hasActiveFilters()) {
+            shouldScrollToHistoric = true
+        } else {
+            shouldScrollToTop = true
         }
     }
 
@@ -148,7 +231,7 @@ class InvoiceListViewModel @Inject constructor(
         isGasEnabled = enabled
 
         logAnalyticsUseCase("remote_config_gas_updated", mapOf("enabled" to enabled))
-        
+
         if (firstLoad) {
             loadInvoices()
         } else {
@@ -165,32 +248,38 @@ class InvoiceListViewModel @Inject constructor(
             return
         }
 
-        if (allInvoices.isEmpty()) {
+        val contractTypeFilter = if (selectedTab == 0) ContractType.LUZ else ContractType.GAS
+
+        val categoryInvoices = allInvoices.filter { it.contractType == contractTypeFilter }
+
+        if (categoryInvoices.isEmpty()) {
             state = InvoiceListState.NODATA
             return
         }
 
-        val contractTypeFilter = if (selectedTab == 0 || isGasEnabled == false) {
-            ContractType.LUZ
-        } else {
-            ContractType.GAS
-        }
+        val lastInvoice = categoryInvoices.maxByOrNull { DateMapper.toLocalDate(it.issueDate) }
 
-        val filteredInvoices = allInvoices.filter { invoice ->
-            val matchesType = invoice.contractType == contractTypeFilter
-
-            val matchesPrice = invoice.amount >= currentFilterState.minPrice &&
-                    invoice.amount <= currentFilterState.maxPrice
+        val filteredInvoices = categoryInvoices.filter { invoice ->
+            val matchesSearch = searchQuery.isEmpty() || invoice.id.startsWith(searchQuery, ignoreCase = true)
+            val amountFloat = invoice.amount.toFloat()
+            val matchesPrice = amountFloat >= currentFilterState.minPrice &&
+                    amountFloat <= currentFilterState.maxPrice
 
             val matchesStatus = currentFilterState.selectedStatuses.isEmpty() ||
                     currentFilterState.selectedStatuses.contains(invoice.status.description)
 
             val matchesDate = checkDateRange(invoice.issueDate)
 
-            matchesType && matchesPrice && matchesStatus && matchesDate
+            matchesSearch && matchesPrice && matchesStatus && matchesDate
         }
 
-        val groupedByYear = filteredInvoices.groupBy { invoice ->
+        val sortedInvoices = when (currentSortOption) {
+            SortOption.DATE -> filteredInvoices.sortedByDescending { DateMapper.toLocalDate(it.issueDate) }
+            SortOption.PRICE -> filteredInvoices.sortedByDescending { it.amount }
+            SortOption.TYPE -> filteredInvoices.sortedBy { it.status.description }
+        }
+
+        val groupedByYear = sortedInvoices.groupBy { invoice ->
             try {
                 DateMapper.toLocalDate(invoice.issueDate).year.toString()
             } catch (e: Exception) {
@@ -198,7 +287,7 @@ class InvoiceListViewModel @Inject constructor(
             }
         }
 
-        state = InvoiceListState.SUCCESS(groupedByYear)
+        state = InvoiceListState.SUCCESS(groupedByYear, lastInvoice)
 
     }
 
@@ -215,10 +304,27 @@ class InvoiceListViewModel @Inject constructor(
         errorMessage = null
     }
 
-    fun refreshInvoices() {
+    fun handleRefresh() {
+        if (hasActiveFilters()) {
+            showRefreshDialog = true
+        } else {
+            refreshInvoices(keepFilters = true)
+        }
+    }
+
+    fun confirmRefresh(keepFilters: Boolean) {
+        showRefreshDialog = false
+        refreshInvoices(keepFilters = keepFilters)
+    }
+
+    fun cancelRefreshDialog() {
+        showRefreshDialog = false
+    }
+
+    private fun refreshInvoices(keepFilters: Boolean) {
         viewModelScope.launch {
             isRefreshing = true
-            loadInvoices()
+            loadInvoices(resetFilters = !keepFilters)
             delay(500)
             isRefreshing = false
         }
@@ -235,6 +341,96 @@ class InvoiceListViewModel @Inject constructor(
     fun applyFilters(newFilters: FilterState) {
         currentFilterState = newFilters
         updateFilteredInvoices()
+        if (hasActiveFilters()) {
+            shouldScrollToHistoric = true
+        } else {
+            shouldScrollToTop = true
+        }
+    }
+
+    fun setSortOption(option: SortOption) {
+        currentSortOption = option
+        updateFilteredInvoices()
+    }
+
+    fun selectInvoice(invoice: Invoice) {
+        selectedInvoice = invoice
+    }
+
+    fun clearFilters() {
+        currentFilterState = FilterState(
+            minPrice = minInvoiceAmount,
+            maxPrice = maxInvoiceAmount
+        )
+        searchQuery = ""
+        updateFilteredInvoices()
+        shouldScrollToTop = true
+    }
+
+    fun removeStatusFilter(status: String) {
+        val newStatuses = currentFilterState.selectedStatuses - status
+        currentFilterState = currentFilterState.copy(selectedStatuses = newStatuses)
+        updateFilteredInvoices()
+        if (hasActiveFilters()) {
+            shouldScrollToHistoric = true
+        } else {
+            shouldScrollToTop = true
+        }
+    }
+
+    fun removeDateFilter() {
+        currentFilterState = currentFilterState.copy(dateFrom = "", dateTo = "")
+        updateFilteredInvoices()
+        if (hasActiveFilters()) {
+            shouldScrollToHistoric = true
+        } else {
+            shouldScrollToTop = true
+        }
+    }
+
+    fun removePriceFilter() {
+        currentFilterState = currentFilterState.copy(
+            minPrice = minInvoiceAmount,
+            maxPrice = maxInvoiceAmount
+        )
+        updateFilteredInvoices()
+        if (hasActiveFilters()) {
+            shouldScrollToHistoric = true
+        } else {
+            shouldScrollToTop = true
+        }
+    }
+
+    fun onScrollHandled() {
+        shouldScrollToHistoric = false
+    }
+
+    fun onScrollToTopHandled() {
+        shouldScrollToTop = false
+    }
+
+    fun hasActiveFilters(): Boolean {
+        val isDefaultPrice = abs(currentFilterState.minPrice - minInvoiceAmount) < 0.01f &&
+                abs(currentFilterState.maxPrice - maxInvoiceAmount) < 0.01f
+
+        return currentFilterState.selectedStatuses.isNotEmpty() ||
+                currentFilterState.dateFrom.isNotEmpty() ||
+                currentFilterState.dateTo.isNotEmpty() ||
+                searchQuery.isNotEmpty() ||
+                !isDefaultPrice
+    }
+
+    fun openSingleInvoiceDialog() {
+        showSingleInvoiceDialog = true
+    }
+
+    fun closeSingleInvoiceDialog() {
+        showSingleInvoiceDialog = false
+    }
+
+    fun getCategoryInvoicesCount(): Int {
+        val contractTypeFilter = if (selectedTab == 0) ContractType.LUZ else ContractType.GAS
+        return allInvoices.count { it.contractType == contractTypeFilter }
     }
 
     private fun checkDateRange(invoiceDateStr: String): Boolean {
@@ -258,6 +454,12 @@ class InvoiceListViewModel @Inject constructor(
             matchesFrom && matchesTo
         } catch (e: Exception) {
             true
+        }
+    }
+
+    fun toggleAmountVisibility() {
+        viewModelScope.launch {
+            userPrefs.updateAmountVisibility(!isAmountVisible)
         }
     }
 }

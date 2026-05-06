@@ -30,18 +30,14 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
 
-/**
- * Contenido visual para el BottomSheet de Feedback
- * Presenta una escala de satisfacción mediante emojis y una opción para posponer
- * * @param onRatingClick Acción a ejecutar cuando el usuario pulsa cualquier emoji
- * @param onLaterClick Acción a ejecutar cuando el usuario pulsa "Responder más tarde"
- */
 @Composable
 fun FeedbackSheetContent(
     onRatingClick: () -> Unit,
-    onLaterClick: () -> Unit
+    onLaterClick: () -> Unit,
+    onDontAskAgainClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -49,7 +45,7 @@ fun FeedbackSheetContent(
             .padding(bottom = 32.dp, start = 24.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(stringResource(R.string.feedback_sheet_title), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.feedback_sheet_title), fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily, color = Color.Black)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -58,23 +54,22 @@ fun FeedbackSheetContent(
             textAlign = TextAlign.Center,
             color = Color.Gray,
             fontSize = 15.sp,
-            lineHeight = 20.sp
+            lineHeight = 20.sp,
+            fontFamily = IberPangeaFamily
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp), thickness = 0.5.dp, color = Color.LightGray)
 
-        //Fila de Emojis con los colores de la imagen
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            //el to color, hace que me pueda ahorrar el declarar 5 boton de iconos, asi lo hago con un foreach
             val emojis = listOf(
                 Icons.Outlined.SentimentVeryDissatisfied to Color.Red,
-                Icons.Outlined.SentimentDissatisfied to Color(0xFFFF9800), //Naranja
+                Icons.Outlined.SentimentDissatisfied to Color(0xFFFF9800),
                 Icons.Outlined.SentimentNeutral to Color.Gray,
-                Icons.Outlined.SentimentSatisfied to Color(0xFF2196F3),   //Azul
-                Icons.Outlined.SentimentVerySatisfied to Color(0xFF008244) //Verde
+                Icons.Outlined.SentimentSatisfied to Color(0xFF2196F3),
+                Icons.Outlined.SentimentVerySatisfied to Color(0xFF008244)
             )
 
             emojis.forEach { (icon, color) ->
@@ -91,13 +86,24 @@ fun FeedbackSheetContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        //Texto "Responder más tarde"
         Text(
             text = stringResource(R.string.feedback_sheet_later),
             color = Color(0xFF008244),
             fontWeight = FontWeight.Bold,
             textDecoration = TextDecoration.Underline,
-            modifier = Modifier.clickable { onLaterClick() }
+            modifier = Modifier.clickable { onLaterClick() },
+            fontFamily = IberPangeaFamily
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = stringResource(R.string.feedback_sheet_dont_ask),
+            color = Color.Gray,
+            fontSize = 13.sp,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable { onDontAskAgainClick() },
+            fontFamily = IberPangeaFamily
         )
     }
 }

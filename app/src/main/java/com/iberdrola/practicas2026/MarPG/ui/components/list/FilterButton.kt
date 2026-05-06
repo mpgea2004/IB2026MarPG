@@ -19,8 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
-/** Botón de acceso a filtros */
 @Composable
 fun FilterButton(onClick: () -> Unit) {
     OutlinedButton(
@@ -32,6 +32,6 @@ fun FilterButton(onClick: () -> Unit) {
     ) {
         Icon(painter = painterResource(R.drawable.ic_invoice_filter), null, tint = GreenIberdrola, modifier = Modifier.size(16.dp))
         Spacer(modifier = Modifier.width(8.dp))
-        Text(stringResource(R.string.invoice_list_filter_button), color = GreenIberdrola, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Text(stringResource(R.string.invoice_list_filter_button), color = GreenIberdrola, fontSize = 12.sp, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
     }
 }

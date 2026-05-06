@@ -1,6 +1,13 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +15,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,18 +26,26 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -42,57 +59,152 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Electr
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.SecurityPhoneDialog
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.WarningSameEmailDialog
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ElectronicInvoiceDetailFormScreen(
-    viewModel: ElectronicInvoiceViewModel,
-    onBack: () -> Unit,
-    onNext: () -> Unit,
-    onCloseToHome: () -> Unit,
+viewModel: ElectronicInvoiceViewModel,
+onBack: () -> Unit,
+onNext: () -> Unit,
+onCloseToHome: () -> Unit,
 ) {
-    val state = viewModel.state
-    val isButtonEnabled = viewModel.isNextEnabled
+val state = viewModel.state
+var showDiscardDialog by remember { mutableStateOf(false) }
 
-    val sheetState = rememberModalBottomSheetState()
+var isNavigating by remember { mutableStateOf(true) }
 
-    LaunchedEffect(Unit) {
-        viewModel.updateStep(ElectronicInvoiceStep.FORM)
-        viewModel.logAnalytics("view_screen", mapOf("screen_name" to "Formulario_Alta_Factura_Elec"))
+LaunchedEffect(Unit) {
+    delay(100)
+    isNavigating = false
+}
+
+val handleBackAction = {
+    val hasChanges = state.emailInput.isNotEmpty() || state.isLegalAccepted
+    if (hasChanges) {
+        showDiscardDialog = true
+    } else if (!isNavigating) {
+        isNavigating = true
+        onBack()
+    }
+}
+
+val handleClose = {
+    val hasChanges = state.emailInput.isNotEmpty() || state.isLegalAccepted
+    if (hasChanges) {
+        showDiscardDialog = true
+    } else if (!isNavigating) {
+        isNavigating = true
+        onCloseToHome()
+    }
+}
+
+BackHandler(enabled = !showDiscardDialog && !state.showSameEmailWarning && !state.showNoPhoneDialog) {
+    handleBackAction()
+}
+
+if (showDiscardDialog) {
+    AlertDialog(
+        onDismissRequest = { showDiscardDialog = false },
+        title = {
+            Text(
+                stringResource(R.string.form_discard_changes_title),
+                color = GreenDarkIberdrola,
+                fontFamily = IberPangeaFamily,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Text(
+                stringResource(R.string.form_discard_changes_message),
+                color = Color.Black,
+                fontFamily = IberPangeaFamily
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                showDiscardDialog = false
+                onCloseToHome()
+            }) {
+                Text(
+                    stringResource(R.string.profile_discard_button),
+                    color = Color(0xFFD32F2F),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { showDiscardDialog = false }) {
+                Text(
+                    stringResource(R.string.security_dialog_cancel),
+                    color = GreenDarkIberdrola
+                )
+            }
+        },
+        containerColor = WhiteApp,
+        shape = RoundedCornerShape(16.dp)
+    )
+}
+
+val isButtonEnabled = viewModel.canContinue()
+val sheetState = rememberModalBottomSheetState()
+
+LaunchedEffect(Unit) {
+    viewModel.logAnalytics(
+        "view_screen",
+        mapOf("screen_name" to "Formulario_Alta_Factura_Elec")
+    )
+}
+    if (state.showNoPhoneDialog) {
+        SecurityPhoneDialog(state, viewModel, {
+            if (!isNavigating) {
+                isNavigating = true
+                onNext()
+            }
+        })
     }
 
-    val events = viewModel.events.copy(
-        onBack = onBack,
-        onClose = {
-            viewModel.logAnalytics("form_abandoned", mapOf("step" to "details"))
-            onCloseToHome()
-        },
+
+    if (state.showSameEmailWarning) {
+        WarningSameEmailDialog(viewModel = viewModel)
+    }
+
+    val events = ElectronicInvoiceEvents(
+        onEmailChange = { viewModel.onEmailChanged(it) },
+        onLegalCheckChange = { viewModel.onLegalAccepted(it) },
+        onBack = handleBackAction,
+        onClose = handleClose,
         onNext = {
-            viewModel.onContinueClick(onNext)
-        }
+            viewModel.onContinueClick {
+                if (!isNavigating) {
+                    isNavigating = true
+                    onNext()
+                }
+            }
+        },
+        onShowLegal = { title, content -> viewModel.onShowLegalDetail(title, content) },
+        onDismissLegal = { viewModel.onDismissLegalSheet() }
     )
 
     ElectronicInvoiceDetailFormContent(
         state = state,
-        viewModel = viewModel,
         events = events,
         isButtonEnabled = isButtonEnabled,
-        sheetState = sheetState,
-        onNext = onNext
+        sheetState = sheetState
     )
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ElectronicInvoiceDetailFormContent(
     state: ElectronicInvoiceState,
-    viewModel: ElectronicInvoiceViewModel,
     events: ElectronicInvoiceEvents,
-    isButtonEnabled: Boolean = false,
-    sheetState: SheetState,
-    onNext: () -> Unit
+    isButtonEnabled: Boolean,
+    sheetState: SheetState
 ) {
     val emailParaOfuscar = when {
         state.userProfile.email.isNotEmpty() -> state.userProfile.email
@@ -135,18 +247,6 @@ fun ElectronicInvoiceDetailFormContent(
             )
         }
     ) { padding ->
-
-        if (state.showNoPhoneDialog) {
-            SecurityPhoneDialog(state = state, viewModel = viewModel, onConfirm = onNext)
-        }
-
-        if (state.showSameEmailWarning) {
-            WarningSameEmailDialog(
-                onConfirm = { events.onDismissSameEmailWarning() },
-                onDismiss = { events.onDismissSameEmailWarning() }
-            )
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -156,114 +256,151 @@ fun ElectronicInvoiceDetailFormContent(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(stringResource(R.string.form_linked_email_label), fontSize = 12.sp)
-            Text(emailActualOfuscado, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-
-            TextField(
-                value = state.emailInput,
-                onValueChange = events.onEmailChange,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                placeholder = { Text(stringResource(R.string.form_email_placeholder), fontSize = 14.sp) },
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = GreenDarkIberdrola,
-                    cursorColor = GreenDarkIberdrola
-                )
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = stringResource(R.string.form_data_protection_title),
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-
-            val proteccionDatosText = buildAnnotatedString {
-                append(stringResource(R.string.form_legal_responsable))
-                appendLink(moreInfo) {
-                    events.onShowLegal(
-                        legalTitleResp,
-                        legalContentResp
+            AnimateElectronicFormItem(index = 0) {
+                Column {
+                    Text(
+                        stringResource(R.string.form_linked_email_label),
+                        fontSize = 12.sp,
+                        color = Color.Black
                     )
-                }
-
-                append(stringResource(R.string.form_legal_finalidad))
-                appendLink(moreInfo) {
-                    events.onShowLegal(
-                        legalTitleFin,
-                        legalContentFin
-                    )
-                }
-
-                append(stringResource(R.string.form_legal_derechos))
-                appendLink(moreInfo) {
-                    events.onShowLegal(
-                        legalTitleDer,
-                        legalContentDer
+                    Text(
+                        emailActualOfuscado,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 12.sp,
+                        color = Color.Black
                     )
                 }
             }
 
-            Text(
-                text = proteccionDatosText,
-                fontSize = 13.sp,
-                color = Color.DarkGray,
-                lineHeight = 16.sp,
-                modifier = Modifier.padding(top = 10.dp)
-            )
+            Spacer(modifier = Modifier.height(32.dp))
+
+            AnimateElectronicFormItem(index = 1) {
+                Column {
+                    Text(
+                        stringResource(R.string.form_email_question),
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 15.sp,
+                        color = Color.Black
+                    )
+
+                    TextField(
+                        value = state.emailInput,
+                        onValueChange = events.onEmailChange,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        textStyle = TextStyle(color = Color.Black, fontSize = 14.sp),
+                        placeholder = {
+                            Text(
+                                stringResource(R.string.form_email_placeholder),
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            )
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            unfocusedContainerColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.LightGray,
+                            focusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = GreenDarkIberdrola,
+                            cursorColor = GreenDarkIberdrola
+                        ),
+                        singleLine = true
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            AnimateElectronicFormItem(index = 2) {
+                Column {
+                    Text(
+                        text = stringResource(R.string.form_data_protection_title),
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
+                        color = Color.Black
+                    )
+
+                    val proteccionDatosText = buildAnnotatedString {
+                        append(stringResource(R.string.form_legal_responsable))
+                        append(" ")
+                        appendLink(moreInfo) {
+                            events.onShowLegal(legalTitleResp, legalContentResp)
+                        }
+
+                        append(stringResource(R.string.form_legal_finalidad))
+                        append(" ")
+                        appendLink(moreInfo) {
+                            events.onShowLegal(legalTitleFin, legalContentFin)
+                        }
+
+                        append(stringResource(R.string.form_legal_derechos))
+                        append(" ")
+                        appendLink(moreInfo) {
+                            events.onShowLegal(legalTitleDer, legalContentDer)
+                        }
+                    }
+
+                    Text(
+                        text = proteccionDatosText,
+                        fontSize = 13.sp,
+                        color = Color.DarkGray,
+                        lineHeight = 16.sp,
+                        modifier = Modifier.padding(top = 10.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            val checkboxText = buildAnnotatedString {
-                append(stringResource(R.string.form_checkbox_prefix))
+            AnimateElectronicFormItem(index = 3) {
+                Column {
+                    val checkboxText = buildAnnotatedString {
+                        append(stringResource(R.string.form_checkbox_prefix))
+                        append(" ")
+                        appendLink(stringResource(R.string.form_condiciones_generales)) {
+                            events.onShowLegal(legalTitleGen, legalContentGen)
+                        }
+                        append(" ")
+                        appendLink(stringResource(R.string.form_condiciones_particulares)) {
+                            events.onShowLegal(legalTitlePart, legalContentPart)
+                        }
+                        append(" ")
+                        append(stringResource(R.string.form_checkbox_suffix))
+                    }
 
-                appendLink(stringResource(R.string.form_condiciones_generales)) {
-                    events.onShowLegal(
-                        legalTitleGen,
-                        legalContentGen
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Checkbox(
+                            checked = state.isLegalAccepted,
+                            onCheckedChange = { events.onLegalCheckChange(it) },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = GreenDarkIberdrola,
+                                uncheckedColor = GreenDarkIberdrola,
+                                checkmarkColor = WhiteApp
+                            )
+                        )
+                        Text(
+                            text = checkboxText,
+                            fontSize = 14.sp,
+                            color = Color.Black,
+                            modifier = Modifier.padding(start = 4.dp, top = 10.dp)
+                        )
+                    }
                 }
-
-                appendLink(stringResource(R.string.form_condiciones_particulares)) {
-                    events.onShowLegal(
-                        legalTitlePart,
-                        legalContentPart
-                    )
-                }
-
-                append(stringResource(R.string.form_checkbox_suffix))
             }
+            Spacer(modifier = Modifier.height(30.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                verticalAlignment = Alignment.Top
-            ) {
-                Checkbox(
-                    checked = state.isLegalAccepted,
-                    onCheckedChange = { events.onLegalCheckChange(it) },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = GreenDarkIberdrola,
-                        uncheckedColor = GreenDarkIberdrola,
-                        checkmarkColor = Color.White
-                    )
-                )
-                Text(
-                    text = checkboxText,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(start = 4.dp, top = 10.dp)
-                )
-            }
             if (state.showLegalSheet) {
                 ModalBottomSheet(
                     onDismissRequest = { events.onDismissLegal() },
                     sheetState = sheetState,
-                    containerColor = Color.White
+                    containerColor = WhiteApp
                 ) {
                     Column(
                         modifier = Modifier
@@ -281,12 +418,43 @@ fun ElectronicInvoiceDetailFormContent(
                         Text(
                             text = state.selectedLegalContent ?: "",
                             style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Black,
                             lineHeight = 22.sp
                         )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun AnimateElectronicFormItem(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(
+                durationMillis = 600,
+                delayMillis = (index * 80).coerceAtMost(400)
+            )
+        ) + slideInVertically(
+            animationSpec = tween(
+                durationMillis = 600,
+                delayMillis = (index * 80).coerceAtMost(400)
+            ),
+            initialOffsetY = { it / 4 }
+        )
+    ) {
+        content()
     }
 }
 

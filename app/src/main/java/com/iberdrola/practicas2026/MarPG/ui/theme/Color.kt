@@ -18,6 +18,6 @@ val LightGreenIberdrola = Color(0xFFE8F5E9)
 val LightRedIberdrola = Color(0xFFFDECEA)
 val TextGrey = Color(0xFF666666)
 
-val BackgroundApp = Color(0xFFF7F9F8) // El gris azulado/verdoso de fondo
-val BorderLight = Color(0xFFE0E0E0)   // Para los bordes de las tarjetas
-val WhiteApp = Color(0xFFFFFFFF)      // Blanco puro para las Cards
+val BackgroundApp = Color(0xFFF7F9F8)
+val BorderLight = Color(0xFFE0E0E0)
+val WhiteApp = Color(0xFFFFFFFF)

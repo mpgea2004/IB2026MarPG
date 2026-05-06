@@ -16,11 +16,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 
 @Composable
@@ -29,7 +31,7 @@ fun ResendSuccessBanner(onClose: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .background(LightGreenIberdrola)
-            .padding(vertical = 12.dp, horizontal = 16.dp),
+            .padding(vertical = 12.dp, horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -41,9 +43,10 @@ fun ResendSuccessBanner(onClose: () -> Unit) {
         Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = stringResource(R.string.banner_resend_success),
-            fontSize = 10.sp,
-            color = GreenIberdrola,
-            modifier = Modifier.weight(1f)
+            fontSize = 9.5.sp,
+            color = Color.Black,
+            modifier = Modifier.weight(0.5f),
+            fontFamily = IberPangeaFamily
         )
         Icon(
             imageVector = Icons.Default.Close,

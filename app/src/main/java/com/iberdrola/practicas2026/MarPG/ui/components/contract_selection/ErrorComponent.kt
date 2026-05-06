@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
 @Composable
 fun ErrorComponent(
@@ -46,7 +47,8 @@ fun ErrorComponent(
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            fontFamily = IberPangeaFamily
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -55,7 +57,8 @@ fun ErrorComponent(
             text = message,
             fontSize = 16.sp,
             color = Color.Gray,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            fontFamily = IberPangeaFamily
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -72,7 +75,8 @@ fun ErrorComponent(
             Text(
                 text = stringResource(R.string.error_button_retry),
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 4.dp)
+                modifier = Modifier.padding(vertical = 4.dp),
+                fontFamily = IberPangeaFamily
             )
         }
     }

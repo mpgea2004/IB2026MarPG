@@ -1,15 +1,23 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -21,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,6 +46,8 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.analytics.logEvent
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
 
 @Composable
@@ -61,7 +72,6 @@ fun ElectronicInvoiceSuccessFullGreenScreen(
     }
 
     val showEmail = EmailUtils.obfuscateEmail(state.emailInput)
-
 
     ElectronicInvoiceSuccessFullGreenContent(
         isModification = state.isEditingEmail,
@@ -97,16 +107,33 @@ fun ElectronicInvoiceSuccessFullGreenContent(
     }
 
     Scaffold(
-        containerColor = GreenDarkIberdrola,
+        containerColor = GreenIberdrola,
+        bottomBar = {
+            AnimateSuccessItem(index = 3) {
+                Box(modifier = Modifier.navigationBarsPadding()) {
+                    SuccessWhiteButton(
+                        text = stringResource(R.string.success_button_accept),
+                        onClick = onAccept,
+                        modifier = Modifier.padding(24.dp).padding(bottom = 8.dp)
+                    )
+                }
+            }
+        }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(bottom = padding.calculateBottomPadding())
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), contentAlignment = Alignment.TopEnd) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(top = 16.dp),
+                contentAlignment = Alignment.TopEnd
+            ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = stringResource(R.string.success_close_description),
@@ -117,24 +144,47 @@ fun ElectronicInvoiceSuccessFullGreenContent(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            SuccessIcon(iconResId)
+            AnimateSuccessItem(index = 0) {
+                SuccessIcon(iconResId)
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            SuccessText(title = title, subtitle = subTitle)
+            AnimateSuccessItem(index = 1) {
+                SuccessText(title = title, subtitle = subTitle)
+            }
 
             Spacer(modifier = Modifier.weight(1.2f))
-
-            SuccessWhiteButton(text = stringResource(R.string.success_button_accept), onClick = onAccept)
-
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
 @Composable
-fun SuccessIcon(iconResId: Int) {
+fun AnimateSuccessItem(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
 
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 800, delayMillis = (index * 150))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 800, delayMillis = (index * 150)),
+            initialOffsetY = { it / 2 }
+        )
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun SuccessIcon(iconResId: Int) {
     Icon(
         painter = painterResource(iconResId),
         contentDescription = null,
@@ -153,7 +203,8 @@ fun SuccessText(title: String,subtitle: String) {
             color = Color.White,
             textAlign = TextAlign.Center,
             lineHeight = 24.sp,
-            fontSize = 18.sp
+            fontSize = 18.sp,
+            fontFamily = IberPangeaFamily
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
@@ -162,16 +213,17 @@ fun SuccessText(title: String,subtitle: String) {
             color = Color.White.copy(alpha = 0.9f),
             textAlign = TextAlign.Center,
             lineHeight = 20.sp,
-            fontSize = 12.sp
+            fontSize = 12.sp,
+            fontFamily = IberPangeaFamily
         )
     }
 }
 
 @Composable
-fun SuccessWhiteButton(text: String, onClick: () -> Unit) {
+fun SuccessWhiteButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Button(
         onClick = onClick,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(52.dp),
         shape = RoundedCornerShape(26.dp),
@@ -180,7 +232,7 @@ fun SuccessWhiteButton(text: String, onClick: () -> Unit) {
             contentColor = GreenDarkIberdrola
         )
     ) {
-        Text(text = text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text(text = text, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = IberPangeaFamily)
     }
 }
 

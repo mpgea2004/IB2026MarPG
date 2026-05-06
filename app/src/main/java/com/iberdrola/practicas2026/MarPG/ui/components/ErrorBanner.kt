@@ -21,12 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
-/**
- * Componente visual para mostrar mensajes de error de forma destacada
- * Utiliza un estilo de tarjeta (Card) con tonos rojizos para indicar advertencia
- * * @param message El texto descriptivo del error a mostrar al usuario
- */
 @Composable
 fun ErrorBanner(message: String) {
     Card(
@@ -43,7 +39,7 @@ fun ErrorBanner(message: String) {
         ) {
             Icon(Icons.Outlined.Info, contentDescription = null, tint = Color(0xFFD32F2F), modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = message, color = Color(0xFFD32F2F), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+            Text(text = message, color = Color(0xFFD32F2F), fontSize = 12.sp, fontWeight = FontWeight.Medium, fontFamily = IberPangeaFamily)
         }
     }
 }

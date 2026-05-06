@@ -1,11 +1,27 @@
 package com.iberdrola.practicas2026.MarPG.ui.user_profile
 
+import androidx.annotation.StringRes
+
 data class ProfileState(
     val name: String = "",
     val email: String = "",
     val phone: String = "",
     val address: String = "",
     val password: String = "",
-    val emailError: String? = null,
-    val phoneError: String? = null
+    @StringRes val nameError: Int? = null,
+    @StringRes val emailError: Int? = null,
+    @StringRes val phoneError: Int? = null,
+    @StringRes val passwordError: Int? = null,
+    val isSaved: Boolean = true,
+    val showLogoutDialog: Boolean = false,
+    val isLoading: Boolean = false,
+    val isSaving: Boolean = false,
+    val saveJustFinished: Boolean = false,
+    val isEditMode: Boolean = false,
+    val isSaveClicked: Boolean = false,
+    val isVerifying: Boolean = false,
+    val showSecurityDialog: Boolean = false,
+    val securityPasswordInput: String = "",
+    @StringRes val securityPasswordError: Int? = null,
+    val isSecurityPasswordVisible: Boolean = false
 )
