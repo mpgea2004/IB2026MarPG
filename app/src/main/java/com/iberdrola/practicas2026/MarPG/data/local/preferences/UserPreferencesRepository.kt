@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -25,8 +26,12 @@ class UserPreferencesRepository @Inject constructor(
         val ADDRESS = stringPreferencesKey("address")
         val PASSWORD = stringPreferencesKey("password")
         val AMOUNT_VISIBLE = booleanPreferencesKey("amount_visible")
-        val OTP_RESEND_ATTEMPTS = intPreferencesKey("otp_resend_attempts")
-        val LAST_OTP_RESEND_TIMESTAMP = longPreferencesKey("last_otp_resend_timestamp")
+        
+        val OTP_RESEND_ATTEMPTS_LUZ = intPreferencesKey("otp_resend_attempts_luz")
+        val LAST_OTP_RESEND_TIMESTAMP_LUZ = longPreferencesKey("last_otp_resend_timestamp_luz")
+        
+        val OTP_RESEND_ATTEMPTS_GAS = intPreferencesKey("otp_resend_attempts_gas")
+        val LAST_OTP_RESEND_TIMESTAMP_GAS = longPreferencesKey("last_otp_resend_timestamp_gas")
     }
 
     val userProfileFlow: Flow<ProfileState> = context.dataStore.data.map { prefs ->
@@ -43,11 +48,17 @@ class UserPreferencesRepository @Inject constructor(
         prefs[PreferencesKeys.AMOUNT_VISIBLE] ?: true
     }
 
-    val otpResendDataFlow: Flow<Pair<Int, Long>> = context.dataStore.data.map { prefs ->
-        Pair(
-            prefs[PreferencesKeys.OTP_RESEND_ATTEMPTS] ?: 3,
-            prefs[PreferencesKeys.LAST_OTP_RESEND_TIMESTAMP] ?: 0L
-        )
+    fun getOtpResendDataFlow(type: ContractType): Flow<Pair<Int, Long>> = context.dataStore.data.map { prefs ->
+        when (type) {
+            ContractType.LUZ -> Pair(
+                prefs[PreferencesKeys.OTP_RESEND_ATTEMPTS_LUZ] ?: 3,
+                prefs[PreferencesKeys.LAST_OTP_RESEND_TIMESTAMP_LUZ] ?: 0L
+            )
+            ContractType.GAS -> Pair(
+                prefs[PreferencesKeys.OTP_RESEND_ATTEMPTS_GAS] ?: 3,
+                prefs[PreferencesKeys.LAST_OTP_RESEND_TIMESTAMP_GAS] ?: 0L
+            )
+        }
     }
 
     suspend fun updateProfile(state: ProfileState) {
@@ -90,10 +101,18 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
-    suspend fun updateOtpResendData(attempts: Int, timestamp: Long) {
+    suspend fun updateOtpResendData(type: ContractType, attempts: Int, timestamp: Long) {
         context.dataStore.edit { prefs ->
-            prefs[PreferencesKeys.OTP_RESEND_ATTEMPTS] = attempts
-            prefs[PreferencesKeys.LAST_OTP_RESEND_TIMESTAMP] = timestamp
+            when (type) {
+                ContractType.LUZ -> {
+                    prefs[PreferencesKeys.OTP_RESEND_ATTEMPTS_LUZ] = attempts
+                    prefs[PreferencesKeys.LAST_OTP_RESEND_TIMESTAMP_LUZ] = timestamp
+                }
+                ContractType.GAS -> {
+                    prefs[PreferencesKeys.OTP_RESEND_ATTEMPTS_GAS] = attempts
+                    prefs[PreferencesKeys.LAST_OTP_RESEND_TIMESTAMP_GAS] = timestamp
+                }
+            }
         }
     }
 }

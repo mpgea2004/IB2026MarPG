@@ -8,7 +8,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -65,6 +64,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -85,6 +85,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import com.iberdrola.practicas2026.MarPG.ui.utils.NotificationHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -97,7 +98,9 @@ fun ElectronicInvoiceOtpScreen(
     onNext: () -> Unit
 ) {
     val state = viewModel.state
+    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
+    val notificationHandler = remember { NotificationHandler(context) }
     var showDiscardDialog by remember { mutableStateOf(false) }
     
     var isNavigating by remember { mutableStateOf(true) }
@@ -113,6 +116,15 @@ fun ElectronicInvoiceOtpScreen(
         delay(100)
         isNavigating = false
         viewModel.startOtpSimulation()
+    }
+
+    LaunchedEffect(state.showSimulatedNotification, state.simulatedOtpCode) {
+        if (state.showSimulatedNotification && state.simulatedOtpCode.isNotEmpty()) {
+            notificationHandler.showSimpleNotification(
+                contentTitle = "Código de seguridad Iberdrola",
+                contentText = "Tu código para la factura de ${state.selectedContract?.type} es: ${state.simulatedOtpCode}"
+            )
+        }
     }
 
     val handleBack = {
@@ -187,9 +199,8 @@ fun ElectronicInvoiceOtpScreen(
     ElectronicInvoiceOtpContent(
         state = state,
         events = events,
-        isButtonEnabled = state.otpInput.length >= 6,
-        phoneToShow = phoneToShow,
-        onDismissNotification = { viewModel.closeSimulatedNotification() }
+        isButtonEnabled = state.otpInput.length == 6,
+        phoneToShow = phoneToShow
     )
 }
 
@@ -198,8 +209,7 @@ fun ElectronicInvoiceOtpContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
     isButtonEnabled: Boolean,
-    phoneToShow: String,
-    onDismissNotification: () -> Unit = {}
+    phoneToShow: String
 ) {
     val haptic = LocalHapticFeedback.current
     val focusManager = LocalFocusManager.current
@@ -447,90 +457,9 @@ fun ElectronicInvoiceOtpContent(
                 }
             }
         }
-        AnimatedVisibility(
-            visible = state.showSimulatedNotification,
-            enter = fadeIn(tween(500)) + slideInVertically(tween(500)) { -it },
-            exit = fadeOut(tween(500)) + slideOutVertically(tween(500)) { -it },
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .statusBarsPadding()
-                .padding(16.dp)
-        ) {
-            SimulatedNotification(
-                message = state.simulatedNotificationMessage,
-                onDismiss = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onDismissNotification()
-                }
-            )
-        }
 
         if (state.isLoading) {
             LoadingOverlay()
-        }
-    }
-}
-
-@Composable
-fun SimulatedNotification(
-    message: String,
-    onDismiss: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .clickable { onDismiss() },
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = GreenIberdrola),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color.White),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.iberdrola),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.otp_notification_header),
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-                    Text(
-                        text = stringResource(R.string.otp_notification_time),
-                        color = Color.White.copy(alpha = 0.6f),
-                        fontSize = 10.sp
-                    )
-                }
-                Text(
-                    text = message,
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    lineHeight = 18.sp,
-                    fontFamily = IberPangeaFamily
-                )
-            }
         }
     }
 }

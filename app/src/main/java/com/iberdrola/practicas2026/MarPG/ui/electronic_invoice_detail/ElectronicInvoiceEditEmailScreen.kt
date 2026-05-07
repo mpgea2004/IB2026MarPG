@@ -1,5 +1,9 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
@@ -18,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,10 +34,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -42,7 +49,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.app.ActivityCompat
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.permissions.AppPermissions
 import com.iberdrola.practicas2026.MarPG.ui.components.IberdrolaTextField
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
@@ -51,7 +61,9 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Warnin
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import com.iberdrola.practicas2026.MarPG.ui.utils.rememberPermissionsLauncher
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun ElectronicInvoiceEditEmailScreen(
@@ -61,14 +73,39 @@ fun ElectronicInvoiceEditEmailScreen(
     onNext: () -> Unit
 ) {
     val state = viewModel.state
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val scope = rememberCoroutineScope()
+
     var showDiscardDialog by remember { mutableStateOf(false) }
-    
-    var isNavigating by remember { mutableStateOf(true) }
+    var showPermissionErrorDialog by remember { mutableStateOf(false) }
+    var isPermanentlyDenied by remember { mutableStateOf(false) }
+    var isNavigating by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         delay(100)
         isNavigating = false
+        showPermissionErrorDialog = false
     }
+
+    val requestPermissionThenNavigate = rememberPermissionsLauncher(
+        permissions = listOf(AppPermissions.Notifications),
+        onAllGranted = {
+            if (!isNavigating) {
+                isNavigating = true
+                onNext()
+            }
+        },
+        onDenied = { deniedList ->
+            val rationale = activity?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(it, android.Manifest.permission.POST_NOTIFICATIONS)
+            } ?: true
+
+            isPermanentlyDenied = !rationale
+            showPermissionErrorDialog = true
+            isNavigating = false
+        }
+    )
 
     val handleBackAction = {
         val hasChanges = state.emailInput != (state.selectedContract?.email ?: "")
@@ -90,7 +127,44 @@ fun ElectronicInvoiceEditEmailScreen(
         }
     }
 
-    BackHandler(enabled = !showDiscardDialog) { handleBackAction() }
+    BackHandler(enabled = !showDiscardDialog && !state.showNoAttemptsDialog) { handleBackAction() }
+
+    if (state.showNoAttemptsDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.closeNoAttemptsDialog() },
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Warning,
+                    contentDescription = null,
+                    tint = Color.Red,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.warning_same_email_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color.Black
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.otp_no_attempts_left),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.closeNoAttemptsDialog() }) {
+                    Text(stringResource(R.string.common_ok), color = GreenDarkIberdrola, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     if (showDiscardDialog) {
         AlertDialog(
@@ -115,8 +189,73 @@ fun ElectronicInvoiceEditEmailScreen(
         )
     }
 
+    if (showPermissionErrorDialog) {
+        AlertDialog(
+            onDismissRequest = {  },
+            properties = DialogProperties(
+                dismissOnBackPress = false,
+                dismissOnClickOutside = false
+            ),
+            title = { 
+                Text(
+                    text = if (isPermanentlyDenied) "Permiso Bloqueado" else "Permiso Necesario", 
+                    fontWeight = FontWeight.Bold, 
+                    fontFamily = IberPangeaFamily, 
+                    color = GreenDarkIberdrola
+                ) 
+            },
+            text = { 
+                Text(
+                    text = if (isPermanentlyDenied) 
+                        "Has desactivado las notificaciones de forma permanente. Para continuar, debes activarlas manualmente en los ajustes de la aplicación." 
+                        else "Para poder enviarte el código de seguridad por notificación, es obligatorio que aceptes este permiso.", 
+                    fontFamily = IberPangeaFamily, 
+                    color = Color.Black
+                ) 
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPermissionErrorDialog = false
+                    isNavigating = false
+                    
+                    if (isPermanentlyDenied) {
+                        // Abrir ajustes de la app
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        }
+                        context.startActivity(intent)
+                    } else {
+                        // Pequeño delay para asegurar que el diálogo se cierre antes de pedir el permiso de nuevo
+                        scope.launch {
+                            delay(100)
+                            requestPermissionThenNavigate()
+                        }
+                    }
+                }) {
+                    Text(
+                        text = if (isPermanentlyDenied) "IR A AJUSTES" else "OK", 
+                        color = GreenDarkIberdrola, 
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showPermissionErrorDialog = false
+                    onBack()
+                }) {
+                    Text("VOLVER", color = Color.Gray, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
     if (state.showNoPhoneDialog) {
-        SecurityPhoneDialog(state, viewModel, onNext)
+        SecurityPhoneDialog(state, viewModel, {
+            requestPermissionThenNavigate()
+        })
     }
     
     if (state.showSameEmailWarning) {
@@ -128,10 +267,7 @@ fun ElectronicInvoiceEditEmailScreen(
         onBack = handleBackAction,
         onNext = {
             viewModel.onContinueClick {
-                if (!isNavigating) {
-                    isNavigating = true
-                    onNext()
-                }
+                requestPermissionThenNavigate()
             }
         },
         onClose = handleClose

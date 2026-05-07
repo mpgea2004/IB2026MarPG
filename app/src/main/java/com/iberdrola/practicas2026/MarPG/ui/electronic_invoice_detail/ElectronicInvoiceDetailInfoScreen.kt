@@ -7,8 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,6 +25,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -54,9 +52,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -71,7 +67,6 @@ import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
-import kotlinx.coroutines.delay
 
 @Composable
 fun ElectronicInvoiceDetailInfoScreen(
@@ -95,7 +90,9 @@ fun ElectronicInvoiceDetailInfoScreen(
         }
     }
 
-    BackHandler(enabled = true) { handleBack() }
+    BackHandler(enabled = !state.showNoAttemptsDialog && !state.showDeactivationConfirmDialog && !state.showNoAddressDialog) { 
+        handleBack() 
+    }
 
     LaunchedEffect(electronicInvoice.id) {
         viewModel.selectContract(electronicInvoice)
@@ -111,14 +108,53 @@ fun ElectronicInvoiceDetailInfoScreen(
     val events = ElectronicInvoiceEvents(
         onBack = handleBack,
         onNext = {
-            if (!isNavigating) {
-                isNavigating = true
-                viewModel.onEmailChanged(electronicInvoice.email!!)
-                onNavigateToEdit()
+            viewModel.onEditClick {
+                if (!isNavigating) {
+                    isNavigating = true
+                    viewModel.onEmailChanged(electronicInvoice.email ?: "")
+                    onNavigateToEdit()
+                }
             }
         },
         onConfirmDeactivate = { viewModel.onDeactivateClick() }
     )
+
+    if (state.showNoAttemptsDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.closeNoAttemptsDialog() },
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Warning,
+                    contentDescription = null,
+                    tint = Color.Red,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.otp_no_attempts_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color.Black
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.otp_no_attempts_left),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.closeNoAttemptsDialog() }) {
+                    Text(stringResource(R.string.common_ok), color = GreenDarkIberdrola, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     if (state.showDeactivationConfirmDialog) {
         AlertDialog(

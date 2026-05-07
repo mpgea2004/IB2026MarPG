@@ -23,6 +23,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,11 +55,17 @@ fun ElectronicInvoiceSelectionScreen(
     val errorMessage = viewModel.errorMessage
     val pullToRefreshState = rememberPullToRefreshState()
 
+    LaunchedEffect(Unit) {
+        viewModel.onNavigateFinished()
+    }
 
     val events = ElectronicInvoiceListEvents(
         onRetry = { viewModel.loadInvoices() },
         onElectronicInvoiceClick = { invoice ->
-            onNavigate(invoice)
+            if (!viewModel.isNavigating) {
+                viewModel.onNavigateStarted()
+                onNavigate(invoice)
+            }
         }
     )
 

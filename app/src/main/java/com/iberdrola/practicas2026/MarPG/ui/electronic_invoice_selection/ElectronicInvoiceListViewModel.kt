@@ -31,6 +31,9 @@ class ElectronicInvoiceListViewModel @Inject constructor(
     var isRefreshing by mutableStateOf(false)
         private set
 
+    var isNavigating by mutableStateOf(false)
+        private set
+
     private val isCloud: Boolean = savedStateHandle["isCloud"] ?: false
     
     private var localData: List<ElectronicInvoice> = emptyList()
@@ -95,6 +98,14 @@ class ElectronicInvoiceListViewModel @Inject constructor(
 
     fun clearErrorMessage() {
         errorMessage = null
+    }
+
+    fun onNavigateStarted() {
+        isNavigating = true
+    }
+
+    fun onNavigateFinished() {
+        isNavigating = false
     }
 
 }
