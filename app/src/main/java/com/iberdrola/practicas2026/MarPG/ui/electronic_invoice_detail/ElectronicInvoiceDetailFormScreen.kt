@@ -124,23 +124,29 @@ fun ElectronicInvoiceDetailFormScreen(
         }
     )
 
+    val isInteractionEnabled = !isNavigating && !state.isLoading && !state.showNoAttemptsDialog && !state.showNoPhoneDialog && !state.showSameEmailWarning && !showDiscardDialog && !showPermissionErrorDialog
+
     val handleBackAction = {
-        val hasChanges = state.emailInput.isNotEmpty() || state.isLegalAccepted
-        if (hasChanges) {
-            showDiscardDialog = true
-        } else if (!isNavigating) {
-            isNavigating = true
-            onBack()
+        if (isInteractionEnabled) {
+            val hasChanges = state.emailInput.isNotEmpty() || state.isLegalAccepted
+            if (hasChanges) {
+                showDiscardDialog = true
+            } else {
+                isNavigating = true
+                onBack()
+            }
         }
     }
 
     val handleClose = {
-        val hasChanges = state.emailInput.isNotEmpty() || state.isLegalAccepted
-        if (hasChanges) {
-            showDiscardDialog = true
-        } else if (!isNavigating) {
-            isNavigating = true
-            onCloseToHome()
+        if (isInteractionEnabled) {
+            val hasChanges = state.emailInput.isNotEmpty() || state.isLegalAccepted
+            if (hasChanges) {
+                showDiscardDialog = true
+            } else {
+                isNavigating = true
+                onCloseToHome()
+            }
         }
     }
 
@@ -198,6 +204,7 @@ fun ElectronicInvoiceDetailFormScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showDiscardDialog = false
+                    isNavigating = true
                     onCloseToHome()
                 }) {
                     Text(stringResource(R.string.profile_discard_button), color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
@@ -264,7 +271,10 @@ fun ElectronicInvoiceDetailFormScreen(
             dismissButton = {
                 TextButton(onClick = {
                     showPermissionErrorDialog = false
-                    onBack()
+                    if (!isNavigating) {
+                        isNavigating = true
+                        onBack()
+                    }
                 }) {
                     Text("VOLVER", color = Color.Gray, fontWeight = FontWeight.Bold)
                 }
@@ -294,8 +304,10 @@ fun ElectronicInvoiceDetailFormScreen(
         onBack = handleBackAction,
         onClose = handleClose,
         onNext = {
-            viewModel.onContinueClick {
-                requestPermissionThenNavigate()
+            if (isInteractionEnabled && isButtonEnabled) {
+                viewModel.onContinueClick {
+                    requestPermissionThenNavigate()
+                }
             }
         },
         onShowLegal = { title, content -> viewModel.onShowLegalDetail(title, content) },
@@ -305,7 +317,8 @@ fun ElectronicInvoiceDetailFormScreen(
     ElectronicInvoiceDetailFormContent(
         state = state,
         events = events,
-        isButtonEnabled = isButtonEnabled,
+        isButtonEnabled = isButtonEnabled && isInteractionEnabled,
+        isInteractionEnabled = isInteractionEnabled,
         sheetState = sheetState
     )
 }
@@ -316,6 +329,7 @@ fun ElectronicInvoiceDetailFormContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
     isButtonEnabled: Boolean,
+    isInteractionEnabled: Boolean = true,
     sheetState: SheetState
 ) {
     val focusManager = LocalFocusManager.current
@@ -358,7 +372,8 @@ fun ElectronicInvoiceDetailFormContent(
             ElectronicInvoiceBottomBar(
                 onBack = events.onBack,
                 onNext = events.onNext,
-                isNextEnabled = isButtonEnabled
+                isNextEnabled = isButtonEnabled,
+                isBackEnabled = isInteractionEnabled
             )
         }
     ) { padding ->
@@ -389,6 +404,7 @@ fun ElectronicInvoiceDetailFormContent(
                         onValueChange = events.onEmailChange,
                         label = stringResource(R.string.form_email_placeholder),
                         modifier = Modifier.padding(top = 8.dp),
+                        enabled = isInteractionEnabled,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Done
@@ -415,22 +431,28 @@ fun ElectronicInvoiceDetailFormContent(
                         append(stringResource(R.string.form_legal_responsable))
                         append(" ")
                         appendLink(moreInfo) {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            events.onShowLegal(legalTitleResp, legalContentResp)
+                            if (isInteractionEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onShowLegal(legalTitleResp, legalContentResp)
+                            }
                         }
 
                         append(stringResource(R.string.form_legal_finalidad))
                         append(" ")
                         appendLink(moreInfo) {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            events.onShowLegal(legalTitleFin, legalContentFin)
+                            if (isInteractionEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onShowLegal(legalTitleFin, legalContentFin)
+                            }
                         }
 
                         append(stringResource(R.string.form_legal_derechos))
                         append(" ")
                         appendLink(moreInfo) {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            events.onShowLegal(legalTitleDer, legalContentDer)
+                            if (isInteractionEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onShowLegal(legalTitleDer, legalContentDer)
+                            }
                         }
                     }
 
@@ -452,13 +474,17 @@ fun ElectronicInvoiceDetailFormContent(
                         append(stringResource(R.string.form_checkbox_prefix))
                         append(" ")
                         appendLink(stringResource(R.string.form_condiciones_generales)) {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            events.onShowLegal(legalTitleGen, legalContentGen)
+                            if (isInteractionEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onShowLegal(legalTitleGen, legalContentGen)
+                            }
                         }
                         append(" ")
                         appendLink(stringResource(R.string.form_condiciones_particulares)) {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            events.onShowLegal(legalTitlePart, legalContentPart)
+                            if (isInteractionEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onShowLegal(legalTitlePart, legalContentPart)
+                            }
                         }
                         append(" ")
                         append(stringResource(R.string.form_checkbox_suffix))
@@ -472,10 +498,13 @@ fun ElectronicInvoiceDetailFormContent(
                     ) {
                         Checkbox(
                             checked = state.isLegalAccepted,
-                            onCheckedChange = { 
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                events.onLegalCheckChange(it) 
+                            onCheckedChange = {
+                                if (isInteractionEnabled) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    events.onLegalCheckChange(it)
+                                }
                             },
+                            enabled = isInteractionEnabled,
                             colors = CheckboxDefaults.colors(
                                 checkedColor = GreenDarkIberdrola,
                                 uncheckedColor = GreenDarkIberdrola,

@@ -37,6 +37,7 @@ fun ElectronicInvoiceBottomBar(
     onBack: () -> Unit,
     onNext: () -> Unit,
     isNextEnabled: Boolean,
+    isBackEnabled: Boolean = true,
     backText: String = stringResource(R.string.bottom_bar_back),
     nextText: String = stringResource(R.string.bottom_bar_next),
     showBanner: Boolean = false,
@@ -66,12 +67,19 @@ fun ElectronicInvoiceBottomBar(
         ) {
             OutlinedButton(
                 onClick = onBack,
+                enabled = isBackEnabled,
                 modifier = Modifier
                     .weight(1f)
                     .height(48.dp),
                 shape = RoundedCornerShape(24.dp),
-                border = BorderStroke(1.dp, GreenDarkIberdrola),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = GreenDarkIberdrola)
+                border = BorderStroke(
+                    width = 1.dp, 
+                    color = if (isBackEnabled) GreenDarkIberdrola else Color.LightGray.copy(alpha = 0.5f)
+                ),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = GreenDarkIberdrola,
+                    disabledContentColor = Color.LightGray
+                )
             ) {
                 Text(backText, fontWeight = FontWeight.Bold,fontFamily = IberPangeaFamily)
             }

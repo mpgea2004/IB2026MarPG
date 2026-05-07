@@ -128,14 +128,14 @@ fun ElectronicInvoiceOtpScreen(
     }
 
     val handleBack = {
-        if (!isNavigating) {
+        if (!isNavigating && !state.isLoading) {
             isNavigating = true
             onBack()
         }
     }
 
     val handleClose = {
-        if (!isNavigating) {
+        if (!isNavigating && !state.isLoading) {
             showDiscardDialog = true
         }
     }
@@ -257,6 +257,8 @@ fun ElectronicInvoiceOtpContent(
         }
     }
 
+    val isInteractionEnabled = !isNavigating && !state.isLoading
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Color.White,
@@ -275,7 +277,8 @@ fun ElectronicInvoiceOtpContent(
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         events.onNext()
                     },
-                    isNextEnabled = isButtonEnabled,
+                    isNextEnabled = isButtonEnabled && isInteractionEnabled,
+                    isBackEnabled = isInteractionEnabled,
                     showBanner = state.showResendSuccess,
                     onCloseBanner = events.onCloseBanner
                 )
@@ -329,7 +332,7 @@ fun ElectronicInvoiceOtpContent(
                         ),
                         keyboardActions = KeyboardActions(
                             onDone = {
-                                if (isButtonEnabled && !state.isLoading) {
+                                if (isButtonEnabled && isInteractionEnabled) {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     focusManager.clearFocus()
                                     events.onNext()
@@ -444,11 +447,11 @@ fun ElectronicInvoiceOtpContent(
                                             text = stringResource(R.string.otp_resend_link),
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = if (state.isLoading) Color.Gray else GreenDarkIberdrola,
+                                            color = if (!isInteractionEnabled) Color.Gray else GreenDarkIberdrola,
                                             textDecoration = TextDecoration.Underline,
                                             modifier = Modifier
                                                 .clip(RoundedCornerShape(8.dp))
-                                                .clickable(enabled = !state.isLoading && !isNavigating) {
+                                                .clickable(enabled = isInteractionEnabled) {
                                                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                                     events.onResendOtp()
                                                 }

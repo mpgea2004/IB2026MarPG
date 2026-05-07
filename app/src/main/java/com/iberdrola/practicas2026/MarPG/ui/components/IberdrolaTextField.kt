@@ -30,6 +30,7 @@ fun IberdrolaTextField(
     onValueChange: (String) -> Unit,
     label: String,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
@@ -43,6 +44,7 @@ fun IberdrolaTextField(
     val isFocused by interactionSource.collectIsFocusedAsState()
 
     val textColor = when {
+        !enabled -> Color.Gray.copy(alpha = 0.6f)
         isError -> Color.Red
         isFocused -> Color.Black
         else -> Color.Gray
@@ -52,6 +54,7 @@ fun IberdrolaTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
+        enabled = enabled,
         interactionSource = interactionSource,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
@@ -67,7 +70,7 @@ fun IberdrolaTextField(
             TextFieldDefaults.DecorationBox(
                 value = value,
                 innerTextField = innerTextField,
-                enabled = true,
+                enabled = enabled,
                 singleLine = singleLine,
                 visualTransformation = visualTransformation,
                 interactionSource = interactionSource,
@@ -85,14 +88,18 @@ fun IberdrolaTextField(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     errorContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Gray,
+                    disabledTextColor = Color.Gray.copy(alpha = 0.6f),
                     errorTextColor = Color.Red,
                     focusedIndicatorColor = GreenDarkIberdrola,
                     unfocusedIndicatorColor = Color.DarkGray,
+                    disabledIndicatorColor = Color.Gray.copy(alpha = 0.2f),
                     errorIndicatorColor = Color.Red,
                     focusedLabelColor = GreenDarkIberdrola,
                     unfocusedLabelColor = Color.Gray,
+                    disabledLabelColor = Color.Gray.copy(alpha = 0.4f),
                     errorLabelColor = Color.Red,
                     cursorColor = GreenDarkIberdrola,
                     errorCursorColor = Color.Red

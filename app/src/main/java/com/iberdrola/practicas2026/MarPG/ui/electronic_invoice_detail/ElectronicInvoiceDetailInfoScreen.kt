@@ -91,7 +91,7 @@ fun ElectronicInvoiceDetailInfoScreen(
         }
     }
 
-    BackHandler(enabled = !state.showNoAttemptsDialog && !state.showDeactivationConfirmDialog && !state.showNoAddressDialog) { 
+    BackHandler(enabled = !state.showNoAttemptsDialog && !state.showDeactivationConfirmDialog && !state.showNoAddressDialog) {
         handleBack() 
     }
 
@@ -116,7 +116,7 @@ fun ElectronicInvoiceDetailInfoScreen(
     val events = ElectronicInvoiceEvents(
         onBack = handleBack,
         onNext = {
-            if (!isNavigating && !state.isNavigating) {
+            if (!isNavigating && !state.isNavigating && !state.showDeactivationConfirmDialog) {
                 viewModel.onEditClick {
                     isNavigating = true
                     viewModel.onNavigateStarted()
@@ -126,7 +126,7 @@ fun ElectronicInvoiceDetailInfoScreen(
             }
         },
         onConfirmDeactivate = { 
-            if (!isNavigating && !state.isNavigating) {
+            if (!isNavigating && !state.isNavigating && !state.showDeactivationConfirmDialog) {
                 viewModel.onDeactivateClick() 
             }
         }
@@ -187,9 +187,9 @@ fun ElectronicInvoiceDetailInfoScreen(
                 Text(text = stringResource(R.string.invoice_detail_dialog_text), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
             },
             confirmButton = {
-                TextButton(onClick = { 
+                TextButton(onClick = {
                     viewModel.closeDeactivationDialog()
-                    viewModel.performDeactivate() 
+                    viewModel.performDeactivate()
                 }) {
                     Text(stringResource(R.string.invoice_detail_dialog_confirm), color = Color.Red, fontWeight = FontWeight.Bold)
                 }
@@ -330,6 +330,8 @@ fun ElectronicInvoiceDetailInfoScreenContent(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    val isInteractionEnabled = !state.showDeactivationConfirmDialog && !state.isLoading && !state.isNavigating && !state.showNoAttemptsDialog && !state.showNoAddressDialog
+
                     Button(
                         onClick = events.onConfirmDeactivate,
                         modifier = Modifier
@@ -341,7 +343,8 @@ fun ElectronicInvoiceDetailInfoScreenContent(
                             containerColor = WhiteApp,
                             contentColor = GreenDarkIberdrola
                         ),
-                        border = BorderStroke(1.5.dp, color = GreenDarkIberdrola)
+                        border = BorderStroke(1.5.dp, color = GreenDarkIberdrola),
+                        enabled = isInteractionEnabled
                     ) {
                         Icon(imageVector = Icons.Outlined.Delete, contentDescription = null,tint = GreenDarkIberdrola,)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -357,7 +360,8 @@ fun ElectronicInvoiceDetailInfoScreenContent(
                             .padding(horizontal = 24.dp)
                             .height(56.dp),
                         shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola, contentColor = WhiteApp)
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola, contentColor = WhiteApp),
+                        enabled = isInteractionEnabled
                     ) {
                         Icon(imageVector = Icons.Outlined.Edit, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))

@@ -107,27 +107,35 @@ fun ElectronicInvoiceEditEmailScreen(
         }
     )
 
+    val isInteractionEnabled = !isNavigating && !state.isLoading && !state.showNoAttemptsDialog && !state.showNoPhoneDialog && !state.showSameEmailWarning && !showDiscardDialog && !showPermissionErrorDialog
+
     val handleBackAction = {
-        val hasChanges = state.emailInput != (state.selectedContract?.email ?: "")
-        if (hasChanges) {
-            showDiscardDialog = true
-        } else if (!isNavigating) {
-            isNavigating = true
-            onBack()
+        if (isInteractionEnabled) {
+            val hasChanges = state.emailInput != (state.selectedContract?.email ?: "")
+            if (hasChanges) {
+                showDiscardDialog = true
+            } else {
+                isNavigating = true
+                onBack()
+            }
         }
     }
 
     val handleClose = {
-        val hasChanges = state.emailInput != (state.selectedContract?.email ?: "")
-        if (hasChanges) {
-            showDiscardDialog = true
-        } else if (!isNavigating) {
-            isNavigating = true
-            onCloseToHome()
+        if (isInteractionEnabled) {
+            val hasChanges = state.emailInput != (state.selectedContract?.email ?: "")
+            if (hasChanges) {
+                showDiscardDialog = true
+            } else {
+                isNavigating = true
+                onCloseToHome()
+            }
         }
     }
 
-    BackHandler(enabled = !showDiscardDialog && !state.showNoAttemptsDialog) { handleBackAction() }
+    BackHandler(enabled = !showDiscardDialog && !state.showNoAttemptsDialog && !state.showNoPhoneDialog && !state.showSameEmailWarning) { 
+        handleBackAction() 
+    }
 
     if (state.showNoAttemptsDialog) {
         AlertDialog(
@@ -174,6 +182,7 @@ fun ElectronicInvoiceEditEmailScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showDiscardDialog = false
+                    isNavigating = true
                     onCloseToHome()
                 }) {
                     Text(stringResource(R.string.profile_discard_button), color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
@@ -242,7 +251,10 @@ fun ElectronicInvoiceEditEmailScreen(
             dismissButton = {
                 TextButton(onClick = {
                     showPermissionErrorDialog = false
-                    onBack()
+                    if (!isNavigating) {
+                        isNavigating = true
+                        onBack()
+                    }
                 }) {
                     Text("VOLVER", color = Color.Gray, fontWeight = FontWeight.Bold)
                 }
@@ -262,12 +274,16 @@ fun ElectronicInvoiceEditEmailScreen(
         WarningSameEmailDialog(viewModel = viewModel)
     }
 
+    val isButtonEnabled = viewModel.canContinue()
+
     val events = ElectronicInvoiceEvents(
         onEmailChange = { viewModel.onEmailChanged(it) },
         onBack = handleBackAction,
         onNext = {
-            viewModel.onContinueClick {
-                requestPermissionThenNavigate()
+            if (isInteractionEnabled && isButtonEnabled) {
+                viewModel.onContinueClick {
+                    requestPermissionThenNavigate()
+                }
             }
         },
         onClose = handleClose
@@ -276,7 +292,8 @@ fun ElectronicInvoiceEditEmailScreen(
     ElectronicInvoiceEditEmailContent(
         state = state,
         events = events,
-        isButtonEnabled = viewModel.canContinue()
+        isButtonEnabled = isButtonEnabled && isInteractionEnabled,
+        isInteractionEnabled = isInteractionEnabled
     )
 }
 
@@ -284,7 +301,8 @@ fun ElectronicInvoiceEditEmailScreen(
 fun ElectronicInvoiceEditEmailContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
-    isButtonEnabled: Boolean
+    isButtonEnabled: Boolean,
+    isInteractionEnabled: Boolean = true
 ) {
     val focusManager = LocalFocusManager.current
     val haptic = LocalHapticFeedback.current
@@ -307,7 +325,8 @@ fun ElectronicInvoiceEditEmailContent(
                         events.onNext()
                     }
                 },
-                isNextEnabled = isButtonEnabled
+                isNextEnabled = isButtonEnabled,
+                isBackEnabled = isInteractionEnabled
             )
         }
     ) { padding ->
@@ -336,6 +355,7 @@ fun ElectronicInvoiceEditEmailContent(
                     onValueChange = events.onEmailChange,
                     label = stringResource(R.string.edit_email_placeholder),
                     modifier = Modifier.padding(top = 16.dp),
+                    enabled = isInteractionEnabled,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Done
