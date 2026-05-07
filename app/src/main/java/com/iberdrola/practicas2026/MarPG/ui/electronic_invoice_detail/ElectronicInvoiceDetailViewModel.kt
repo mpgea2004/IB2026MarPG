@@ -11,9 +11,9 @@ import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateElectronicInvoiceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.random.Random
 
 @HiltViewModel
 class ElectronicInvoiceViewModel @Inject constructor(
@@ -29,8 +29,14 @@ class ElectronicInvoiceViewModel @Inject constructor(
     private var hasAcknowledgedSameEmail = false
     private var currentSimulationId = 0L
 
+    companion object {
+        private const val ONE_HOUR_MS = 3600000L
+        private const val MAX_RESEND_ATTEMPTS = 3
+    }
+
     init {
         observeUserProfile()
+        observeOtpAttempts()
     }
 
     private fun observeUserProfile() {
@@ -47,21 +53,50 @@ class ElectronicInvoiceViewModel @Inject constructor(
         }
     }
 
+    private fun observeOtpAttempts() {
+        viewModelScope.launch {
+            userPrefs.otpResendDataFlow.collect { (attempts, timestamp) ->
+                val currentTime = System.currentTimeMillis()
+                val finalAttempts = if (currentTime - timestamp > ONE_HOUR_MS) {
+                    MAX_RESEND_ATTEMPTS
+                } else {
+                    attempts
+                }
+                
+                state = state.copy(
+                    resendAttempts = finalAttempts,
+                    lastResendTimestamp = timestamp
+                )
+            }
+        }
+    }
+
     fun selectContract(contract: ElectronicInvoice) {
         currentSimulationId++
-        state = state.copy(
-            selectedContract = contract,
-            emailInput = contract.email ?: "",
-            isEditingEmail = contract.isEnabled,
-            isLegalAccepted = false,
-            isSuccess = false,
-            error = null,
-            showSameEmailWarning = false,
-            otpInput = "",
-            showSimulatedNotification = false,
-            simulatedOtpCode = "",
-            resendAttempts = 2
-        )
+        
+        viewModelScope.launch {
+            val (savedAttempts, savedTimestamp) = userPrefs.otpResendDataFlow.first()
+            val currentTime = System.currentTimeMillis()
+            val currentAttempts = if (currentTime - savedTimestamp > ONE_HOUR_MS) {
+                MAX_RESEND_ATTEMPTS
+            } else {
+                savedAttempts
+            }
+
+            state = state.copy(
+                selectedContract = contract,
+                emailInput = contract.email ?: "",
+                isEditingEmail = contract.isEnabled,
+                isLegalAccepted = false,
+                isSuccess = false,
+                error = null,
+                showSameEmailWarning = false,
+                otpInput = "",
+                showSimulatedNotification = false,
+                simulatedOtpCode = "",
+                resendAttempts = currentAttempts
+            )
+        }
         hasAcknowledgedSameEmail = false
     }
 
@@ -93,6 +128,10 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun verifyOtpAndPerformUpdate() {
         if (state.otpInput == state.simulatedOtpCode) {
+            state = state.copy(resendAttempts = MAX_RESEND_ATTEMPTS)
+            viewModelScope.launch {
+                userPrefs.updateOtpResendData(MAX_RESEND_ATTEMPTS, 0L)
+            }
             performUpdate()
         } else {
             state = state.copy(error = R.string.error_incorrect_otp)
@@ -209,8 +248,14 @@ class ElectronicInvoiceViewModel @Inject constructor(
         if (state.resendAttempts > 0) {
             viewModelScope.launch {
                 currentSimulationId++
+                val newAttempts = state.resendAttempts - 1
+                val timestamp = System.currentTimeMillis()
+                
+                userPrefs.updateOtpResendData(newAttempts, timestamp)
+                
                 state = state.copy(
-                    resendAttempts = state.resendAttempts - 1,
+                    resendAttempts = newAttempts,
+                    lastResendTimestamp = timestamp,
                     isLoading = true,
                     showResendSuccess = false,
                     otpInput = "",

@@ -25,7 +25,8 @@ data class ElectronicInvoiceState(
     val selectedLegalContent: String? = null,
     val showLegalSheet: Boolean = false,
 
-    val resendAttempts: Int = 3,
+    val resendAttempts: Int = 2,
+    val lastResendTimestamp: Long = 0L,
 
     val userProfile: ProfileState = ProfileState(),
 

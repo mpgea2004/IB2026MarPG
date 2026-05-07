@@ -82,17 +82,20 @@ fun IberdrolaTextField(
                 trailingIcon = trailingIcon,
                 leadingIcon = leadingIcon,
                 colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.DarkGray,
-                    focusedIndicatorColor = GreenDarkIberdrola,
-                    cursorColor = GreenDarkIberdrola,
-                    unfocusedLabelColor = Color.Gray,
+                    unfocusedContainerColor = Color.Transparent,
+                    errorContainerColor = Color.Transparent,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Gray,
-                    focusedLabelColor = GreenDarkIberdrola,
+                    errorTextColor = Color.Red,
+                    focusedIndicatorColor = GreenDarkIberdrola,
+                    unfocusedIndicatorColor = Color.DarkGray,
                     errorIndicatorColor = Color.Red,
-                    errorLabelColor = Color.Red
+                    focusedLabelColor = GreenDarkIberdrola,
+                    unfocusedLabelColor = Color.Gray,
+                    errorLabelColor = Color.Red,
+                    cursorColor = GreenDarkIberdrola,
+                    errorCursorColor = Color.Red
                 ),
                 contentPadding = PaddingValues(horizontal = 0.dp, vertical = 8.dp)
             )

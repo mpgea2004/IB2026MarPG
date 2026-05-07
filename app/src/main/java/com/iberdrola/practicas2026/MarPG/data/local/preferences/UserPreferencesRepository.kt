@@ -3,6 +3,8 @@ package com.iberdrola.practicas2026.MarPG.data.local.preferences
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileState
@@ -23,6 +25,8 @@ class UserPreferencesRepository @Inject constructor(
         val ADDRESS = stringPreferencesKey("address")
         val PASSWORD = stringPreferencesKey("password")
         val AMOUNT_VISIBLE = booleanPreferencesKey("amount_visible")
+        val OTP_RESEND_ATTEMPTS = intPreferencesKey("otp_resend_attempts")
+        val LAST_OTP_RESEND_TIMESTAMP = longPreferencesKey("last_otp_resend_timestamp")
     }
 
     val userProfileFlow: Flow<ProfileState> = context.dataStore.data.map { prefs ->
@@ -37,6 +41,13 @@ class UserPreferencesRepository @Inject constructor(
 
     val amountVisibleFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[PreferencesKeys.AMOUNT_VISIBLE] ?: true
+    }
+
+    val otpResendDataFlow: Flow<Pair<Int, Long>> = context.dataStore.data.map { prefs ->
+        Pair(
+            prefs[PreferencesKeys.OTP_RESEND_ATTEMPTS] ?: 3,
+            prefs[PreferencesKeys.LAST_OTP_RESEND_TIMESTAMP] ?: 0L
+        )
     }
 
     suspend fun updateProfile(state: ProfileState) {
@@ -76,6 +87,13 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun updateAmountVisibility(visible: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.AMOUNT_VISIBLE] = visible
+        }
+    }
+
+    suspend fun updateOtpResendData(attempts: Int, timestamp: Long) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.OTP_RESEND_ATTEMPTS] = attempts
+            prefs[PreferencesKeys.LAST_OTP_RESEND_TIMESTAMP] = timestamp
         }
     }
 }

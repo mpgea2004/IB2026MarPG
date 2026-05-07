@@ -408,12 +408,15 @@ fun ElectronicInvoiceOtpContent(
                                         color = if (targetHasAttempts) Color(0xFF263238) else Color(0xFFB71C1C),
                                         fontFamily = IberPangeaFamily
                                     )
+                                    
+                                    val descriptionText = when {
+                                        !targetHasAttempts -> stringResource(R.string.otp_no_attempts_left)
+                                        state.resendAttempts >= 3 -> stringResource(R.string.otp_not_received_desc_initial)
+                                        else -> stringResource(R.string.otp_not_received_desc, state.resendAttempts)
+                                    }
+
                                     Text(
-                                        text = when {
-                                            !targetHasAttempts -> stringResource(R.string.otp_no_attempts_left)
-                                            state.resendAttempts == 2 -> stringResource(R.string.otp_not_received_desc_initial)
-                                            else -> stringResource(R.string.otp_not_received_desc, state.resendAttempts)
-                                        },
+                                        text = descriptionText,
                                         fontSize = 12.sp,
                                         lineHeight = 18.sp,
                                         color = if (targetHasAttempts) Color(0xFF455A64) else Color(0xFFD32F2F),
@@ -552,7 +555,9 @@ fun AnimateElectronicOtpItem(
             initialOffsetY = { it / 4 }
         )
     ) {
-        content()
+        Column {
+            content()
+        }
     }
 }
 
