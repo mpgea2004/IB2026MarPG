@@ -185,7 +185,11 @@ fun ElectronicInvoiceOtpScreen(
 
     val events = ElectronicInvoiceEvents(
         onOtpChange = { viewModel.onOtpChanged(it) },
-        onResendOtp = { viewModel.onResendOtp() },
+        onResendOtp = { 
+            if (!state.isLoading && !isNavigating) {
+                viewModel.onResendOtp() 
+            }
+        },
         onCloseBanner = { viewModel.closeResendBanner() },
         onBack = handleBack,
         onClose = handleClose,
@@ -200,7 +204,8 @@ fun ElectronicInvoiceOtpScreen(
         state = state,
         events = events,
         isButtonEnabled = state.otpInput.length == 6,
-        phoneToShow = phoneToShow
+        phoneToShow = phoneToShow,
+        isNavigating = isNavigating
     )
 }
 
@@ -209,7 +214,8 @@ fun ElectronicInvoiceOtpContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
     isButtonEnabled: Boolean,
-    phoneToShow: String
+    phoneToShow: String,
+    isNavigating: Boolean = false
 ) {
     val haptic = LocalHapticFeedback.current
     val focusManager = LocalFocusManager.current
@@ -438,11 +444,11 @@ fun ElectronicInvoiceOtpContent(
                                             text = stringResource(R.string.otp_resend_link),
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = GreenDarkIberdrola,
+                                            color = if (state.isLoading) Color.Gray else GreenDarkIberdrola,
                                             textDecoration = TextDecoration.Underline,
                                             modifier = Modifier
                                                 .clip(RoundedCornerShape(8.dp))
-                                                .clickable { 
+                                                .clickable(enabled = !state.isLoading && !isNavigating) {
                                                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                                     events.onResendOtp()
                                                 }

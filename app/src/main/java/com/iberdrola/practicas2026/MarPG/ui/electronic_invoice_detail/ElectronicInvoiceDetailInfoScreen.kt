@@ -84,8 +84,9 @@ fun ElectronicInvoiceDetailInfoScreen(
     var isNavigating by remember { mutableStateOf(false) }
 
     val handleBack = {
-        if (!isNavigating) {
+        if (!isNavigating && !state.isNavigating) {
             isNavigating = true
+            viewModel.onNavigateStarted()
             onBack()
         }
     }
@@ -94,12 +95,19 @@ fun ElectronicInvoiceDetailInfoScreen(
         handleBack() 
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.onNavigateFinished()
+        isNavigating = false
+    }
+
     LaunchedEffect(electronicInvoice.id) {
         viewModel.selectContract(electronicInvoice)
     }
 
     LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess) {
+        if (state.isSuccess && !isNavigating && !state.isNavigating) {
+            isNavigating = true
+            viewModel.onNavigateStarted()
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             onNavigateToSuccess()
         }
@@ -108,20 +116,25 @@ fun ElectronicInvoiceDetailInfoScreen(
     val events = ElectronicInvoiceEvents(
         onBack = handleBack,
         onNext = {
-            viewModel.onEditClick {
-                if (!isNavigating) {
+            if (!isNavigating && !state.isNavigating) {
+                viewModel.onEditClick {
                     isNavigating = true
+                    viewModel.onNavigateStarted()
                     viewModel.onEmailChanged(electronicInvoice.email ?: "")
                     onNavigateToEdit()
                 }
             }
         },
-        onConfirmDeactivate = { viewModel.onDeactivateClick() }
+        onConfirmDeactivate = { 
+            if (!isNavigating && !state.isNavigating) {
+                viewModel.onDeactivateClick() 
+            }
+        }
     )
 
     if (state.showNoAttemptsDialog) {
         AlertDialog(
-            onDismissRequest = { viewModel.closeNoAttemptsDialog() },
+            onDismissRequest = { },
             icon = {
                 Icon(
                     imageVector = Icons.Outlined.Warning,
@@ -140,8 +153,13 @@ fun ElectronicInvoiceDetailInfoScreen(
                 )
             },
             text = {
+                val message = if (state.remainingTime.isNotEmpty()) {
+                    stringResource(R.string.otp_no_attempts_message_time, state.remainingTime)
+                } else {
+                    stringResource(R.string.otp_no_attempts_left)
+                }
                 Text(
-                    text = stringResource(R.string.otp_no_attempts_left),
+                    text = message,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )

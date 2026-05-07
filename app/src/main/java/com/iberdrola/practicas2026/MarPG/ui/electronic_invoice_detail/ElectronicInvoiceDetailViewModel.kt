@@ -15,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -59,25 +60,34 @@ class ElectronicInvoiceViewModel @Inject constructor(
         viewModelScope.launch {
             snapshotFlow { state.selectedContract?.type }.collectLatest { type ->
                 if (type == null) {
-                    state = state.copy(resendAttempts = MAX_RESEND_ATTEMPTS, lastResendTimestamp = 0L)
+                    state = state.copy(resendAttempts = MAX_RESEND_ATTEMPTS, lastResendTimestamp = 0L, remainingTime = "")
                 } else {
                     userPrefs.getOtpResendDataFlow(type).collectLatest { (attempts, timestamp) ->
                         while (true) {
                             val currentTime = System.currentTimeMillis()
-                            val isExpired = timestamp != 0L && (currentTime - timestamp > ONE_HOUR_MS)
+                            val timeElapsed = currentTime - timestamp
+                            val isExpired = timestamp != 0L && (timeElapsed > ONE_HOUR_MS)
                             
                             val finalAttempts = if (isExpired) MAX_RESEND_ATTEMPTS else attempts
                             val finalTimestamp = if (isExpired) 0L else timestamp
 
+                            val timeRemainingMs = (finalTimestamp + ONE_HOUR_MS) - currentTime
+                            
+                            val formattedTime = if (finalTimestamp != 0L && finalAttempts <= 0 && timeRemainingMs > 0) {
+                                val minutes = (timeRemainingMs / 60000).toInt()
+                                val seconds = ((timeRemainingMs % 60000) / 1000).toInt()
+                                String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+                            } else ""
+
                             state = state.copy(
                                 resendAttempts = finalAttempts,
-                                lastResendTimestamp = finalTimestamp
+                                lastResendTimestamp = finalTimestamp,
+                                remainingTime = formattedTime
                             )
 
-                            if (isExpired || finalAttempts == MAX_RESEND_ATTEMPTS || timestamp == 0L) break
+                            if (isExpired || finalAttempts > 0 || timestamp == 0L) break
 
-                            val timeRemaining = (timestamp + ONE_HOUR_MS) - currentTime
-                            delay(minOf(60000L, timeRemaining + 500))
+                            delay(1000L)
                         }
                     }
                 }
@@ -452,5 +462,13 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun closeNoAttemptsDialog() {
         state = state.copy(showNoAttemptsDialog = false)
+    }
+
+    fun onNavigateStarted() {
+        state = state.copy(isNavigating = true)
+    }
+
+    fun onNavigateFinished() {
+        state = state.copy(isNavigating = false)
     }
 }

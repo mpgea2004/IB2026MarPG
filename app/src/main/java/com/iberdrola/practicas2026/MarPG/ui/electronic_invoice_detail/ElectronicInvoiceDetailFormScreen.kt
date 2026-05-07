@@ -169,8 +169,13 @@ fun ElectronicInvoiceDetailFormScreen(
                 )
             },
             text = {
+                val message = if (state.remainingTime.isNotEmpty()) {
+                    stringResource(R.string.otp_no_attempts_message_time, state.remainingTime)
+                } else {
+                    stringResource(R.string.otp_no_attempts_left)
+                }
                 Text(
-                    text = stringResource(R.string.otp_no_attempts_left),
+                    text = message,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )

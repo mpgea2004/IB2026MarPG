@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -126,7 +127,7 @@ fun ElectronicInvoiceSuccessFullGreenContent(
                     imageVector = Icons.Default.Close,
                     contentDescription = stringResource(R.string.success_close_description),
                     tint = Color.White,
-                    modifier = Modifier.size(32.dp).clickable { onAccept() }
+                    modifier = Modifier.size(32.dp).clip(RoundedCornerShape(40.dp)).clickable { onAccept() }
                 )
             }
 
