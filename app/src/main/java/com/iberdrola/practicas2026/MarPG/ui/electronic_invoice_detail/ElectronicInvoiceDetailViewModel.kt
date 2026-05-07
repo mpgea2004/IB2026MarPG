@@ -33,7 +33,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
     private var currentSimulationId = 0L
 
     companion object {
-        private const val ONE_HOUR_MS = 3600000L
+        private const val TWENTY_FOUR_HOURS_MS = 86400000L
         private const val MAX_RESEND_ATTEMPTS = 3
     }
 
@@ -66,17 +66,23 @@ class ElectronicInvoiceViewModel @Inject constructor(
                         while (true) {
                             val currentTime = System.currentTimeMillis()
                             val timeElapsed = currentTime - timestamp
-                            val isExpired = timestamp != 0L && (timeElapsed > ONE_HOUR_MS)
+                            val isExpired = timestamp != 0L && (timeElapsed > TWENTY_FOUR_HOURS_MS)
                             
                             val finalAttempts = if (isExpired) MAX_RESEND_ATTEMPTS else attempts
                             val finalTimestamp = if (isExpired) 0L else timestamp
 
-                            val timeRemainingMs = (finalTimestamp + ONE_HOUR_MS) - currentTime
+                            val timeRemainingMs = (finalTimestamp + TWENTY_FOUR_HOURS_MS) - currentTime
                             
                             val formattedTime = if (finalTimestamp != 0L && finalAttempts <= 0 && timeRemainingMs > 0) {
-                                val minutes = (timeRemainingMs / 60000).toInt()
-                                val seconds = ((timeRemainingMs % 60000) / 1000).toInt()
-                                String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+                                val totalSeconds = timeRemainingMs / 1000
+                                val hours = totalSeconds / 3600
+                                val minutes = (totalSeconds % 3600) / 60
+                                val seconds = totalSeconds % 60
+                                if (hours > 0) {
+                                    String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
+                                } else {
+                                    String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+                                }
                             } else ""
 
                             state = state.copy(
