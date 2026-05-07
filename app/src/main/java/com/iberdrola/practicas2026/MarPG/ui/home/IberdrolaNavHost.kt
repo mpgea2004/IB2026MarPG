@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -68,12 +69,28 @@ fun IberdrolaNavHost(navController: NavHostController) {
             popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
         ) {
             HomeScreen(
-                onNavigateToInvoices = { navController.navigate("invoice_list/$isCloudEnabled") },
+                onNavigateToInvoices = { 
+                    if (navController.currentDestination?.route == Routes.HOME) {
+                        navController.navigate("invoice_list/$isCloudEnabled") 
+                    }
+                },
                 isCloudEnabled = isCloudEnabled,
                 onToggleCloud = { isCloudEnabled = it },
-                onNavigateToElectronicInvoice = { navController.navigate("electronic_invoice_selection/$isCloudEnabled") },
-                onNavigateToProfile = { navController.navigate(Routes.USER_PROFILE) },
-                onNavigateToFaq = { navController.navigate(Routes.FAQ) }
+                onNavigateToElectronicInvoice = { 
+                    if (navController.currentDestination?.route == Routes.HOME) {
+                        navController.navigate("electronic_invoice_selection/$isCloudEnabled") 
+                    }
+                },
+                onNavigateToProfile = { 
+                    if (navController.currentDestination?.route == Routes.HOME) {
+                        navController.navigate(Routes.USER_PROFILE) 
+                    }
+                },
+                onNavigateToFaq = { 
+                    if (navController.currentDestination?.route == Routes.HOME) {
+                        navController.navigate(Routes.FAQ) 
+                    }
+                }
             )
         }
 
@@ -95,7 +112,7 @@ fun IberdrolaNavHost(navController: NavHostController) {
             ConsumptionDashboardScreen(
                 viewModel = viewModel,
                 onBack = {
-                    if (navController.currentBackStackEntry?.destination?.route?.startsWith("consumption_dashboard") == true) {
+                    if (navController.currentDestination?.route?.startsWith("consumption_dashboard") == true) {
                         navController.popBackStack()
                     }
                 }
@@ -136,12 +153,20 @@ fun IberdrolaNavHost(navController: NavHostController) {
                         navController.popBackStack()
                     }
                 },
-                onNavigateToFilters = { navController.navigate(Routes.FILTER) },
+                onNavigateToFilters = { 
+                    if (navController.currentDestination?.route == Routes.INVOICE_LIST) {
+                        navController.navigate(Routes.FILTER) 
+                    }
+                },
                 onNavigateToInvoiceDetail = { invoice ->
-                    navController.navigate("invoice_detail/${invoice.id}")
+                    if (navController.currentDestination?.route == Routes.INVOICE_LIST) {
+                        navController.navigate("invoice_detail/${invoice.id}")
+                    }
                 },
                 onNavigateToConsumption = {
-                    navController.navigate("consumption_dashboard/$isCloud")
+                    if (navController.currentDestination?.route == Routes.INVOICE_LIST) {
+                        navController.navigate("consumption_dashboard/$isCloud")
+                    }
                 }
             )
         }
@@ -154,7 +179,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
             popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry("invoice_list/{isCloud}")
+                try {
+                    navController.getBackStackEntry("invoice_list/{isCloud}")
+                } catch (e: Exception) {
+                    backStackEntry
+                }
             }
             val invoiceListViewModel: InvoiceListViewModel = hiltViewModel(parentEntry)
 
@@ -179,7 +208,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
         ) { backStackEntry ->
             val invoiceId = backStackEntry.arguments?.getString("invoiceId") ?: ""
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry("invoice_list/{isCloud}")
+                try {
+                    navController.getBackStackEntry("invoice_list/{isCloud}")
+                } catch (e: Exception) {
+                    backStackEntry
+                }
             }
             val detailViewModel: InvoiceDetailViewModel = hiltViewModel(parentEntry)
 
@@ -212,11 +245,13 @@ fun IberdrolaNavHost(navController: NavHostController) {
             ElectronicInvoiceSelectionScreen(
                 viewModel = listViewModel,
                 onNavigate = { contrato ->
-                    sharedViewModel.selectContract(contrato)
-                    if (contrato.isEnabled) {
-                        navController.navigate(Routes.ELECTRONIC_INVOICE_DETAIL)
-                    } else {
-                        navController.navigate(Routes.ELECTRONIC_INVOICE_FORM)
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_SELECTION) {
+                        sharedViewModel.selectContract(contrato)
+                        if (contrato.isEnabled) {
+                            navController.navigate(Routes.ELECTRONIC_INVOICE_DETAIL)
+                        } else {
+                            navController.navigate(Routes.ELECTRONIC_INVOICE_FORM)
+                        }
                     }
                 },
                 onBack = {
@@ -235,7 +270,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
             popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
+                try {
+                    navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
+                } catch (e: Exception) {
+                    backStackEntry
+                }
             }
             val sharedViewModel: ElectronicInvoiceViewModel = hiltViewModel(parentEntry)
 
@@ -247,8 +286,16 @@ fun IberdrolaNavHost(navController: NavHostController) {
                         navController.popBackStack()
                     }
                 },
-                onNavigateToEdit = { navController.navigate(Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) },
-                onNavigateToSuccess = { navController.navigate(Routes.ELECTRONIC_INVOICE_SUCCESS) }
+                onNavigateToEdit = { 
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_DETAIL) {
+                        navController.navigate(Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) 
+                    }
+                },
+                onNavigateToSuccess = { 
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_DETAIL) {
+                        navController.navigate(Routes.ELECTRONIC_INVOICE_SUCCESS) 
+                    }
+                }
             )
         }
 
@@ -260,7 +307,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
             popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
+                try {
+                    navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
+                } catch (e: Exception) {
+                    backStackEntry
+                }
             }
             val viewModel: ElectronicInvoiceViewModel = hiltViewModel(parentEntry)
             ElectronicInvoiceDetailFormScreen(
@@ -270,10 +321,16 @@ fun IberdrolaNavHost(navController: NavHostController) {
                         navController.popBackStack()
                     }
                 },
-                onNext = { navController.navigate(Routes.ELECTRONIC_INVOICE_OTP) },
+                onNext = { 
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_FORM) {
+                        navController.navigate(Routes.ELECTRONIC_INVOICE_OTP) 
+                    }
+                },
                 onCloseToHome = {
-                    viewModel.discardChanges()
-                    navController.popBackStack(Routes.ELECTRONIC_INVOICE_SELECTION, false)
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_FORM) {
+                        viewModel.discardChanges()
+                        navController.popBackStack(Routes.ELECTRONIC_INVOICE_SELECTION, false)
+                    }
                 },
             )
         }
@@ -286,7 +343,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
             popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
+                try {
+                    navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
+                } catch (e: Exception) {
+                    backStackEntry
+                }
             }
             val viewModel: ElectronicInvoiceViewModel = hiltViewModel(parentEntry)
             ElectronicInvoiceEditEmailScreen(
@@ -296,10 +357,16 @@ fun IberdrolaNavHost(navController: NavHostController) {
                         navController.popBackStack()
                     }
                 },
-                onNext = { navController.navigate(Routes.ELECTRONIC_INVOICE_OTP) },
+                onNext = { 
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) {
+                        navController.navigate(Routes.ELECTRONIC_INVOICE_OTP) 
+                    }
+                },
                 onCloseToHome = {
-                    viewModel.discardChanges()
-                    navController.popBackStack(Routes.ELECTRONIC_INVOICE_SELECTION, false)
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_EDIT_EMAIL) {
+                        viewModel.discardChanges()
+                        navController.popBackStack(Routes.ELECTRONIC_INVOICE_SELECTION, false)
+                    }
                 },
             )
         }
@@ -312,7 +379,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
             popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
+                try {
+                    navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
+                } catch (e: Exception) {
+                    backStackEntry
+                }
             }
             val viewModel: ElectronicInvoiceViewModel = hiltViewModel(parentEntry)
             ElectronicInvoiceOtpScreen(
@@ -323,11 +394,15 @@ fun IberdrolaNavHost(navController: NavHostController) {
                     }
                 },
                 onNext = {
-                    navController.navigate(Routes.ELECTRONIC_INVOICE_SUCCESS)
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_OTP) {
+                        navController.navigate(Routes.ELECTRONIC_INVOICE_SUCCESS)
+                    }
                 },
                 onCloseToHome = {
-                    viewModel.discardChanges()
-                    navController.popBackStack(Routes.ELECTRONIC_INVOICE_SELECTION, false)
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_OTP) {
+                        viewModel.discardChanges()
+                        navController.popBackStack(Routes.ELECTRONIC_INVOICE_SELECTION, false)
+                    }
                 },
             )
         }
@@ -340,14 +415,20 @@ fun IberdrolaNavHost(navController: NavHostController) {
             popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
+                try {
+                    navController.getBackStackEntry(Routes.ELECTRONIC_INVOICE_SELECTION)
+                } catch (e: Exception) {
+                    backStackEntry
+                }
             }
             val vm: ElectronicInvoiceViewModel = hiltViewModel(parentEntry)
 
             ElectronicInvoiceSuccessFullGreenScreen(
                 viewModel = vm,
                 onFinish = {
-                    navController.popBackStack(Routes.HOME, false)
+                    if (navController.currentDestination?.route == Routes.ELECTRONIC_INVOICE_SUCCESS) {
+                        navController.popBackStack(Routes.HOME, false)
+                    }
                 }
             )
         }
