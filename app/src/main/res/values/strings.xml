@@ -161,6 +161,7 @@
     <string name="profile_label_phone">Teléfono móvil</string>
     <string name="profile_label_address">Dirección de suministro</string>
     <string name="profile_label_password">* Contraseña de seguridad</string>
+    <string name="profile_label_confirm_password">* Confirmar contraseña</string>
     <string name="profile_button_save">Guardar cambios</string>
     <string name="profile_button_edit">Modificar Perfil</string>
     <string name="profile_empty_address">Sin dirección asignada</string>
@@ -253,6 +254,7 @@
     <string name="invoice_list_only_one_invoice">Solo tienes una factura</string>
     <string name="error_password_too_short">La contraseña debe tener al menos 6 caracteres</string>
     <string name="error_incorrect_otp">El código introducido no es correcto</string>
+    <string name="error_passwords_do_not_match">Las contraseñas no coinciden</string>
 
     <!-- Errores Personalizados de Red -->
     <string name="error_network_connection">No se ha podido conectar con el servidor. Comprueba tu conexión a internet o Mockoon. Los datos que se te muestran están desactualizados.</string>

@@ -32,7 +32,14 @@ class ProfileViewModel @Inject constructor(
             state = state.copy(isLoading = true)
             delay(800)
             val savedState = userPrefs.userProfileFlow.first()
-            state = savedState.copy(isSaved = true, isLoading = false, isEditMode = false, isSaveClicked = false, isVerifying = false)
+            state = savedState.copy(
+                confirmPassword = savedState.password,
+                isSaved = true, 
+                isLoading = false, 
+                isEditMode = false, 
+                isSaveClicked = false, 
+                isVerifying = false
+            )
         }
     }
 
@@ -103,18 +110,29 @@ class ProfileViewModel @Inject constructor(
         state = state.copy(password = newPassword, passwordError = null, isSaved = false)
     }
 
+    fun onConfirmPasswordChanged(newPassword: String) {
+        state = state.copy(confirmPassword = newPassword, confirmPasswordError = null, isSaved = false)
+    }
+
     private fun isEmailValid(email: String): Boolean {
         return emailPattern.matches(email)
     }
 
     fun saveChanges(onSuccess: () -> Unit) {
-        state = state.copy(nameError = null, emailError = null, phoneError = null, passwordError = null)
+        state = state.copy(
+            nameError = null, 
+            emailError = null, 
+            phoneError = null, 
+            passwordError = null,
+            confirmPasswordError = null
+        )
 
         val isNameEmpty = state.name.trim().isEmpty()
         val isEmailInvalid = !isEmailValid(state.email)
         val isEmailEmpty = state.email.trim().isEmpty()
         val isPasswordEmpty = state.password.trim().isEmpty()
         val isPasswordTooShort = state.password.trim().isNotEmpty() && state.password.trim().length < 6
+        val passwordsMatch = state.password == state.confirmPassword
         val isPhoneInvalid = state.phone.isNotEmpty() && state.phone.length != 9
 
         var hasError = false
@@ -138,6 +156,11 @@ class ProfileViewModel @Inject constructor(
             hasError = true
         } else if (isPasswordTooShort) {
             state = state.copy(passwordError = R.string.error_password_too_short)
+            hasError = true
+        }
+
+        if (!passwordsMatch) {
+            state = state.copy(confirmPasswordError = R.string.error_passwords_do_not_match)
             hasError = true
         }
 

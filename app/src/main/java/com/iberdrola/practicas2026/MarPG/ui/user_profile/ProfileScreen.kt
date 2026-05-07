@@ -376,6 +376,7 @@ fun ProfileScreen(
         },
         onBackClick = handleBackAction,
         onPasswordChanged = { viewModel.onPasswordChanged(it) },
+        onConfirmPasswordChanged = { viewModel.onConfirmPasswordChanged(it) },
         onLogout = { viewModel.onLogoutClick() },
         onEditClick = { 
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -760,6 +761,7 @@ fun ProfileContent(
 ) {
     val focusManager = LocalFocusManager.current
     var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
 
     Column(
@@ -880,12 +882,26 @@ fun ProfileContent(
                                 )
                                 PasswordField(
                                     value = state.password,
+                                    label = stringResource(R.string.profile_label_password),
                                     errorMessage = state.passwordError,
                                     isVisible = passwordVisible,
                                     onValueChange = events.onPasswordChanged,
                                     onToggleVisibility = { 
                                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                         passwordVisible = !passwordVisible 
+                                    },
+                                    imeAction = ImeAction.Next,
+                                    onAction = { focusManager.moveFocus(FocusDirection.Down) }
+                                )
+                                PasswordField(
+                                    value = state.confirmPassword,
+                                    label = stringResource(R.string.profile_label_confirm_password),
+                                    errorMessage = state.confirmPasswordError,
+                                    isVisible = confirmPasswordVisible,
+                                    onValueChange = events.onConfirmPasswordChanged,
+                                    onToggleVisibility = { 
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        confirmPasswordVisible = !confirmPasswordVisible 
                                     },
                                     imeAction = ImeAction.Done,
                                     onAction = { focusManager.clearFocus() }
@@ -1017,6 +1033,7 @@ fun ProfileAvatar() {
 @Composable
 fun PasswordField(
     value: String,
+    label: String,
     errorMessage: Int?,
     isVisible: Boolean,
     onValueChange: (String) -> Unit,
@@ -1034,7 +1051,7 @@ fun PasswordField(
             ),
             label = {
                 Text(
-                    text = stringResource(R.string.profile_label_password),
+                    text = label,
                     fontFamily = IberPangeaFamily,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium
