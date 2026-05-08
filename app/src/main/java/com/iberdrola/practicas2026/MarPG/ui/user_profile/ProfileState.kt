@@ -8,10 +8,12 @@ data class ProfileState(
     val phone: String = "",
     val address: String = "",
     val password: String = "",
+    val confirmPassword: String = "",
     @StringRes val nameError: Int? = null,
     @StringRes val emailError: Int? = null,
     @StringRes val phoneError: Int? = null,
     @StringRes val passwordError: Int? = null,
+    @StringRes val confirmPasswordError: Int? = null,
     val isSaved: Boolean = true,
     val showLogoutDialog: Boolean = false,
     val isLoading: Boolean = false,
@@ -23,5 +25,7 @@ data class ProfileState(
     val showSecurityDialog: Boolean = false,
     val securityPasswordInput: String = "",
     @StringRes val securityPasswordError: Int? = null,
-    val isSecurityPasswordVisible: Boolean = false
+    val isSecurityPasswordVisible: Boolean = false,
+    val isEditClicked: Boolean = false,
+    val isLogoutClicked: Boolean = false
 )

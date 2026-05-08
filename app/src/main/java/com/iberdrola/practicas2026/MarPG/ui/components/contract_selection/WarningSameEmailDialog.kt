@@ -21,7 +21,7 @@ fun WarningSameEmailDialog(
     viewModel: ElectronicInvoiceViewModel
 ) {
     AlertDialog(
-        onDismissRequest = { viewModel.dismissSameEmailWarning() },
+        onDismissRequest = { },
         containerColor = WhiteApp,
         title = {
             Text(

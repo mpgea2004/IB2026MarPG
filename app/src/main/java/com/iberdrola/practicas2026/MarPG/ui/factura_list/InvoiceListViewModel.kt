@@ -160,6 +160,7 @@ class InvoiceListViewModel @Inject constructor(
                 .collect { invoices ->
                     allInvoices = invoices
                     setupDynamicFilterPrices(invoices)
+                    sanitizeFilterDates(invoices)
 
                     if (invoices.isEmpty()) {
                         state = InvoiceListState.NODATA
@@ -210,11 +211,41 @@ class InvoiceListViewModel @Inject constructor(
                 minPrice = newMin,
                 maxPrice = newMax
             )
+        } else {
+            currentFilterState = currentFilterState.copy(
+                minPrice = currentFilterState.minPrice.coerceIn(newMin, newMax),
+                maxPrice = currentFilterState.maxPrice.coerceIn(newMin, newMax)
+            )
         }
 
         lastMinLimit = newMin
         lastMaxLimit = newMax
     }
+
+    private fun sanitizeFilterDates(invoices: List<Invoice>) {
+        if (invoices.isEmpty()) return
+        
+        val minDateStr = minInvoiceDate ?: return
+        val maxDateStr = maxInvoiceDate ?: return
+        
+        val dataMin = DateMapper.toLocalDate(minDateStr)
+        val dataMax = DateMapper.toLocalDate(maxDateStr)
+
+        if (currentFilterState.dateFrom.isNotEmpty()) {
+            val currentFrom = DateMapper.toLocalDate(currentFilterState.dateFrom)
+            if (currentFrom.isBefore(dataMin) || currentFrom.isAfter(dataMax)) {
+                currentFilterState = currentFilterState.copy(dateFrom = "")
+            }
+        }
+
+        if (currentFilterState.dateTo.isNotEmpty()) {
+            val currentTo = DateMapper.toLocalDate(currentFilterState.dateTo)
+            if (currentTo.isBefore(dataMin) || currentTo.isAfter(dataMax)) {
+                currentFilterState = currentFilterState.copy(dateTo = "")
+            }
+        }
+    }
+
     fun onSearchQueryChange(query: String) {
         searchQuery = query
         updateFilteredInvoices()

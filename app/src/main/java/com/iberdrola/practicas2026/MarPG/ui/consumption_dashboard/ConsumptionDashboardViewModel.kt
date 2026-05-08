@@ -30,7 +30,10 @@ class ConsumptionDashboardViewModel @Inject constructor(
 
     fun setCloudMode(isCloud: Boolean) {
         if (state.isCloud != isCloud) {
-            state = state.copy(isCloud = isCloud)
+            state = state.copy(
+                isCloud = isCloud,
+                isLoading = true
+            )
             loadData()
         }
     }
@@ -40,7 +43,8 @@ class ConsumptionDashboardViewModel @Inject constructor(
             state = state.copy(
                 selectedType = type,
                 chartData = emptyList(),
-                comparisonMessage = ""
+                comparisonMessage = "",
+                isLoading = true
             )
             loadData()
         }
@@ -52,7 +56,9 @@ class ConsumptionDashboardViewModel @Inject constructor(
             val typeToLoad = state.selectedType
             val isCloudToLoad = state.isCloud
 
-            state = state.copy(isLoading = true)
+            if (!state.isLoading) {
+                state = state.copy(isLoading = true)
+            }
 
             getInvoiceUseCase(isCloudToLoad)
                 .catch {

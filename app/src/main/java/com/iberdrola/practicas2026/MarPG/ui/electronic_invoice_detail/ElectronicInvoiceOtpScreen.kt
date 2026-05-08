@@ -8,7 +8,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -37,6 +36,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -51,8 +51,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -66,10 +64,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.ImeAction.Companion.Done
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
@@ -77,6 +78,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.components.IberdrolaTextField
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.LoadingOverlay
@@ -84,6 +86,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import com.iberdrola.practicas2026.MarPG.ui.utils.NotificationHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -96,7 +99,9 @@ fun ElectronicInvoiceOtpScreen(
     onNext: () -> Unit
 ) {
     val state = viewModel.state
+    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
+    val notificationHandler = remember { NotificationHandler(context) }
     var showDiscardDialog by remember { mutableStateOf(false) }
 
     var isNavigating by remember { mutableStateOf(true) }
@@ -114,15 +119,24 @@ fun ElectronicInvoiceOtpScreen(
         viewModel.startOtpSimulation()
     }
 
+    LaunchedEffect(state.showSimulatedNotification, state.simulatedOtpCode) {
+        if (state.showSimulatedNotification && state.simulatedOtpCode.isNotEmpty()) {
+            notificationHandler.showSimpleNotification(
+                contentTitle = "Código de seguridad Iberdrola",
+                contentText = "Tu código para la factura electrónica de ${state.selectedContract?.type} es: ${state.simulatedOtpCode}"
+            )
+        }
+    }
+
     val handleBack = {
-        if (!isNavigating) {
+        if (!isNavigating && !state.isLoading) {
             isNavigating = true
             onBack()
         }
     }
 
     val handleClose = {
-        if (!isNavigating) {
+        if (!isNavigating && !state.isLoading) {
             showDiscardDialog = true
         }
     }
@@ -172,7 +186,11 @@ fun ElectronicInvoiceOtpScreen(
 
     val events = ElectronicInvoiceEvents(
         onOtpChange = { viewModel.onOtpChanged(it) },
-        onResendOtp = { viewModel.onResendOtp() },
+        onResendOtp = {
+            if (!state.isLoading && !isNavigating) {
+                viewModel.onResendOtp()
+            }
+        },
         onCloseBanner = { viewModel.closeResendBanner() },
         onBack = handleBack,
         onClose = handleClose,
@@ -191,9 +209,9 @@ fun ElectronicInvoiceOtpScreen(
     ElectronicInvoiceOtpContent(
         state = state,
         events = events,
-        isButtonEnabled = state.otpInput.length >= 6,
+        isButtonEnabled = state.otpInput.length == 6,
         phoneToShow = phoneToShow,
-        onDismissNotification = { viewModel.closeSimulatedNotification() }
+        isNavigating = isNavigating
     )
 }
 
@@ -203,9 +221,10 @@ fun ElectronicInvoiceOtpContent(
     events: ElectronicInvoiceEvents,
     isButtonEnabled: Boolean,
     phoneToShow: String,
-    onDismissNotification: () -> Unit = {}
+    isNavigating: Boolean = false
 ) {
     val haptic = LocalHapticFeedback.current
+    val focusManager = LocalFocusManager.current
 
     var bufferedHasAttempts by remember { mutableStateOf(true) }
 
@@ -244,6 +263,8 @@ fun ElectronicInvoiceOtpContent(
         }
     }
 
+    val isInteractionEnabled = !isNavigating && !state.isLoading
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Color.White,
@@ -258,8 +279,12 @@ fun ElectronicInvoiceOtpContent(
             bottomBar = {
                 ElectronicInvoiceBottomBar(
                     onBack = events.onBack,
-                    onNext = events.onNext,
-                    isNextEnabled = isButtonEnabled,
+                    onNext = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        events.onNext()
+                    },
+                    isNextEnabled = isButtonEnabled && isInteractionEnabled,
+                    isBackEnabled = isInteractionEnabled,
                     showBanner = state.showResendSuccess,
                     onCloseBanner = events.onCloseBanner
                 )
@@ -297,40 +322,42 @@ fun ElectronicInvoiceOtpContent(
                 }
 
                 AnimateElectronicOtpItem(index = 2) {
-                    TextField(
+                    IberdrolaTextField(
                         value = state.otpInput,
-                        onValueChange = events.onOtpChange,
-                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
-                        placeholder = { Text(stringResource(R.string.otp_placeholder), fontSize = 14.sp, color = Color.DarkGray,style = MaterialTheme.typography.bodyLarge, fontFamily = IberPangeaFamily) },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.NumberPassword,
-                            imeAction = Done
-                        ),
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(
-                            color = Color.Black,
-                            fontSize = 16.sp,
-                            fontFamily = IberPangeaFamily
-                        ),
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.DarkGray,
-                            focusedIndicatorColor = GreenDarkIberdrola,
-                            cursorColor = GreenDarkIberdrola
-                        ),
-                        isError = state.error != null,
-                        supportingText = {
-                            if (state.error != null) {
-                                Text(
-                                    text = stringResource(state.error),
-                                    color = MaterialTheme.colorScheme.error,
-                                    fontSize = 12.sp,
-                                    fontFamily = IberPangeaFamily
-                                )
+                        onValueChange = {
+                            if (it.length <= 6) {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                events.onOtpChange(it)
                             }
                         },
-                        singleLine = true
+                        label = stringResource(R.string.otp_placeholder),
+                        isError = state.error != null,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.NumberPassword,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                if (isButtonEnabled && isInteractionEnabled) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    focusManager.clearFocus()
+                                    events.onNext()
+                                } else {
+                                    focusManager.clearFocus()
+                                }
+                            }
+                        )
                     )
+
+                    if (state.error != null) {
+                        Text(
+                            text = stringResource(state.error),
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp,
+                            fontFamily = IberPangeaFamily,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -406,11 +433,15 @@ fun ElectronicInvoiceOtpContent(
                                         color = if (targetHasAttempts) Color(0xFF263238) else Color(0xFFB71C1C),
                                         fontFamily = IberPangeaFamily
                                     )
+
+                                    val descriptionText = when {
+                                        !targetHasAttempts -> stringResource(R.string.otp_no_attempts_left)
+                                        state.resendAttempts >= 3 -> stringResource(R.string.otp_not_received_desc_initial)
+                                        else -> stringResource(R.string.otp_not_received_desc, state.resendAttempts)
+                                    }
+
                                     Text(
-                                        text = if (targetHasAttempts)
-                                            stringResource(R.string.otp_not_received_desc, state.resendAttempts)
-                                        else
-                                            stringResource(R.string.otp_no_attempts_left),
+                                        text = descriptionText,
                                         fontSize = 12.sp,
                                         lineHeight = 18.sp,
                                         color = if (targetHasAttempts) Color(0xFF455A64) else Color(0xFFD32F2F),
@@ -422,11 +453,14 @@ fun ElectronicInvoiceOtpContent(
                                             text = stringResource(R.string.otp_resend_link),
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = GreenDarkIberdrola,
+                                            color = if (!isInteractionEnabled) Color.Gray else GreenDarkIberdrola,
                                             textDecoration = TextDecoration.Underline,
                                             modifier = Modifier
                                                 .clip(RoundedCornerShape(8.dp))
-                                                .clickable { events.onResendOtp() }
+                                                .clickable(enabled = isInteractionEnabled) {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                    events.onResendOtp()
+                                                }
                                                 .padding(vertical = 2.dp),
                                             fontFamily = IberPangeaFamily
                                         )
@@ -438,87 +472,9 @@ fun ElectronicInvoiceOtpContent(
                 }
             }
         }
-        AnimatedVisibility(
-            visible = state.showSimulatedNotification,
-            enter = fadeIn(tween(500)) + slideInVertically(tween(500)) { -it },
-            exit = fadeOut(tween(500)) + slideOutVertically(tween(500)) { -it },
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .statusBarsPadding()
-                .padding(16.dp)
-        ) {
-            SimulatedNotification(
-                message = state.simulatedNotificationMessage,
-                onDismiss = onDismissNotification
-            )
-        }
 
         if (state.isLoading) {
             LoadingOverlay()
-        }
-    }
-}
-
-@Composable
-fun SimulatedNotification(
-    message: String,
-    onDismiss: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .clickable { onDismiss() },
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = GreenIberdrola),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color.White),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.iberdrola),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.otp_notification_header),
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-                    Text(
-                        text = stringResource(R.string.otp_notification_time),
-                        color = Color.White.copy(alpha = 0.6f),
-                        fontSize = 10.sp
-                    )
-                }
-                Text(
-                    text = message,
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    lineHeight = 18.sp,
-                    fontFamily = IberPangeaFamily
-                )
-            }
         }
     }
 }
@@ -543,7 +499,9 @@ fun AnimateElectronicOtpItem(
             initialOffsetY = { it / 4 }
         )
     ) {
-        content()
+        Column {
+            content()
+        }
     }
 }
 

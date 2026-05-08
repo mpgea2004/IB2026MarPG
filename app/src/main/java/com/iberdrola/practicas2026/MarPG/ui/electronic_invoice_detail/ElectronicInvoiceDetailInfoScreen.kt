@@ -7,8 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,6 +25,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -54,9 +52,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -71,7 +67,6 @@ import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
-import kotlinx.coroutines.delay
 
 @Composable
 fun ElectronicInvoiceDetailInfoScreen(
@@ -89,20 +84,30 @@ fun ElectronicInvoiceDetailInfoScreen(
     var isNavigating by remember { mutableStateOf(false) }
 
     val handleBack = {
-        if (!isNavigating) {
+        if (!isNavigating && !state.isNavigating) {
             isNavigating = true
+            viewModel.onNavigateStarted()
             onBack()
         }
     }
 
-    BackHandler(enabled = true) { handleBack() }
+    BackHandler(enabled = !state.showNoAttemptsDialog && !state.showDeactivationConfirmDialog && !state.showNoAddressDialog) {
+        handleBack()
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.onNavigateFinished()
+        isNavigating = false
+    }
 
     LaunchedEffect(electronicInvoice.id) {
         viewModel.selectContract(electronicInvoice)
     }
 
     LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess) {
+        if (state.isSuccess && !isNavigating && !state.isNavigating) {
+            isNavigating = true
+            viewModel.onNavigateStarted()
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             onNavigateToSuccess()
         }
@@ -111,15 +116,64 @@ fun ElectronicInvoiceDetailInfoScreen(
     val events = ElectronicInvoiceEvents(
         onBack = handleBack,
         onNext = {
-            if (!isNavigating) {
-                isNavigating = true
-                viewModel.logAnalytics("elec_invoice_edit_click", mapOf("contract_id" to electronicInvoice.id))
-                viewModel.onEmailChanged(electronicInvoice.email!!)
-                onNavigateToEdit()
+            if (!isNavigating && !state.isNavigating && !state.showDeactivationConfirmDialog) {
+                viewModel.onEditClick {
+                    isNavigating = true
+                    viewModel.onNavigateStarted()
+                    viewModel.logAnalytics("elec_invoice_edit_click", mapOf("contract_id" to electronicInvoice.id))
+                    viewModel.onEmailChanged(electronicInvoice.email ?: "")
+                    onNavigateToEdit()
+                }
             }
         },
-        onConfirmDeactivate = { viewModel.onDeactivateClick() }
+        onConfirmDeactivate = {
+            if (!isNavigating && !state.isNavigating && !state.showDeactivationConfirmDialog) {
+                viewModel.onDeactivateClick()
+            }
+        }
     )
+
+    if (state.showNoAttemptsDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Warning,
+                    contentDescription = null,
+                    tint = Color.Red,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.otp_no_attempts_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color.Black
+                )
+            },
+            text = {
+                val message = if (state.remainingTime.isNotEmpty()) {
+                    stringResource(R.string.otp_no_attempts_message_time, state.remainingTime)
+                } else {
+                    stringResource(R.string.otp_no_attempts_left)
+                }
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.closeNoAttemptsDialog() }) {
+                    Text(stringResource(R.string.common_ok), color = GreenDarkIberdrola, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     if (state.showDeactivationConfirmDialog) {
         AlertDialog(
@@ -277,6 +331,8 @@ fun ElectronicInvoiceDetailInfoScreenContent(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    val isInteractionEnabled = !state.showDeactivationConfirmDialog && !state.isLoading && !state.isNavigating && !state.showNoAttemptsDialog && !state.showNoAddressDialog
+
                     Button(
                         onClick = events.onConfirmDeactivate,
                         modifier = Modifier
@@ -288,7 +344,8 @@ fun ElectronicInvoiceDetailInfoScreenContent(
                             containerColor = WhiteApp,
                             contentColor = GreenDarkIberdrola
                         ),
-                        border = BorderStroke(1.5.dp, color = GreenDarkIberdrola)
+                        border = BorderStroke(1.5.dp, color = GreenDarkIberdrola),
+                        enabled = isInteractionEnabled
                     ) {
                         Icon(imageVector = Icons.Outlined.Delete, contentDescription = null,tint = GreenDarkIberdrola,)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -304,7 +361,8 @@ fun ElectronicInvoiceDetailInfoScreenContent(
                             .padding(horizontal = 24.dp)
                             .height(56.dp),
                         shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola, contentColor = WhiteApp)
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenDarkIberdrola, contentColor = WhiteApp),
+                        enabled = isInteractionEnabled
                     ) {
                         Icon(imageVector = Icons.Outlined.Edit, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))

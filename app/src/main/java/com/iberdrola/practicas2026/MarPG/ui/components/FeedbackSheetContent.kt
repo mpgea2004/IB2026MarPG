@@ -45,7 +45,7 @@ fun FeedbackSheetContent(
             .padding(bottom = 32.dp, start = 24.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(stringResource(R.string.feedback_sheet_title), fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily, color = Color.Black)
+        Text(stringResource(R.string.feedback_sheet_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily, color = Color.Black)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -58,11 +58,15 @@ fun FeedbackSheetContent(
             fontFamily = IberPangeaFamily
         )
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp), thickness = 0.5.dp, color = Color.LightGray)
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 20.dp),
+            thickness = 0.5.dp,
+            color = Color.LightGray
+        )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
         ) {
             val emojis = listOf(
                 Icons.Outlined.SentimentVeryDissatisfied to Color.Red,
@@ -73,12 +77,15 @@ fun FeedbackSheetContent(
             )
 
             emojis.forEach { (icon, color) ->
-                IconButton(onClick = onRatingClick) {
+                IconButton(
+                    onClick = onRatingClick,
+                    modifier = Modifier.size(40.dp)
+                ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
                         tint = color,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(34.dp)
                     )
                 }
             }

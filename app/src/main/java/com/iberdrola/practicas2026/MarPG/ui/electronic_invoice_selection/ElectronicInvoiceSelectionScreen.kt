@@ -1,5 +1,6 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_selection
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
@@ -25,7 +26,11 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +69,23 @@ fun ElectronicInvoiceSelectionScreen(
     val isGasEnabled = viewModel.isGasEnabledConfig
     val pullToRefreshState = rememberPullToRefreshState()
 
+    var isNavigating by remember { mutableStateOf(false) }
+
+    val handleBack = {
+        if (!isNavigating) {
+            isNavigating = true
+            onBack()
+        }
+    }
+
+    BackHandler {
+        handleBack()
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.onNavigateFinished()
+        isNavigating = false
+    }
 
     val remoteConfig = Firebase.remoteConfig
 
@@ -94,14 +116,18 @@ fun ElectronicInvoiceSelectionScreen(
     val events = ElectronicInvoiceListEvents(
         onRetry = { viewModel.loadInvoices() },
         onElectronicInvoiceClick = { invoice ->
-            onNavigate(invoice)
+            if (!viewModel.isNavigating && !isNavigating) {
+                isNavigating = true
+                viewModel.onNavigateStarted()
+                onNavigate(invoice)
+            }
         }
     )
 
     Scaffold(
         containerColor = WhiteApp,
         topBar = {
-            FilterTopBar(onBack = onBack)
+            FilterTopBar(onBack = handleBack)
         },
     ) { padding ->
         PullToRefreshBox(

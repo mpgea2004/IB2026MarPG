@@ -1,5 +1,9 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
@@ -7,28 +11,31 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,11 +43,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
@@ -48,12 +59,18 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.app.ActivityCompat
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.permissions.AppPermissions
+import com.iberdrola.practicas2026.MarPG.ui.components.IberdrolaTextField
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.SecurityPhoneDialog
@@ -62,7 +79,9 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
+import com.iberdrola.practicas2026.MarPG.ui.utils.rememberPermissionsLauncher
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,85 +91,203 @@ onBack: () -> Unit,
 onNext: () -> Unit,
 onCloseToHome: () -> Unit,
 ) {
-val state = viewModel.state
-var showDiscardDialog by remember { mutableStateOf(false) }
+    val state = viewModel.state
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val scope = rememberCoroutineScope()
 
-var isNavigating by remember { mutableStateOf(true) }
+    var showDiscardDialog by remember { mutableStateOf(false) }
+    var showPermissionErrorDialog by remember { mutableStateOf(false) }
+    var isPermanentlyDenied by remember { mutableStateOf(false) }
+    var isNavigating by remember { mutableStateOf(false) }
 
-LaunchedEffect(Unit) {
-    delay(100)
-    isNavigating = false
-}
-
-val handleBackAction = {
-    val hasChanges = state.emailInput.isNotEmpty() || state.isLegalAccepted
-    if (hasChanges) {
-        showDiscardDialog = true
-    } else if (!isNavigating) {
-        isNavigating = true
-        onBack()
+    LaunchedEffect(Unit) {
+        delay(100)
+        isNavigating = false
+        showPermissionErrorDialog = false
     }
-}
 
-val handleClose = {
-    val hasChanges = state.emailInput.isNotEmpty() || state.isLegalAccepted
-    if (hasChanges) {
-        showDiscardDialog = true
-    } else if (!isNavigating) {
-        isNavigating = true
-        onCloseToHome()
-    }
-}
-
-BackHandler(enabled = !showDiscardDialog && !state.showSameEmailWarning && !state.showNoPhoneDialog) {
-    handleBackAction()
-}
-
-if (showDiscardDialog) {
-    AlertDialog(
-        onDismissRequest = { showDiscardDialog = false },
-        title = {
-            Text(
-                stringResource(R.string.form_discard_changes_title),
-                color = GreenDarkIberdrola,
-                fontFamily = IberPangeaFamily,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Text(
-                stringResource(R.string.form_discard_changes_message),
-                color = Color.Black,
-                fontFamily = IberPangeaFamily
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                showDiscardDialog = false
-                onCloseToHome()
-            }) {
-                Text(
-                    stringResource(R.string.profile_discard_button),
-                    color = Color(0xFFD32F2F),
-                    fontWeight = FontWeight.Bold
-                )
+    val requestPermissionThenNavigate = rememberPermissionsLauncher(
+        permissions = listOf(AppPermissions.Notifications),
+        onAllGranted = {
+            if (!isNavigating) {
+                isNavigating = true
+                onNext()
             }
         },
-        dismissButton = {
-            TextButton(onClick = { showDiscardDialog = false }) {
+        onDenied = { deniedList ->
+            val rationale = activity?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(it, android.Manifest.permission.POST_NOTIFICATIONS)
+            } ?: true
+
+            isPermanentlyDenied = !rationale
+            showPermissionErrorDialog = true
+            isNavigating = false
+        }
+    )
+
+    val isInteractionEnabled = !isNavigating && !state.isLoading && !state.showNoAttemptsDialog && !state.showNoPhoneDialog && !state.showSameEmailWarning && !showDiscardDialog && !showPermissionErrorDialog
+
+    val handleBackAction = {
+        if (isInteractionEnabled) {
+            val hasChanges = state.emailInput.isNotEmpty() || state.isLegalAccepted
+            if (hasChanges) {
+                showDiscardDialog = true
+            } else {
+                isNavigating = true
+                onBack()
+            }
+        }
+    }
+
+    val handleClose = {
+        if (isInteractionEnabled) {
+            val hasChanges = state.emailInput.isNotEmpty() || state.isLegalAccepted
+            if (hasChanges) {
+                showDiscardDialog = true
+            } else {
+                isNavigating = true
+                onCloseToHome()
+            }
+        }
+    }
+
+    BackHandler(enabled = !showDiscardDialog && !state.showSameEmailWarning && !state.showNoPhoneDialog && !state.showNoAttemptsDialog) {
+        handleBackAction()
+    }
+
+    if (state.showNoAttemptsDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.closeNoAttemptsDialog() },
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Warning,
+                    contentDescription = null,
+                    tint = Color.Red,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
                 Text(
-                    stringResource(R.string.security_dialog_cancel),
+                    text = stringResource(R.string.otp_no_attempts_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color.Black
+                )
+            },
+            text = {
+                val message = if (state.remainingTime.isNotEmpty()) {
+                    stringResource(R.string.otp_no_attempts_message_time, state.remainingTime)
+                } else {
+                    stringResource(R.string.otp_no_attempts_left)
+                }
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.closeNoAttemptsDialog() }) {
+                    Text(stringResource(R.string.common_ok), color = GreenDarkIberdrola, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(stringResource(R.string.form_discard_changes_title), color = GreenDarkIberdrola, fontFamily = IberPangeaFamily, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.form_discard_changes_message), color = Color.Black, fontFamily = IberPangeaFamily) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDiscardDialog = false
+                    isNavigating = true
+                    onCloseToHome()
+                }) {
+                    Text(stringResource(R.string.profile_discard_button), color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text(stringResource(R.string.security_dialog_cancel), color = GreenDarkIberdrola)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    if (showPermissionErrorDialog) {
+        AlertDialog(
+            onDismissRequest = {  },
+            properties = DialogProperties(
+                dismissOnBackPress = false,
+                dismissOnClickOutside = false
+            ),
+            title = {
+                Text(
+                    text = if (isPermanentlyDenied) "Permiso Bloqueado" else "Permiso Necesario",
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = IberPangeaFamily,
                     color = GreenDarkIberdrola
                 )
-            }
-        },
-        containerColor = WhiteApp,
-        shape = RoundedCornerShape(16.dp)
-    )
-}
+            },
+            text = {
+                Text(
+                    text = if (isPermanentlyDenied)
+                        "Has desactivado las notificaciones de forma permanente. Para continuar, debes activarlas manualmente en los ajustes de la aplicación."
+                        else "Para poder enviarte el código de seguridad por notificación, es obligatorio que aceptes este permiso.",
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Black
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPermissionErrorDialog = false
+                    isNavigating = false
 
-val isButtonEnabled = viewModel.canContinue()
-val sheetState = rememberModalBottomSheetState()
+                    if (isPermanentlyDenied) {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        }
+                        context.startActivity(intent)
+                    } else {
+                        scope.launch {
+                            delay(100)
+                            requestPermissionThenNavigate()
+                        }
+                    }
+                }) {
+                    Text(
+                        text = if (isPermanentlyDenied) "IR A AJUSTES" else "OK",
+                        color = GreenDarkIberdrola,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showPermissionErrorDialog = false
+                    if (!isNavigating) {
+                        isNavigating = true
+                        onBack()
+                    }
+                }) {
+                    Text("VOLVER", color = Color.Gray, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    val isButtonEnabled = viewModel.canContinue()
+    val sheetState = rememberModalBottomSheetState()
 
 LaunchedEffect(Unit) {
     viewModel.logAnalytics(
@@ -160,10 +297,7 @@ LaunchedEffect(Unit) {
 }
     if (state.showNoPhoneDialog) {
         SecurityPhoneDialog(state, viewModel, {
-            if (!isNavigating) {
-                isNavigating = true
-                onNext()
-            }
+            requestPermissionThenNavigate()
         })
     }
 
@@ -178,10 +312,9 @@ LaunchedEffect(Unit) {
         onBack = handleBackAction,
         onClose = handleClose,
         onNext = {
-            viewModel.onContinueClick {
-                if (!isNavigating) {
-                    isNavigating = true
-                    onNext()
+            if (isInteractionEnabled && isButtonEnabled) {
+                viewModel.onContinueClick {
+                    requestPermissionThenNavigate()
                 }
             }
         },
@@ -192,11 +325,11 @@ LaunchedEffect(Unit) {
     ElectronicInvoiceDetailFormContent(
         state = state,
         events = events,
-        isButtonEnabled = isButtonEnabled,
+        isButtonEnabled = isButtonEnabled && isInteractionEnabled,
+        isInteractionEnabled = isInteractionEnabled,
         sheetState = sheetState
     )
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -204,8 +337,12 @@ fun ElectronicInvoiceDetailFormContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
     isButtonEnabled: Boolean,
+    isInteractionEnabled: Boolean = true,
     sheetState: SheetState
 ) {
+    val focusManager = LocalFocusManager.current
+    val haptic = LocalHapticFeedback.current
+
     val emailParaOfuscar = when {
         state.userProfile.email.isNotEmpty() -> state.userProfile.email
         !state.selectedContract?.email.isNullOrEmpty() -> state.selectedContract.email
@@ -243,7 +380,8 @@ fun ElectronicInvoiceDetailFormContent(
             ElectronicInvoiceBottomBar(
                 onBack = events.onBack,
                 onNext = events.onNext,
-                isNextEnabled = isButtonEnabled
+                isNextEnabled = isButtonEnabled,
+                isBackEnabled = isInteractionEnabled
             )
         }
     ) { padding ->
@@ -275,6 +413,8 @@ fun ElectronicInvoiceDetailFormContent(
             Spacer(modifier = Modifier.height(32.dp))
 
             AnimateElectronicFormItem(index = 1) {
+                Column{
+                    Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, color = Color.Black)
                 Column {
                     Text(
                         stringResource(R.string.form_email_question),
@@ -283,30 +423,31 @@ fun ElectronicInvoiceDetailFormContent(
                         color = Color.Black
                     )
 
-                    TextField(
+                    val isEmailValid = EmailUtils.isValidEmail(state.emailInput)
+                    IberdrolaTextField(
                         value = state.emailInput,
                         onValueChange = events.onEmailChange,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        textStyle = TextStyle(color = Color.Black, fontSize = 14.sp),
-                        placeholder = {
-                            Text(
-                                stringResource(R.string.form_email_placeholder),
-                                fontSize = 14.sp,
-                                color = Color.Gray
-                            )
-                        },
-                        colors = TextFieldDefaults.colors(
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black,
-                            unfocusedContainerColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.LightGray,
-                            focusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = GreenDarkIberdrola,
-                            cursorColor = GreenDarkIberdrola
+                        label = stringResource(R.string.form_email_placeholder),
+                        modifier = Modifier.padding(top = 8.dp),
+                        enabled = isInteractionEnabled,
+                        isError = state.emailInput.isNotEmpty() && !isEmailValid,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Done
                         ),
-                        singleLine = true
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        ),
+                        supportingText = {
+                            if (state.emailInput.isNotEmpty()) {
+                                Text(
+                                    text = "Formato: ejemplo@dominio.ext",
+                                    fontSize = 12.sp,
+                                    color = if (isEmailValid) Color.Gray else Color.Red,
+                                    fontFamily = IberPangeaFamily
+                                )
+                            }
+                        }
                     )
                 }
             }
@@ -326,19 +467,28 @@ fun ElectronicInvoiceDetailFormContent(
                         append(stringResource(R.string.form_legal_responsable))
                         append(" ")
                         appendLink(moreInfo) {
-                            events.onShowLegal(legalTitleResp, legalContentResp)
+                            if (isInteractionEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onShowLegal(legalTitleResp, legalContentResp)
+                            }
                         }
 
                         append(stringResource(R.string.form_legal_finalidad))
                         append(" ")
                         appendLink(moreInfo) {
-                            events.onShowLegal(legalTitleFin, legalContentFin)
+                            if (isInteractionEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onShowLegal(legalTitleFin, legalContentFin)
+                            }
                         }
 
                         append(stringResource(R.string.form_legal_derechos))
                         append(" ")
                         appendLink(moreInfo) {
-                            events.onShowLegal(legalTitleDer, legalContentDer)
+                            if (isInteractionEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onShowLegal(legalTitleDer, legalContentDer)
+                            }
                         }
                     }
 
@@ -360,11 +510,17 @@ fun ElectronicInvoiceDetailFormContent(
                         append(stringResource(R.string.form_checkbox_prefix))
                         append(" ")
                         appendLink(stringResource(R.string.form_condiciones_generales)) {
-                            events.onShowLegal(legalTitleGen, legalContentGen)
+                            if (isInteractionEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onShowLegal(legalTitleGen, legalContentGen)
+                            }
                         }
                         append(" ")
                         appendLink(stringResource(R.string.form_condiciones_particulares)) {
-                            events.onShowLegal(legalTitlePart, legalContentPart)
+                            if (isInteractionEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onShowLegal(legalTitlePart, legalContentPart)
+                            }
                         }
                         append(" ")
                         append(stringResource(R.string.form_checkbox_suffix))
@@ -378,7 +534,13 @@ fun ElectronicInvoiceDetailFormContent(
                     ) {
                         Checkbox(
                             checked = state.isLegalAccepted,
-                            onCheckedChange = { events.onLegalCheckChange(it) },
+                            onCheckedChange = {
+                                if (isInteractionEnabled) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    events.onLegalCheckChange(it)
+                                }
+                            },
+                            enabled = isInteractionEnabled,
                             colors = CheckboxDefaults.colors(
                                 checkedColor = GreenDarkIberdrola,
                                 uncheckedColor = GreenDarkIberdrola,

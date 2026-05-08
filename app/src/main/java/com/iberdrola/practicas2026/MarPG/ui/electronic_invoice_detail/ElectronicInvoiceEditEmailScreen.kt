@@ -1,5 +1,9 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
@@ -12,30 +16,45 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.app.ActivityCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.permissions.AppPermissions
+import com.iberdrola.practicas2026.MarPG.ui.components.IberdrolaTextField
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.SecurityPhoneDialog
@@ -43,7 +62,10 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Warnin
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
+import com.iberdrola.practicas2026.MarPG.ui.utils.rememberPermissionsLauncher
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun ElectronicInvoiceEditEmailScreen(
@@ -53,35 +75,106 @@ fun ElectronicInvoiceEditEmailScreen(
     onNext: () -> Unit
 ) {
     val state = viewModel.state
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val scope = rememberCoroutineScope()
+
     var showDiscardDialog by remember { mutableStateOf(false) }
-    var isNavigating by remember { mutableStateOf(true) }
+    var showPermissionErrorDialog by remember { mutableStateOf(false) }
+    var isPermanentlyDenied by remember { mutableStateOf(false) }
+    var isNavigating by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         delay(100)
         isNavigating = false
+        showPermissionErrorDialog = false
     }
 
+    val requestPermissionThenNavigate = rememberPermissionsLauncher(
+        permissions = listOf(AppPermissions.Notifications),
+        onAllGranted = {
+            if (!isNavigating) {
+                isNavigating = true
+                onNext()
+            }
+        },
+        onDenied = { deniedList ->
+            val rationale = activity?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(it, android.Manifest.permission.POST_NOTIFICATIONS)
+            } ?: true
+
+            isPermanentlyDenied = !rationale
+            showPermissionErrorDialog = true
+            isNavigating = false
+        }
+    )
+
+    val isInteractionEnabled = !isNavigating && !state.isLoading && !state.showNoAttemptsDialog && !state.showNoPhoneDialog && !state.showSameEmailWarning && !showDiscardDialog && !showPermissionErrorDialog
+
     val handleBackAction = {
-        val hasChanges = state.emailInput != (state.selectedContract?.email ?: "")
-        if (hasChanges) {
-            showDiscardDialog = true
-        } else if (!isNavigating) {
-            isNavigating = true
-            onBack()
+        if (isInteractionEnabled) {
+            val hasChanges = state.emailInput != (state.selectedContract?.email ?: "")
+            if (hasChanges) {
+                showDiscardDialog = true
+            } else {
+                isNavigating = true
+                onBack()
+            }
         }
     }
 
     val handleClose = {
-        val hasChanges = state.emailInput != (state.selectedContract?.email ?: "")
-        if (hasChanges) {
-            showDiscardDialog = true
-        } else if (!isNavigating) {
-            isNavigating = true
-            onCloseToHome()
+        if (isInteractionEnabled) {
+            val hasChanges = state.emailInput != (state.selectedContract?.email ?: "")
+            if (hasChanges) {
+                showDiscardDialog = true
+            } else {
+                isNavigating = true
+                onCloseToHome()
+            }
         }
     }
 
-    BackHandler(enabled = !showDiscardDialog) { handleBackAction() }
+    BackHandler(enabled = !showDiscardDialog && !state.showNoAttemptsDialog && !state.showNoPhoneDialog && !state.showSameEmailWarning) {
+        handleBackAction()
+    }
+
+    if (state.showNoAttemptsDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.closeNoAttemptsDialog() },
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Warning,
+                    contentDescription = null,
+                    tint = Color.Red,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.warning_same_email_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color.Black
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.otp_no_attempts_left),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.closeNoAttemptsDialog() }) {
+                    Text(stringResource(R.string.common_ok), color = GreenDarkIberdrola, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     if (showDiscardDialog) {
         AlertDialog(
@@ -91,6 +184,7 @@ fun ElectronicInvoiceEditEmailScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showDiscardDialog = false
+                    isNavigating = true
                     onCloseToHome()
                 }) {
                     Text(stringResource(R.string.profile_discard_button), color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
@@ -106,12 +200,78 @@ fun ElectronicInvoiceEditEmailScreen(
         )
     }
 
-    if (state.showSameEmailWarning) {
-        WarningSameEmailDialog(viewModel = viewModel)
+    if (showPermissionErrorDialog) {
+        AlertDialog(
+            onDismissRequest = {  },
+            properties = DialogProperties(
+                dismissOnBackPress = false,
+                dismissOnClickOutside = false
+            ),
+            title = {
+                Text(
+                    text = if (isPermanentlyDenied) "Permiso Bloqueado" else "Permiso Necesario",
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = IberPangeaFamily,
+                    color = GreenDarkIberdrola
+                )
+            },
+            text = {
+                Text(
+                    text = if (isPermanentlyDenied)
+                        "Has desactivado las notificaciones de forma permanente. Para continuar, debes activarlas manualmente en los ajustes de la aplicación."
+                        else "Para poder enviarte el código de seguridad por notificación, es obligatorio que aceptes este permiso.",
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Black
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPermissionErrorDialog = false
+                    isNavigating = false
+
+                    if (isPermanentlyDenied) {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        }
+                        context.startActivity(intent)
+                    } else {
+                        scope.launch {
+                            delay(100)
+                            requestPermissionThenNavigate()
+                        }
+                    }
+                }) {
+                    Text(
+                        text = if (isPermanentlyDenied) "IR A AJUSTES" else "OK",
+                        color = GreenDarkIberdrola,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showPermissionErrorDialog = false
+                    if (!isNavigating) {
+                        isNavigating = true
+                        onBack()
+                    }
+                }) {
+                    Text("VOLVER", color = Color.Gray, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 
     if (state.showNoPhoneDialog) {
-        SecurityPhoneDialog(state = state, viewModel = viewModel, onConfirm = onNext)
+        SecurityPhoneDialog(state, viewModel, {
+            requestPermissionThenNavigate()
+        })
+    }
+    
+    if (state.showSameEmailWarning) {
+        WarningSameEmailDialog(viewModel = viewModel)
     }
 
     val isButtonEnabled = viewModel.canContinue()
@@ -121,10 +281,9 @@ fun ElectronicInvoiceEditEmailScreen(
         onBack = handleBackAction,
         onClose = handleClose,
         onNext = {
-            viewModel.onContinueClick {
-                if (!isNavigating) {
-                    isNavigating = true
-                    onNext()
+            if (isInteractionEnabled && isButtonEnabled) {
+                viewModel.onContinueClick {
+                    requestPermissionThenNavigate()
                 }
             }
         }
@@ -137,7 +296,8 @@ fun ElectronicInvoiceEditEmailScreen(
     ElectronicInvoiceEditEmailContent(
         state = state,
         events = events,
-        isButtonEnabled = isButtonEnabled,
+        isButtonEnabled = isButtonEnabled && isInteractionEnabled,
+        isInteractionEnabled = isInteractionEnabled
     )
 }
 
@@ -146,7 +306,11 @@ fun ElectronicInvoiceEditEmailContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
     isButtonEnabled: Boolean = false,
+    isInteractionEnabled: Boolean = true
 ) {
+    val focusManager = LocalFocusManager.current
+    val haptic = LocalHapticFeedback.current
+
     Scaffold(
         containerColor = WhiteApp,
         topBar = {
@@ -161,6 +325,14 @@ fun ElectronicInvoiceEditEmailContent(
                 onBack = events.onBack,
                 onNext = events.onNext,
                 isNextEnabled = isButtonEnabled,
+                onNext = {
+                    if (isButtonEnabled) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        events.onNext()
+                    }
+                },
+                isNextEnabled = isButtonEnabled,
+                isBackEnabled = isInteractionEnabled
             )
         }
     ) { padding ->
@@ -185,30 +357,38 @@ fun ElectronicInvoiceEditEmailContent(
             }
 
             AnimateEditEmailItem(index = 1) {
-                TextField(
+                val isEmailValid = EmailUtils.isValidEmail(state.emailInput)
+                IberdrolaTextField(
                     value = state.emailInput,
                     onValueChange = events.onEmailChange,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    textStyle = TextStyle(
-                        color = Color.Black,
-                        fontSize = 14.sp,
-                        fontFamily = IberPangeaFamily
+                    label = stringResource(R.string.edit_email_placeholder),
+                    modifier = Modifier.padding(top = 16.dp),
+                    enabled = isInteractionEnabled,
+                    isError = state.emailInput.isNotEmpty() && !isEmailValid,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Done
                     ),
-                    placeholder = {
-                        Text(stringResource(R.string.edit_email_placeholder), fontSize = 14.sp, color = Color.Gray, fontFamily = IberPangeaFamily)
-                    },
-                    colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.LightGray,
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Gray,
-                        focusedIndicatorColor = GreenDarkIberdrola,
-                        cursorColor = GreenDarkIberdrola
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            if (isButtonEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                events.onNext()
+                            } else {
+                                focusManager.clearFocus()
+                            }
+                        }
                     ),
-                    singleLine = true
+                    supportingText = {
+                        if (state.emailInput.isNotEmpty()) {
+                            Text(
+                                text = "Formato: ejemplo@dominio.ext",
+                                fontSize = 12.sp,
+                                color = if (isEmailValid) Color.Gray else Color.Red,
+                                fontFamily = IberPangeaFamily
+                            )
+                        }
+                    }
                 )
             }
         }
@@ -246,6 +426,7 @@ fun ElectronicInvoiceEditEmailPreview() {
         ElectronicInvoiceEditEmailContent(
             state = ElectronicInvoiceState(emailInput = ""),
             events = ElectronicInvoiceEvents(),
+            isButtonEnabled = false
         )
     }
 }

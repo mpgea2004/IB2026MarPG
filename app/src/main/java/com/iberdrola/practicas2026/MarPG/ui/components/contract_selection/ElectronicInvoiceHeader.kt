@@ -66,7 +66,7 @@ fun ElectronicInvoiceHeader(
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF222222),
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp),
             fontFamily = IberPangeaFamily
         )
 

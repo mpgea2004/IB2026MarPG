@@ -25,7 +25,9 @@ data class ElectronicInvoiceState(
     val selectedLegalContent: String? = null,
     val showLegalSheet: Boolean = false,
 
-    val resendAttempts: Int = 2,
+    val resendAttempts: Int = 3,
+    val lastResendTimestamp: Long = 0L,
+    val remainingTime: String = "",
 
     val userProfile: ProfileState = ProfileState(),
 
@@ -42,8 +44,12 @@ data class ElectronicInvoiceState(
     val showDeactivationConfirmDialog: Boolean = false,
     val showSimulatedNotification: Boolean = false,
     val simulatedNotificationMessage: String = "",
-    val simulatedOtpCode: String = ""
+    val simulatedOtpCode: String = "",
+    
+    val showNoAttemptsDialog: Boolean = false,
+    val isNavigating: Boolean = false
 )
+
 enum class ElectronicInvoiceStep {
     SELECTION, FORM, VERIFICATION, SUCCESS
 }

@@ -3,11 +3,13 @@ package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
+import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.FormatUserPhoneUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateElectronicInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateUserPhoneUseCase
@@ -16,9 +18,10 @@ import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.VerifyUserPas
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
-import kotlin.random.Random
 
 @HiltViewModel
 class ElectronicInvoiceViewModel @Inject constructor(
@@ -39,9 +42,15 @@ class ElectronicInvoiceViewModel @Inject constructor(
     private var hasAcknowledgedSameEmail = false
     private var currentSimulationId = 0L
 
+    companion object {
+        private const val TWENTY_FOUR_HOURS_MS = 86400000L
+        private const val MAX_RESEND_ATTEMPTS = 3
+    }
+
     init {
         observeUserProfile()
         logAnalytics("view_efactura_flow_start")
+        observeOtpAttempts()
     }
 
     private fun observeUserProfile() {
@@ -53,6 +62,51 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
                 if (state.emailInput.isEmpty() && profile.email.isNotEmpty()) {
                     state = state.copy(emailInput = profile.email)
+                }
+            }
+        }
+    }
+
+    private fun observeOtpAttempts() {
+        viewModelScope.launch {
+            snapshotFlow { state.selectedContract?.type }.collectLatest { type ->
+                if (type == null) {
+                    state = state.copy(resendAttempts = MAX_RESEND_ATTEMPTS, lastResendTimestamp = 0L, remainingTime = "")
+                } else {
+                    userPrefs.getOtpResendDataFlow(type).collectLatest { (attempts, timestamp) ->
+                        while (true) {
+                            val currentTime = System.currentTimeMillis()
+                            val timeElapsed = currentTime - timestamp
+                            val isExpired = timestamp != 0L && (timeElapsed > TWENTY_FOUR_HOURS_MS)
+
+                            val finalAttempts = if (isExpired) MAX_RESEND_ATTEMPTS else attempts
+                            val finalTimestamp = if (isExpired) 0L else timestamp
+
+                            val timeRemainingMs = (finalTimestamp + TWENTY_FOUR_HOURS_MS) - currentTime
+
+                            val formattedTime = if (finalTimestamp != 0L && finalAttempts <= 0 && timeRemainingMs > 0) {
+                                val totalSeconds = timeRemainingMs / 1000
+                                val hours = totalSeconds / 3600
+                                val minutes = (totalSeconds % 3600) / 60
+                                val seconds = totalSeconds % 60
+                                if (hours > 0) {
+                                    String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
+                                } else {
+                                    String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+                                }
+                            } else ""
+
+                            state = state.copy(
+                                resendAttempts = finalAttempts,
+                                lastResendTimestamp = finalTimestamp,
+                                remainingTime = formattedTime
+                            )
+
+                            if (isExpired || finalAttempts > 0 || timestamp == 0L) break
+
+                            delay(1000L)
+                        }
+                    }
                 }
             }
         }
@@ -70,8 +124,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
             showSameEmailWarning = false,
             otpInput = "",
             showSimulatedNotification = false,
-            simulatedOtpCode = "",
-            resendAttempts = 2
+            simulatedOtpCode = ""
         )
         hasAcknowledgedSameEmail = false
         hasAcknowledgedSameEmail = false
@@ -84,7 +137,8 @@ class ElectronicInvoiceViewModel @Inject constructor(
     fun onEmailChanged(nuevoEmail: String) {
         state = state.copy(
             emailInput = nuevoEmail,
-            showSameEmailWarning = false
+            showSameEmailWarning = false,
+            error = null
         )
         hasAcknowledgedSameEmail = false
     }
@@ -109,6 +163,12 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun verifyOtpAndPerformUpdate() {
         if (state.otpInput == state.simulatedOtpCode) {
+            val type = state.selectedContract?.type
+            viewModelScope.launch {
+                if (type != null) {
+                    userPrefs.updateOtpResendData(type, MAX_RESEND_ATTEMPTS, 0L)
+                }
+            }
             performUpdate()
         } else {
             state = state.copy(error = R.string.error_incorrect_otp)
@@ -196,19 +256,27 @@ class ElectronicInvoiceViewModel @Inject constructor(
         val simulationId = currentSimulationId
 
         viewModelScope.launch {
+            val isFirstTime = state.simulatedOtpCode.isEmpty()
+
             state = state.copy(otpInput = "", showSimulatedNotification = false)
+            delay(1000)
+
+
+            if (!isFirstTime) {
+                delay(500)
+                if (simulationId == currentSimulationId) {
+                    state = state.copy(otpInput = state.simulatedOtpCode)
+                }
+                return@launch
+            }
+
             delay(1000)
 
             if (simulationId != currentSimulationId) return@launch
 
-            val simulatedCode = if (state.simulatedOtpCode.isNotEmpty()) {
-                state.simulatedOtpCode
-            } else {
-                val newCode = (100000..999999).random().toString()
-                state = state.copy(simulatedOtpCode = newCode)
-                newCode
-            }
-
+            val simulatedCode = (100000..999999).random().toString()
+            state = state.copy(simulatedOtpCode = simulatedCode)
+            
             state = state.copy(
                 showSimulatedNotification = true,
                 simulatedNotificationMessage = "Iberdrola: Su código es $simulatedCode. No lo comparta.",
@@ -231,11 +299,16 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
 
     fun onResendOtp() {
+        val type = state.selectedContract?.type ?: return
         if (state.resendAttempts > 0) {
             viewModelScope.launch {
                 currentSimulationId++
+                val newAttempts = state.resendAttempts - 1
+                val timestamp = System.currentTimeMillis()
+
+                userPrefs.updateOtpResendData(type, newAttempts, timestamp)
+
                 state = state.copy(
-                    resendAttempts = state.resendAttempts - 1,
                     isLoading = true,
                     showResendSuccess = false,
                     otpInput = "",
@@ -272,6 +345,19 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
 
     fun onContinueClick(onNavigateToOtp: () -> Unit) {
+        if (state.resendAttempts <= 0 && state.simulatedOtpCode.isEmpty()) {
+            state = state.copy(showNoAttemptsDialog = true)
+            return
+        }
+
+        if (!canContinue()) {
+            val email = state.emailInput.trim()
+            if (!emailPattern.matches(email)) {
+                state = state.copy(error = R.string.error_invalid_email_format)
+            }
+            return
+        }
+
         val isSameEmail = state.emailInput == state.selectedContract?.email
 
         if (isSameEmail && !hasAcknowledgedSameEmail) {
@@ -287,7 +373,6 @@ class ElectronicInvoiceViewModel @Inject constructor(
             state = state.copy(showSameEmailWarning = false)
             state = state.copy(
                 currentStep = ElectronicInvoiceStep.VERIFICATION,
-                otpInput = "",
                 showSameEmailWarning = false
             )
             onNavigateToOtp()
@@ -300,12 +385,12 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun onNewPhoneChanged(nuevoTelefono: String) {
         if (nuevoTelefono.all { it.isDigit() } && nuevoTelefono.length <= 9) {
-            state = state.copy(newPhoneInput = nuevoTelefono)
+            state = state.copy(newPhoneInput = nuevoTelefono, error = null)
         }
     }
 
     fun onPasswordChanged(nuevaPass: String) {
-        state = state.copy(passwordInput = nuevaPass)
+        state = state.copy(passwordInput = nuevaPass, error = null)
     }
 
     fun togglePasswordVisibility() {
@@ -390,7 +475,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
 
     fun onNewAddressChanged(newAddress: String) {
-        state = state.copy(newAddressInput = newAddress)
+        state = state.copy(newAddressInput = newAddress, error = null)
     }
 
     fun closeAddressDialog() {
@@ -403,6 +488,22 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun discardChanges() {
         state.selectedContract?.let { selectContract(it) }
+    }
+
+    fun onEditClick(onNavigate: () -> Unit) {
+        if (state.resendAttempts <= 0 && state.simulatedOtpCode.isEmpty()) {
+            state = state.copy(showNoAttemptsDialog = true)
+        } else {
+            onNavigate()
+        }
+    }
+
+    fun closeNoAttemptsDialog() {
+        state = state.copy(showNoAttemptsDialog = false)
+    }
+
+    fun onNavigateStarted() {
+        state = state.copy(isNavigating = true)
     }
 
     fun logSuccessScreen(isDeactivation: Boolean, isEditingEmail: Boolean, contractType: String) {
@@ -436,5 +537,9 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun logAnalytics(name: String, params: Map<String, Any?> = emptyMap()) {
         logAnalyticsUseCase(name, params)
+    }
+}
+    fun onNavigateFinished() {
+        state = state.copy(isNavigating = false)
     }
 }

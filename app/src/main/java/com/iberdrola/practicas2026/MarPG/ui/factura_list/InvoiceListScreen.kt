@@ -221,6 +221,8 @@ fun InvoiceListScreen(
         }
     }
 
+    val pagerState = rememberPagerState(pageCount = { 2 })
+
     LaunchedEffect(pagerState.currentPage) {
         viewModel.selectTab(pagerState.currentPage)
     }
@@ -280,8 +282,7 @@ fun InvoiceListScreen(
                 Text(
                     text = stringResource(R.string.invoice_list_refresh_filters_message),
                     fontFamily = IberPangeaFamily,
-                    color = Color.Black
-                )
+                    color = Color.Black)
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.confirmRefresh(keepFilters = true) }) {
@@ -350,6 +351,8 @@ fun InvoiceListScreen(
                 modifier = Modifier.fillMaxSize(),
                 userScrollEnabled = currentState !is InvoiceListState.LOADING && isGasEnabled
             ) { page ->
+                val listState = rememberLazyListState()
+
                 when (currentState) {
                     InvoiceListState.LOADING -> {
                         ShimmerInvoiceList(brush = shimmerBrush())
@@ -556,6 +559,8 @@ fun InvoiceListHeader(
 
             Text(stringResource(R.string.invoice_list_title), fontSize = 28.sp, fontWeight = FontWeight.Bold, fontFamily = IberPangeaFamily, color = Color.Black)
 
+            Spacer(modifier = Modifier.height(6.dp))
+
             val displayedAddress = address.ifEmpty { stringResource(R.string.profile_empty_address) }
             Text(
                 text = if (displayedAddress.length > 50) displayedAddress.take(50) + "..." else displayedAddress,
@@ -680,6 +685,7 @@ fun InvoiceListContent(
                                     tint = GreenIberdrola,
                                     modifier = Modifier
                                         .size(24.dp)
+                                        .clip(RoundedCornerShape(50))
                                         .combinedClickable(
                                             onClick = {  },
                                             onLongClick = {
@@ -1046,7 +1052,7 @@ fun LastInvoiceItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> U
                 Text(
                     text = invoice.amount.toAnnotatedCurrencyFormat(28.sp),
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(bottom = 8.dp, top = 12.dp),
                     fontFamily = IberPangeaFamily,
                     color = Color.Black
                 )
@@ -1054,7 +1060,7 @@ fun LastInvoiceItem(invoice: Invoice, isAmountVisible: Boolean, onClick: () -> U
                 Text(
                     text = getHiddenAmountAnnotatedString(28.sp),
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(bottom = 8.dp, top = 12.dp),
                     fontFamily = IberPangeaFamily,
                     color = Color.Black
                 )

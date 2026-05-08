@@ -104,7 +104,7 @@ private fun DateField(
         Icon(
             imageVector = Icons.Outlined.CalendarToday,
             contentDescription = null,
-            tint = Color.DarkGray,
+            tint = Color.DarkGray.copy(alpha = 0.7f),
             modifier = Modifier
                 .size(25.dp).padding(end = 4.dp)
                 .align(Alignment.CenterEnd)

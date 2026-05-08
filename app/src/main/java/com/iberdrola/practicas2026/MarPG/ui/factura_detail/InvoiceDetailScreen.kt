@@ -820,7 +820,6 @@ fun PdfViewerDialog(uri: android.net.Uri, onDismiss: () -> Unit) {
                     .background(WhiteApp)
                     .clickable(enabled = false) { } 
             ) {
-                // Cabecera Premium
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
