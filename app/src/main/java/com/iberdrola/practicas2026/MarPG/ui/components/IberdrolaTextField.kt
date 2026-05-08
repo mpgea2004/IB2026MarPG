@@ -38,6 +38,7 @@ fun IberdrolaTextField(
     isError: Boolean = false,
     trailingIcon: @Composable (() -> Unit)? = null,
     leadingIcon: @Composable (() -> Unit)? = null,
+    supportingText: @Composable (() -> Unit)? = null,
     required: Boolean = true
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -84,6 +85,7 @@ fun IberdrolaTextField(
                 },
                 trailingIcon = trailingIcon,
                 leadingIcon = leadingIcon,
+                supportingText = supportingText,
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,

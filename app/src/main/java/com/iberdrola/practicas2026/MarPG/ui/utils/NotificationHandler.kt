@@ -3,6 +3,8 @@ package com.iberdrola.practicas2026.MarPG.ui.utils
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.graphics.BitmapFactory
+import android.graphics.BitmapFactory.decodeResource
 import androidx.core.app.NotificationCompat
 import com.iberdrola.practicas2026.MarPG.R
 import kotlin.random.Random
@@ -31,10 +33,12 @@ class NotificationHandler(private val context: Context) {
     }
 
     fun showSimpleNotification(contentTitle: String, contentText: String) {
+        val bitmap = decodeResource(context.resources, R.drawable.iberdrola)
         val notification = NotificationCompat.Builder(context, notificationChannelID)
             .setContentTitle(contentTitle)
             .setContentText(contentText)
-            .setSmallIcon(R.drawable.iberdrola)
+            .setSmallIcon(R.drawable.ic_stat_name)
+            .setLargeIcon(bitmap)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()

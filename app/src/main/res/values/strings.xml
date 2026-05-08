@@ -199,7 +199,7 @@
     <string name="invoice_list_label_amount">Importe</string>
     <string name="invoice_list_label_states">Estados</string>
     <string name="invoice_list_refresh_filters_title">¿Mantener filtros?</string>
-    <string name="invoice_list_refresh_filters_message">Has aplicado filtros o una búsqueda. ¿Deseas mantenerlos al actualizar la lista?</string>
+    <string name="invoice_list_refresh_filters_message">Has aplicado filtros o una búsqueda. ¿Deseas mantenerlos al actualizar la lista? Aún así se perderán los filtros que no sean compatibles.</string>
     <string name="invoice_list_refresh_filters_keep">Mantener</string>
     <string name="invoice_list_refresh_filters_clear">Limpiar</string>
 
@@ -339,6 +339,5 @@
     <string name="profile_security_dialog_text">Introduce tu contraseña actual para realizar cambios en el perfil.</string>
     <string name="profile_saving_changes">Guardando cambios...</string>
     <string name="profile_not_configured">No configurado</string>
-    <string name="invoice_list_refresh_filters_submessage">Aún así se perderán los filtros que no sean compatibles.</string>
 
 </resources>

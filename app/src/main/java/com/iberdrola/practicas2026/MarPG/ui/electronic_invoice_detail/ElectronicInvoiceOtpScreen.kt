@@ -122,7 +122,7 @@ fun ElectronicInvoiceOtpScreen(
         if (state.showSimulatedNotification && state.simulatedOtpCode.isNotEmpty()) {
             notificationHandler.showSimpleNotification(
                 contentTitle = "Código de seguridad Iberdrola",
-                contentText = "Tu código para la factura de ${state.selectedContract?.type} es: ${state.simulatedOtpCode}"
+                contentText = "Tu código para la factura electrónica de ${state.selectedContract?.type} es: ${state.simulatedOtpCode}"
             )
         }
     }

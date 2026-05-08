@@ -241,13 +241,7 @@ fun InvoiceListScreen(
                 Text(
                     text = stringResource(R.string.invoice_list_refresh_filters_message),
                     fontFamily = IberPangeaFamily,
-                    color = Color.Black
-                )
-                Text(
-                    text = stringResource(R.string.invoice_list_refresh_filters_submessage),
-                    fontFamily = IberPangeaFamily,
-                    color = Color.Gray
-                )
+                    color = Color.Black)
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.confirmRefresh(keepFilters = true) }) {
@@ -644,6 +638,7 @@ fun InvoiceListContent(
                                     tint = GreenIberdrola,
                                     modifier = Modifier
                                         .size(24.dp)
+                                        .clip(RoundedCornerShape(50))
                                         .combinedClickable(
                                             onClick = {  },
                                             onLongClick = {

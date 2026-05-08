@@ -399,19 +399,31 @@ fun ElectronicInvoiceDetailFormContent(
                 Column{
                     Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, color = Color.Black)
 
+                    val isEmailValid = EmailUtils.isValidEmail(state.emailInput)
                     IberdrolaTextField(
                         value = state.emailInput,
                         onValueChange = events.onEmailChange,
                         label = stringResource(R.string.form_email_placeholder),
                         modifier = Modifier.padding(top = 8.dp),
                         enabled = isInteractionEnabled,
+                        isError = state.emailInput.isNotEmpty() && !isEmailValid,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Done
                         ),
                         keyboardActions = KeyboardActions(
                             onDone = { focusManager.clearFocus() }
-                        )
+                        ),
+                        supportingText = {
+                            if (state.emailInput.isNotEmpty()) {
+                                Text(
+                                    text = "Formato: ejemplo@dominio.ext",
+                                    fontSize = 12.sp,
+                                    color = if (isEmailValid) Color.Gray else Color.Red,
+                                    fontFamily = IberPangeaFamily
+                                )
+                            }
+                        }
                     )
                 }
             }

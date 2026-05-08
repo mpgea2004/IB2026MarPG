@@ -61,6 +61,7 @@ import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.Warnin
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import com.iberdrola.practicas2026.MarPG.ui.utils.EmailUtils
 import com.iberdrola.practicas2026.MarPG.ui.utils.rememberPermissionsLauncher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -228,13 +229,11 @@ fun ElectronicInvoiceEditEmailScreen(
                     isNavigating = false
                     
                     if (isPermanentlyDenied) {
-                        // Abrir ajustes de la app
                         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                             data = Uri.fromParts("package", context.packageName, null)
                         }
                         context.startActivity(intent)
                     } else {
-                        // Pequeño delay para asegurar que el diálogo se cierre antes de pedir el permiso de nuevo
                         scope.launch {
                             delay(100)
                             requestPermissionThenNavigate()
@@ -350,12 +349,14 @@ fun ElectronicInvoiceEditEmailContent(
             }
 
             AnimateEditEmailItem(index = 1) {
+                val isEmailValid = EmailUtils.isValidEmail(state.emailInput)
                 IberdrolaTextField(
                     value = state.emailInput,
                     onValueChange = events.onEmailChange,
                     label = stringResource(R.string.edit_email_placeholder),
                     modifier = Modifier.padding(top = 16.dp),
                     enabled = isInteractionEnabled,
+                    isError = state.emailInput.isNotEmpty() && !isEmailValid,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Done
@@ -370,6 +371,16 @@ fun ElectronicInvoiceEditEmailContent(
                             }
                         }
                     ),
+                    supportingText = {
+                        if (state.emailInput.isNotEmpty()) {
+                            Text(
+                                text = "Formato: ejemplo@dominio.ext",
+                                fontSize = 12.sp,
+                                color = if (isEmailValid) Color.Gray else Color.Red,
+                                fontFamily = IberPangeaFamily
+                            )
+                        }
+                    }
                 )
             }
         }
