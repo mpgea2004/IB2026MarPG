@@ -555,7 +555,7 @@ fun ProfileScreen(
                                         .fillMaxWidth()
                                         .padding(horizontal = 24.dp, vertical = 20.dp)
                                         .height(56.dp),
-                                    enabled = !state.isVerifying && !state.showLogoutDialog,
+                                    enabled = !state.isVerifying && !state.showLogoutDialog && !state.isLogoutClicked,
                                     shape = RoundedCornerShape(28.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = GreenIberdrola,

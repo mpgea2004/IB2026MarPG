@@ -200,11 +200,16 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onLogoutClick() {
-        state = state.copy(showLogoutDialog = true)
+        state = state.copy(
+            showLogoutDialog = true,
+            isLogoutClicked = true
+        )
     }
 
     fun onDismissLogoutDialog() {
-        state = state.copy(showLogoutDialog = false)
+        state = state.copy(
+            showLogoutDialog = false,
+            isLogoutClicked = false)
     }
 
     fun logout(onSuccess: () -> Unit) {
