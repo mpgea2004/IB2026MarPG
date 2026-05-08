@@ -25,5 +25,6 @@ data class ProfileState(
     val showSecurityDialog: Boolean = false,
     val securityPasswordInput: String = "",
     @StringRes val securityPasswordError: Int? = null,
-    val isSecurityPasswordVisible: Boolean = false
+    val isSecurityPasswordVisible: Boolean = false,
+    val isEditClicked: Boolean = false
 )

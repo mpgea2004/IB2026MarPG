@@ -434,7 +434,7 @@ fun ProfileScreen(
                     }
 
                     val isLoggedIn = state.name.isNotEmpty() || state.email.isNotEmpty() || state.password.isNotEmpty()
-                    val canLogout = isLoggedIn && state.isSaved
+                    val canLogout = isLoggedIn && state.isSaved && !state.isEditMode && !state.isEditClicked
 
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
@@ -458,9 +458,9 @@ fun ProfileScreen(
                                 .size(48.dp)
                                 .clip(CircleShape)
                                 .combinedClickable(
-                                    onClick = { if (canLogout) events.onLogout() },
+                                    onClick = { if (canLogout && !state.isEditMode) events.onLogout() },
                                     onLongClick = {
-                                        if (canLogout) {
+                                        if (canLogout && !state.isEditMode) {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             scope.launch { logoutTooltipState.show() }
                                         }
@@ -555,7 +555,7 @@ fun ProfileScreen(
                                         .fillMaxWidth()
                                         .padding(horizontal = 24.dp, vertical = 20.dp)
                                         .height(56.dp),
-                                    enabled = !state.isVerifying,
+                                    enabled = !state.isVerifying && !state.showLogoutDialog,
                                     shape = RoundedCornerShape(28.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = GreenIberdrola,

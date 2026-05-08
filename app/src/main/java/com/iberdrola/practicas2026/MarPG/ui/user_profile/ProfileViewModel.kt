@@ -44,6 +44,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onEditClick() {
+        state = state.copy(isEditClicked = true)
         if (state.password.isNotEmpty()) {
             state = state.copy(
                 showSecurityDialog = true,
@@ -74,7 +75,8 @@ class ProfileViewModel @Inject constructor(
                 state = state.copy(
                     isVerifying = false,
                     isEditMode = true,
-                    securityPasswordInput = ""
+                    securityPasswordInput = "",
+                    isEditClicked = false
                 )
             }
         } else {
@@ -83,11 +85,17 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onSecurityDismiss() {
-        state = state.copy(showSecurityDialog = false, securityPasswordInput = "", securityPasswordError = null)
+        state = state.copy(
+            showSecurityDialog = false,
+            securityPasswordInput = "",
+            securityPasswordError = null,
+            isEditClicked = false
+        )
     }
 
     fun onDiscardClick() {
         loadSavedProfile()
+        state = state.copy(isEditClicked = false)
     }
 
     fun onNameChange(newName: String) {
