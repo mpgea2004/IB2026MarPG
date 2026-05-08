@@ -287,7 +287,7 @@
     <string name="pdf_label_id">ID de Factura:</string>
     <string name="pdf_label_issue_date">Fecha de emisión:</string>
     <string name="pdf_label_period">Periodo facturado:</string>
-    <string name="pdf_label_status">Estado actual:</string>
+    <string name="pdf_label_status">Grupo estado:</string>
     <string name="pdf_total_label">TOTAL FACTURA</string>
     <string name="pdf_footer_legal">Iberdrola Clientes S.A.U. - Este documento es una representación gráfica de su factura.</string>
     <string name="pdf_footer_eco">Gracias por contribuir al medio ambiente con la factura digital.</string>
