@@ -303,6 +303,11 @@
     <string name="consumption_tip_message">Ajustar la temperatura de tu hogar 1°C puede suponer un ahorro del 7% en tu factura.</string>
     <string name="consumption_empty_title">Sin datos de consumo</string>
     <string name="consumption_empty_message">No hemos encontrado facturas históricas para este tipo de suministro.</string>
+    <string name="consumption_comparison_more">Has gastado un %1$s%% más que en tu factura anterior.</string>
+    <string name="consumption_comparison_less">Has gastado un %1$s%% menos que en tu factura anterior.</string>
+    <string name="consumption_first_invoice_light">Esta es tu primera factura de Luz. ¡Bienvenido!</string>
+    <string name="consumption_first_invoice_gas">Esta es tu primera factura de Gas. ¡Bienvenido!</string>
+    <string name="consumption_no_data">Sin datos disponibles</string>
 
     <!-- FAQ -->
     <string name="faq_title">Preguntas Frecuentes</string>
@@ -313,6 +318,9 @@
     <!-- OTP -->
     <string name="otp_notification_header">IBERDROLA</string>
     <string name="otp_notification_time">ahora</string>
+    <string name="otp_notification_message">Iberdrola: Su código es %1$s. No lo comparta.</string>
+    <string name="otp_simulated_notification_title">Código de seguridad Iberdrola</string>
+    <string name="otp_simulated_notification_message">Tu código para la factura electrónica de %1$s es: %2$s</string>
 
     <!-- FAQ Items -->
     <string name="faq_q1">¿Cómo puedo ver mis facturas?</string>
@@ -341,5 +349,18 @@
     <string name="profile_not_configured">No configurado</string>
 
     <string name="feedback_thanks_subtitle">Tu valoración nos ayuda a mejorar cada día.</string>
+
+    <string name="price_range_decimals_title">Ajuste de céntimos (mín. 0.10€ de diferencia)</string>
+
+    <!-- Permissions -->
+    <string name="permission_blocked_title">Permiso Bloqueado</string>
+    <string name="permission_needed_title">Permiso Necesario</string>
+    <string name="permission_blocked_desc">Has desactivado las notificaciones de forma permanente. Para continuar, debes activarlas manualmente en los ajustes de la aplicación.</string>
+    <string name="permission_needed_desc">Para poder enviarte el código de seguridad por notificación, es obligatorio que aceptes este permiso.</string>
+    <string name="permission_go_to_settings">IR A AJUSTES</string>
+    <string name="permission_back">VOLVER</string>
+
+    <!-- Form -->
+    <string name="form_email_format_hint">Formato: ejemplo@dominio.ext</string>
 
 </resources>

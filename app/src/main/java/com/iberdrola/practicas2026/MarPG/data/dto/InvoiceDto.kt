@@ -2,10 +2,6 @@ package com.iberdrola.practicas2026.MarPG.data.dto
 
 import com.google.gson.annotations.SerializedName
 
-/**
- * DTO para la deserialización de facturas desde la API o archivo local
- * Representa la estructura de datos cruda recibida de la fuente externa
- */
 data class InvoiceDto(
     @SerializedName("id") val id: String,
     @SerializedName("contractType") val contractType: String, // Tipo de contrato (Luz/Gas)

@@ -7,14 +7,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-/**
- * Interfaz de Retrofit para el acceso a servicios externos (Mockoon)
- */
 interface InvoiceApiServer {
-    /**
-     * Obtiene la lista de facturas desde el servidor.
-     * Soporta parámetros de consulta para activar las diferentes respuestas de Mockoon.
-     */
     @GET("invoices")
     suspend fun getInvoices(
 

@@ -280,10 +280,9 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
             val simulatedCode = (100000..999999).random().toString()
             state = state.copy(simulatedOtpCode = simulatedCode)
-            
+
             state = state.copy(
                 showSimulatedNotification = true,
-                simulatedNotificationMessage = "Iberdrola: Su código es $simulatedCode. No lo comparta.",
             )
 
             delay(2000)
@@ -467,6 +466,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 state = state.copy(isLoading = true, error = null)
+
                 delay(1000)
 
                 val isPasswordCorrect = verifyUserPasswordUseCase(state.passwordInput)

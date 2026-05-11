@@ -7,10 +7,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.iberdrola.practicas2026.MarPG.data.local.entities.InvoiceEntity
 import kotlinx.coroutines.flow.Flow
-
-/**
- * Interfaz de acceso a datos (DAO) para la entidad [InvoiceEntity]
- */
 @Dao
 interface InvoiceDao {
     @Query("SELECT * FROM invoices")

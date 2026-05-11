@@ -60,7 +60,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
-import com.iberdrola.practicas2026.MarPG.ui.theme.*
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
+import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
+import com.iberdrola.practicas2026.MarPG.ui.utils.UiText
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
@@ -218,7 +222,7 @@ fun ConsumptionDashboardContent(
                                 Spacer(modifier = Modifier.height(24.dp))
                                 AnimateConsumptionItem(index = 2) {
                                     ComparisonCard(
-                                        message = state.comparisonMessage,
+                                        message = state.comparisonMessage.asString(),
                                         isPositive = state.isPositiveTrend
                                     )
                                 }
@@ -536,7 +540,7 @@ fun ConsumptionDashboardPreview() {
                 isLoading = false,
                 selectedType = ContractType.LUZ,
                 chartData = listOf("Ene" to 50.0, "Feb" to 45.0, "Mar" to 60.0),
-                comparisonMessage = "Has gastado un 10% menos que el mes pasado",
+                comparisonMessage = UiText.DynamicString("Has gastado un 10% menos que el mes pasado"),
                 isPositiveTrend = true
             ),
             events = ConsumptionDashboardEvents(

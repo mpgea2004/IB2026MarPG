@@ -13,9 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 
@@ -42,7 +44,7 @@ fun LoadingScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Cargando...",
+                text = stringResource(R.string.invoice_detail_loading),
                 color = Color.Gray,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium

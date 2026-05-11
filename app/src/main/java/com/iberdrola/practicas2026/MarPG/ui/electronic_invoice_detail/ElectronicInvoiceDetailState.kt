@@ -3,6 +3,7 @@ package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 import androidx.annotation.StringRes
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileState
+import com.iberdrola.practicas2026.MarPG.ui.utils.UiText
 
 data class ElectronicInvoiceState(
     val selectedContract: ElectronicInvoice? = null,
@@ -44,7 +45,7 @@ data class ElectronicInvoiceState(
     val newAddressInput: String = "",
     val showDeactivationConfirmDialog: Boolean = false,
     val showSimulatedNotification: Boolean = false,
-    val simulatedNotificationMessage: String = "",
+    val simulatedNotificationMessage: UiText = UiText.DynamicString(""),
     val simulatedOtpCode: String = "",
     
     val showNoAttemptsDialog: Boolean = false,

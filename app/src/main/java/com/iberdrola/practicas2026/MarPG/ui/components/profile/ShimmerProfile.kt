@@ -102,7 +102,6 @@ fun ShimmerProfile(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    // Items (Nombre, Email, Teléfono, Dirección)
                     repeat(4) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),

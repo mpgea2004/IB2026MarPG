@@ -233,7 +233,7 @@ fun ElectronicInvoiceDetailFormScreen(
             ),
             title = {
                 Text(
-                    text = if (isPermanentlyDenied) "Permiso Bloqueado" else "Permiso Necesario",
+                    text = stringResource(if (isPermanentlyDenied) R.string.permission_blocked_title else R.string.permission_needed_title),
                     fontWeight = FontWeight.Bold,
                     fontFamily = IberPangeaFamily,
                     color = GreenDarkIberdrola
@@ -241,9 +241,7 @@ fun ElectronicInvoiceDetailFormScreen(
             },
             text = {
                 Text(
-                    text = if (isPermanentlyDenied)
-                        "Has desactivado las notificaciones de forma permanente. Para continuar, debes activarlas manualmente en los ajustes de la aplicación."
-                        else "Para poder enviarte el código de seguridad por notificación, es obligatorio que aceptes este permiso.",
+                    text = stringResource(if (isPermanentlyDenied) R.string.permission_blocked_desc else R.string.permission_needed_desc),
                     fontFamily = IberPangeaFamily,
                     color = Color.Black
                 )
@@ -266,7 +264,7 @@ fun ElectronicInvoiceDetailFormScreen(
                     }
                 }) {
                     Text(
-                        text = if (isPermanentlyDenied) "IR A AJUSTES" else "OK",
+                        text = if (isPermanentlyDenied) stringResource(R.string.permission_go_to_settings) else stringResource(R.string.common_ok),
                         color = GreenDarkIberdrola,
                         fontWeight = FontWeight.Bold
                     )
@@ -280,7 +278,7 @@ fun ElectronicInvoiceDetailFormScreen(
                         onBack()
                     }
                 }) {
-                    Text("VOLVER", color = Color.Gray, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.permission_back), color = Color.Gray, fontWeight = FontWeight.Bold)
                 }
             },
             containerColor = WhiteApp,
@@ -317,7 +315,7 @@ fun ElectronicInvoiceDetailFormScreen(
         onDismissLegal = { viewModel.onDismissLegalSheet() }
     )
 
-    ElectronicInvoiceDetailFormContent(
+    ElectronicInvoiceDetailFormScreenContent(
         state = state,
         events = events,
         isButtonEnabled = isButtonEnabled && isInteractionEnabled,
@@ -328,7 +326,7 @@ fun ElectronicInvoiceDetailFormScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ElectronicInvoiceDetailFormContent(
+fun ElectronicInvoiceDetailFormScreenContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
     isButtonEnabled: Boolean,
@@ -434,7 +432,7 @@ fun ElectronicInvoiceDetailFormContent(
                         supportingText = {
                             if (state.emailInput.isNotEmpty()) {
                                 Text(
-                                    text = "Formato: ejemplo@dominio.ext",
+                                    text = stringResource(R.string.form_email_format_hint),
                                     fontSize = 12.sp,
                                     color = if (isEmailValid) Color.Gray else Color.Red,
                                     fontFamily = IberPangeaFamily

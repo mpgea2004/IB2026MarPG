@@ -28,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType.Companion.LongPress
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType.Companion.TextHandleMove
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -59,7 +61,7 @@ fun SecurityPhoneDialog(
 
     AlertDialog(
         onDismissRequest = { 
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            haptic.performHapticFeedback(TextHandleMove)
             viewModel.closePhoneDialog() 
         },
         containerColor = WhiteApp,
@@ -114,7 +116,7 @@ fun SecurityPhoneDialog(
                     keyboardActions = KeyboardActions(
                         onDone = {
                             if (isButtonEnabled) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                haptic.performHapticFeedback(LongPress)
                                 viewModel.savePhoneAndContinue(onConfirm)
                             }
                         }
@@ -124,7 +126,7 @@ fun SecurityPhoneDialog(
                         val description = if (passwordVisible) stringResource(R.string.security_dialog_password_hide) else stringResource(R.string.security_dialog_password_show)
 
                         IconButton(onClick = { 
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            haptic.performHapticFeedback(TextHandleMove)
                             passwordVisible = !passwordVisible 
                         }) {
                             Icon(imageVector = image, contentDescription = description, tint = Color.Gray)
@@ -158,7 +160,7 @@ fun SecurityPhoneDialog(
         confirmButton = {
             Button(
                 onClick = { 
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    haptic.performHapticFeedback(LongPress)
                     viewModel.savePhoneAndContinue(onConfirm) 
                 },
                 enabled = isButtonEnabled,
@@ -174,7 +176,7 @@ fun SecurityPhoneDialog(
         },
         dismissButton = {
             TextButton(onClick = { 
-                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                haptic.performHapticFeedback(TextHandleMove)
                 viewModel.closePhoneDialog() 
             }) {
                 Text(stringResource(R.string.security_dialog_cancel), color = Color.Gray,fontFamily = IberPangeaFamily)

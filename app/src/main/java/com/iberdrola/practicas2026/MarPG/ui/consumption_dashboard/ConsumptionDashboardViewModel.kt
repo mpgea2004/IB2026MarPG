@@ -5,10 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.invoice.GetInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
+import com.iberdrola.practicas2026.MarPG.ui.utils.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
@@ -49,7 +51,7 @@ class ConsumptionDashboardViewModel @Inject constructor(
             state = state.copy(
                 selectedType = type,
                 chartData = emptyList(),
-                comparisonMessage = "",
+                comparisonMessage = UiText.DynamicString(""),
                 isLoading = true
             )
             loadData()
@@ -79,7 +81,7 @@ class ConsumptionDashboardViewModel @Inject constructor(
                         state = state.copy(
                             isLoading = false,
                             chartData = emptyList(),
-                            comparisonMessage = "Sin datos disponibles",
+                            comparisonMessage = UiText.StringResource(R.string.consumption_no_data),
                             isPositiveTrend = false
                         )
                     } else {
@@ -90,7 +92,7 @@ class ConsumptionDashboardViewModel @Inject constructor(
                         }
 
                         val lastInvoice = filtered.last()
-                        val message: String
+                        val message: UiText
                         val positive: Boolean
 
                         if (filtered.size >= 2) {
@@ -101,10 +103,11 @@ class ConsumptionDashboardViewModel @Inject constructor(
                             } else 0.0
 
                             positive = diff <= 0
-                            val trend = if (diff <= 0) "menos" else "más"
-                            message = "Has gastado un ${String.format("%.1f", percent)}% $trend que en tu factura anterior."
+                            val resId = if (diff <= 0) R.string.consumption_comparison_less else R.string.consumption_comparison_more
+                            message = UiText.StringResource(resId, String.format("%.1f", percent))
                         } else {
-                            message = "Esta es tu primera factura de ${if (typeToLoad == ContractType.LUZ) "Luz" else "Gas"}. ¡Bienvenido!"
+                            val resId = if (typeToLoad == ContractType.LUZ) R.string.consumption_first_invoice_light else R.string.consumption_first_invoice_gas
+                            message = UiText.StringResource(resId)
                             positive = true
                         }
 

@@ -36,7 +36,6 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.utils.formatPrice
-import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.floor
 
@@ -139,7 +138,7 @@ fun PriceRangeSection(
         ) {
             Column(modifier = Modifier.padding(top = 24.dp)) {
                 Text(
-                    text = "Ajuste de céntimos (mín. 0.10€ de diferencia)",
+                    text = stringResource(R.string.price_range_decimals_title),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = IberPangeaFamily,

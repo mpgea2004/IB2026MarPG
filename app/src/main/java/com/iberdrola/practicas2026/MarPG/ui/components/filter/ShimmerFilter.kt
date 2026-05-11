@@ -116,9 +116,9 @@ fun ShimmerFilter(
                 modifier = Modifier.padding(vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(modifier = Modifier.size(24.dp).clip(RoundedCornerShape(4.dp)).background(brush)) // Checkbox
+                Box(modifier = Modifier.size(24.dp).clip(RoundedCornerShape(4.dp)).background(brush))
                 Spacer(modifier = Modifier.width(16.dp))
-                Box(modifier = Modifier.size(160.dp, 16.dp).clip(RoundedCornerShape(4.dp)).background(brush)) // Label
+                Box(modifier = Modifier.size(160.dp, 16.dp).clip(RoundedCornerShape(4.dp)).background(brush))
             }
         }
 

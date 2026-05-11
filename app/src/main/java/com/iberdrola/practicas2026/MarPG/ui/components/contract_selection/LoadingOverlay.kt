@@ -1,6 +1,7 @@
 package com.iberdrola.practicas2026.MarPG.ui.components.contract_selection
 
 import android.app.Activity
+import android.view.WindowInsets.Type.systemBars
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -34,7 +35,7 @@ fun LoadingOverlay() {
                 val previousStatusLight = insetsController.isAppearanceLightStatusBars
                 val previousNavLight = insetsController.isAppearanceLightNavigationBars
                 
-                insetsController.show(WindowInsetsCompat.Type.systemBars())
+                insetsController.show(systemBars())
                 insetsController.isAppearanceLightStatusBars = false
                 insetsController.isAppearanceLightNavigationBars = false
                 
