@@ -94,6 +94,7 @@ fun FilterScreen(
         onDateFromChange = { filterViewModel.onDateFromChange(it) },
         onDateToChange = { filterViewModel.onDateToChange(it) },
         onPriceRangeChange = { min, max -> filterViewModel.onPriceRangeChange(min, max) },
+        onDecimalRangeChange = { min, max -> filterViewModel.onDecimalRangeChange(min, max) },
         onStatusToggle = { filterViewModel.onStatusToggle(it) },
         onClear = {
             filterViewModel.clearFilters(
@@ -267,7 +268,8 @@ fun FilterContent(
                         maxPrice = state.maxPrice,
                         minLimit = minLimit,
                         maxLimit = maxLimit,
-                        onRangeChange = { min, max -> events.onPriceRangeChange(min, max) }
+                        onRangeChange = { min, max -> events.onPriceRangeChange(min, max) },
+                        onDecimalChange = { min, max -> events.onDecimalRangeChange(min, max) }
                     )
                 }
             }

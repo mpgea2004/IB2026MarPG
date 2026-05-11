@@ -37,3 +37,11 @@ fun getHiddenAmountAnnotatedString(
         }
     }
 }
+
+fun Float.formatPrice(): String {
+    return if (this == this.toInt().toFloat()) {
+        this.toInt().toString()
+    } else {
+        String.format("%.2f", this).replace(".", ",")
+    }
+}

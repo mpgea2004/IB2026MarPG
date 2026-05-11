@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.floor
 
 @HiltViewModel
 class FilterViewModel @Inject constructor(
@@ -37,13 +38,27 @@ class FilterViewModel @Inject constructor(
     }
 
     fun onPriceRangeChange(min: Float, max: Float) {
-        val exactMin = min.toInt().toFloat()
-        val exactMax = max.toInt().toFloat()
+        val exactMin = floor(min)
+        val exactMax = floor(max)
+        
         state = state.copy(minPrice = exactMin, maxPrice = exactMax)
         logAnalytics("filter_change_price_range", mapOf(
             "min_price" to exactMin.toDouble(),
             "max_price" to exactMax.toDouble(),
-            "message" to "Rango de precio cambiado"
+            "message" to "Rango de precio cambiado (entero)"
+        ))
+    }
+
+    fun onDecimalRangeChange(minDec: Float, maxDec: Float) {
+        val basePrice = floor(state.minPrice)
+        val newMin = basePrice + minDec
+        val newMax = basePrice + maxDec
+        
+        state = state.copy(minPrice = newMin, maxPrice = newMax)
+        logAnalytics("filter_change_price_decimal", mapOf(
+            "min_price" to newMin.toDouble(),
+            "max_price" to newMax.toDouble(),
+            "message" to "Rango de precio decimal cambiado"
         ))
     }
 

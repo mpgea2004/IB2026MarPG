@@ -124,6 +124,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.IB2026MarPGTheme
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import com.iberdrola.practicas2026.MarPG.ui.utils.formatPrice
 import com.iberdrola.practicas2026.MarPG.ui.utils.getHiddenAmountAnnotatedString
 import com.iberdrola.practicas2026.MarPG.ui.utils.toAnnotatedCurrencyFormat
 import kotlinx.coroutines.delay
@@ -900,7 +901,7 @@ fun ActiveFiltersRow(
             if (!isDefaultPrice) {
                 item {
                     ActiveFilterChip(
-                        text = stringResource(R.string.filter_price_range, state.minPrice.toInt(), state.maxPrice.toInt()),
+                        text = stringResource(R.string.filter_price_range, state.minPrice.formatPrice(), state.maxPrice.formatPrice()),
                         onRemove = onRemovePrice
                     )
                 }
