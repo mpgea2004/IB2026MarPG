@@ -74,6 +74,7 @@ fun ElectronicInvoiceSelectionScreen(
     val handleBack = {
         if (!isNavigating) {
             isNavigating = true
+            viewModel.onBackClicked()
             onBack()
         }
     }
@@ -118,6 +119,7 @@ fun ElectronicInvoiceSelectionScreen(
         onElectronicInvoiceClick = { invoice ->
             if (!viewModel.isNavigating && !isNavigating) {
                 isNavigating = true
+                viewModel.onElectronicInvoiceClick(invoice)
                 viewModel.onNavigateStarted()
                 onNavigate(invoice)
             }

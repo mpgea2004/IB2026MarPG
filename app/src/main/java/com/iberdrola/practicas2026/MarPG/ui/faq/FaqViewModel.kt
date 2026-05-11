@@ -9,16 +9,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class FaqViewModel @Inject constructor() : ViewModel() {
+class FaqViewModel @Inject constructor(
+    private val logAnalyticsUseCase: LogAnalyticsEventUseCase
+) : ViewModel() {
 
     var state by mutableStateOf(FaqState())
         private set
 
     init {
+        logAnalyticsUseCase("view_faq")
         loadFaqData()
     }
 
@@ -35,6 +39,14 @@ class FaqViewModel @Inject constructor() : ViewModel() {
 
     fun onToggleExpand(id: Int) {
         val currentExpanded = state.expandedItems
+        val isExpanding = !currentExpanded.contains(id)
+        
+        val action = if (isExpanding) "Expandido" else "Contraído"
+        logAnalyticsUseCase("click_toggle_faq_item", mapOf(
+            "item_id" to id,
+            "accion" to action
+        ))
+
         val newExpanded = if (currentExpanded.contains(id)) {
             currentExpanded - id
         } else {
@@ -42,7 +54,9 @@ class FaqViewModel @Inject constructor() : ViewModel() {
         }
         state = state.copy(expandedItems = newExpanded)
     }
+
     fun openContactSupport(context: Context) {
+        logAnalyticsUseCase("click_contacto_soporte")
         val intent = Intent(ACTION_VIEW, Uri.parse("https://www.iberdrola.es/atencion-cliente"))
         context.startActivity(intent)
     }

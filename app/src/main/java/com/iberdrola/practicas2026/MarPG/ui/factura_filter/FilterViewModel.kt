@@ -40,13 +40,21 @@ class FilterViewModel @Inject constructor(
         val exactMin = min.toInt().toFloat()
         val exactMax = max.toInt().toFloat()
         state = state.copy(minPrice = exactMin, maxPrice = exactMax)
+        logAnalytics("filter_change_price_range", mapOf(
+            "min_price" to exactMin.toDouble(),
+            "max_price" to exactMax.toDouble(),
+            "message" to "Rango de precio cambiado"
+        ))
     }
 
     fun onStatusToggle(status: String) {
         val current = state.selectedStatuses
         val updated = if (current.contains(status)) current - status else current + status
         state = state.copy(selectedStatuses = updated)
-        logAnalytics("filter_toggle_status", mapOf("status" to status))
+        logAnalytics("filter_toggle_status", mapOf(
+            "status" to status,
+            "message" to "Estado de factura cambiado"
+        ))
     }
 
     fun clearFilters(minLimit: Float, maxLimit: Float) {
@@ -58,17 +66,21 @@ class FilterViewModel @Inject constructor(
             selectedStatuses = emptySet(),
             isLoading = false
         )
-        logAnalytics("filter_reset_click", mapOf("user_action" to "clear_all"))
+        logAnalytics("filter_reset_click", mapOf(
+            "action" to "limpiar_todo",
+            "message" to "Todos los filtros han sido restablecidos"
+        ))
     }
     init {
-        logAnalytics("view_filter_screen")
+        logAnalytics("view_filter_screen", mapOf("message" to "Pantalla de filtros visualizada"))
     }
 
     fun onApply(){
         logAnalytics("filter_applied", mapOf(
             "min_price" to state.minPrice.toDouble(),
             "max_price" to state.maxPrice.toDouble(),
-            "status_count" to state.selectedStatuses.size.toLong()
+            "status_count" to state.selectedStatuses.size.toLong(),
+            "message" to "Filtros aplicados correctamente"
         ))
     }
 }

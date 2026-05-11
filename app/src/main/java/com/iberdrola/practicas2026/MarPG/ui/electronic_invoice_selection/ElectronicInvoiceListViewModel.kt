@@ -46,13 +46,11 @@ class ElectronicInvoiceListViewModel @Inject constructor(
         private set
 
     init {
+        logAnalyticsUseCase("view_seleccion_factura_electronica")
         loadInvoices()
-        logAnalyticsUseCase("view_electronic_invoice_selection")
     }
 
     fun loadInvoices() {
-        val currentShowGas = isGasEnabledConfig ?: true
-
         viewModelScope.launch {
             isFirstEmission = true
             if (!isRefreshing) state = ElectronicInvoiceListState.Loading
@@ -75,8 +73,8 @@ class ElectronicInvoiceListViewModel @Inject constructor(
 
                     errorMessage = errorRes
                     logAnalyticsUseCase(
-                        "elec_invoice_load_error",
-                        mapOf("error" to (errorMessage ?: "unknown"))
+                        "error_carga_factura_electronica",
+                        mapOf("mensaje" to (e.message ?: "Error desconocido"))
                     )
                     if (localData.isEmpty()) {
                         state = ElectronicInvoiceListState.NoData
@@ -103,8 +101,8 @@ class ElectronicInvoiceListViewModel @Inject constructor(
                         } else {
                             state = ElectronicInvoiceListState.Success(filteredList)
                             logAnalyticsUseCase(
-                                "elec_invoice_load_success",
-                                mapOf("count" to filteredList.size)
+                                "exito_carga_factura_electronica",
+                                mapOf("cantidad" to filteredList.size)
                             )
                             errorMessage = null
                         }
@@ -125,22 +123,22 @@ class ElectronicInvoiceListViewModel @Inject constructor(
 
     fun onElectronicInvoiceClick(invoice: ElectronicInvoice) {
         logAnalyticsUseCase(
-            "elec_invoice_selected", mapOf(
-                "id" to invoice.id,
-                "type" to invoice.type.name
+            "click_seleccionar_factura_electronica", mapOf(
+                "id_factura" to invoice.id,
+                "tipo_contrato" to invoice.type.name
             )
         )
     }
 
     fun onBackClicked() {
-        logAnalyticsUseCase("elec_invoice_back_click")
+        logAnalyticsUseCase("click_volver_seleccion_factura_electronica")
     }
 
     fun refreshInvoices() {
         viewModelScope.launch {
             isRefreshing = true
+            logAnalyticsUseCase("click_reintentar_carga_factura_electronica")
             loadInvoices()
-            logAnalyticsUseCase("elec_invoice_retry_click")
             delay(500)
             isRefreshing = false
         }
@@ -158,5 +156,4 @@ class ElectronicInvoiceListViewModel @Inject constructor(
     fun onNavigateFinished() {
         isNavigating = false
     }
-
 }

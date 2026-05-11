@@ -381,6 +381,7 @@ fun InvoiceListScreen(
                             onScrollToTopHandled = { viewModel.onScrollToTopHandled() },
                             events = InvoiceListEvents(
                                 onFilter = {
+                                    viewModel.onFilterClicked()
                                     if (viewModel.getCategoryInvoicesCount() <= 1) {
                                         viewModel.openSingleInvoiceDialog()
                                     } else if (!isNavigating) {
@@ -391,6 +392,7 @@ fun InvoiceListScreen(
                                 onDetail = { invoice ->
                                     if (!isNavigating) {
                                         isNavigating = true
+                                        viewModel.onInvoiceClick(invoice)
                                         viewModel.selectInvoice(invoice)
                                         onNavigateToInvoiceDetail(invoice)
                                     }

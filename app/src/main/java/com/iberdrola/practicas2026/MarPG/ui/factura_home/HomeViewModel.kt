@@ -26,7 +26,7 @@ class HomeViewModel @Inject constructor(
         private set
 
     init {
-        logAnalyticsUseCase("view_home_mar")
+        logAnalyticsUseCase("view_home")
         fetchRemoteConfig()
         observeFeedback()
         observeUserProfile()
@@ -40,7 +40,9 @@ class HomeViewModel @Inject constructor(
         remoteConfig.setConfigSettingsAsync(configSettings)
 
         remoteConfig.fetchAndActivate().addOnCompleteListener {
-            state = state.copy(isGasEnabled = remoteConfig.getBoolean("show_gas_contracts"))
+            val isGasEnabled = remoteConfig.getBoolean("enseñar_contratos_gas")
+            logAnalyticsUseCase("remote_config_fetched", mapOf("enseñar_gas" to isGasEnabled))
+            state = state.copy(isGasEnabled = isGasEnabled)
         }
     }
 
@@ -64,12 +66,16 @@ class HomeViewModel @Inject constructor(
     private fun observeFeedback() {
         viewModelScope.launch {
             checkFeedbackUseCase.shouldShowFeedback().collect { shouldShow ->
+                if (shouldShow) {
+                    logAnalyticsUseCase("view_feedback_sheet")
+                }
                 state = state.copy(isSheetVisible = shouldShow)
             }
         }
     }
 
     fun onOptionSelected(target: Int) {
+        logAnalyticsUseCase("click_feedback_opcion", mapOf("puntuacion" to target))
         viewModelScope.launch {
             checkFeedbackUseCase.setNextTregua(target)
             state = state.copy(isSheetVisible = false)
@@ -77,6 +83,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onDontAskAgain() {
+        logAnalyticsUseCase("click_feedback_no_preguntar_otra")
         viewModelScope.launch {
             checkFeedbackUseCase.dontAskAgain()
             state = state.copy(isSheetVisible = false)

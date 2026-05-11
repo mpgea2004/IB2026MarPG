@@ -109,7 +109,7 @@ class InvoiceListViewModel @Inject constructor(
         get() = allInvoices.maxByOrNull { DateMapper.toLocalDate(it.issueDate) }?.issueDate
 
     init {
-        logAnalyticsUseCase("view_invoice_list_mar")
+        logAnalyticsUseCase("view_lista_facturas")
         observeFeedback()
         observeUserProfile()
         observeAmountVisibility()
@@ -124,14 +124,14 @@ class InvoiceListViewModel @Inject constructor(
 
 
     fun onFilterClicked() {
-        logAnalyticsUseCase("click_filter_invoices", mapOf("source" to "button_header"))
+        logAnalyticsUseCase("click_filtrar_facturas", mapOf("origen" to "boton_cabecera"))
     }
 
     fun onInvoiceClick(invoice: Invoice) {
-        logAnalyticsUseCase("click_invoice_detail", mapOf(
-            "invoice_id" to invoice.id,
-            "contract_type" to invoice.contractType.name,
-            "amount" to invoice.amount.toString()
+        logAnalyticsUseCase("click_detalle_factura", mapOf(
+            "id_factura" to invoice.id,
+            "tipo_contrato" to invoice.contractType.name,
+            "importe" to invoice.amount.toString()
         ))
     }
     private fun observeAmountVisibility() {
@@ -156,7 +156,8 @@ class InvoiceListViewModel @Inject constructor(
             getInvoicesUseCase(isCloud)
                 .catch { e->
                     handleLoadError(e)
-                    logAnalyticsUseCase("invoice_load_error", mapOf("message" to (e.message ?: "unknown")))}
+                    logAnalyticsUseCase("error_carga_facturas", mapOf("mensaje" to (e.message ?: "error desconocido")))
+                }
                 .collect { invoices ->
                     allInvoices = invoices
                     setupDynamicFilterPrices(invoices)
@@ -260,7 +261,7 @@ class InvoiceListViewModel @Inject constructor(
         val firstLoad = isGasEnabled == null
         isGasEnabled = enabled
 
-        logAnalyticsUseCase("remote_config_gas_updated", mapOf("enabled" to enabled))
+        logAnalyticsUseCase("actualizacion_config_remota_gas", mapOf("habilitado" to enabled))
 
         if (firstLoad) {
             loadInvoices()
@@ -327,6 +328,8 @@ class InvoiceListViewModel @Inject constructor(
         }
     }
     fun selectTab(index: Int) {
+        val tipo = if (index == 0) "Luz" else "Gas"
+        logAnalyticsUseCase("click_cambio_pestana_facturas", mapOf("tipo" to tipo))
         selectedTab = index
         updateFilteredInvoices()
     }
@@ -335,6 +338,7 @@ class InvoiceListViewModel @Inject constructor(
     }
 
     fun handleRefresh() {
+        logAnalyticsUseCase("click_refrescar_facturas")
         if (hasActiveFilters()) {
             showRefreshDialog = true
         } else {
@@ -343,6 +347,7 @@ class InvoiceListViewModel @Inject constructor(
     }
 
     fun confirmRefresh(keepFilters: Boolean) {
+        logAnalyticsUseCase("click_confirmar_refresco", mapOf("mantener_filtros" to keepFilters))
         showRefreshDialog = false
         refreshInvoices(keepFilters = keepFilters)
     }
@@ -369,6 +374,7 @@ class InvoiceListViewModel @Inject constructor(
     }
 
     fun applyFilters(newFilters: FilterState) {
+        logAnalyticsUseCase("click_aplicar_filtros")
         currentFilterState = newFilters
         updateFilteredInvoices()
         if (hasActiveFilters()) {
@@ -379,6 +385,7 @@ class InvoiceListViewModel @Inject constructor(
     }
 
     fun setSortOption(option: SortOption) {
+        logAnalyticsUseCase("click_ordenar_facturas", mapOf("opcion" to option.name))
         currentSortOption = option
         updateFilteredInvoices()
     }
@@ -388,6 +395,7 @@ class InvoiceListViewModel @Inject constructor(
     }
 
     fun clearFilters() {
+        logAnalyticsUseCase("click_limpiar_filtros")
         currentFilterState = FilterState(
             minPrice = minInvoiceAmount,
             maxPrice = maxInvoiceAmount
@@ -398,6 +406,7 @@ class InvoiceListViewModel @Inject constructor(
     }
 
     fun removeStatusFilter(status: String) {
+        logAnalyticsUseCase("click_eliminar_filtro_estado", mapOf("estado" to status))
         val newStatuses = currentFilterState.selectedStatuses - status
         currentFilterState = currentFilterState.copy(selectedStatuses = newStatuses)
         updateFilteredInvoices()
@@ -409,6 +418,7 @@ class InvoiceListViewModel @Inject constructor(
     }
 
     fun removeDateFilter() {
+        logAnalyticsUseCase("click_eliminar_filtro_fecha")
         currentFilterState = currentFilterState.copy(dateFrom = "", dateTo = "")
         updateFilteredInvoices()
         if (hasActiveFilters()) {
@@ -419,6 +429,7 @@ class InvoiceListViewModel @Inject constructor(
     }
 
     fun removePriceFilter() {
+        logAnalyticsUseCase("click_eliminar_filtro_precio")
         currentFilterState = currentFilterState.copy(
             minPrice = minInvoiceAmount,
             maxPrice = maxInvoiceAmount
@@ -488,6 +499,8 @@ class InvoiceListViewModel @Inject constructor(
     }
 
     fun toggleAmountVisibility() {
+        val nuevoEstado = if (!isAmountVisible) "Visible" else "Oculto"
+        logAnalyticsUseCase("click_alternar_visibilidad_importe", mapOf("estado_final" to nuevoEstado))
         viewModelScope.launch {
             userPrefs.updateAmountVisibility(!isAmountVisible)
         }

@@ -7,8 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
-import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.ValidateEmailUseCase
-import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.ValidatePhoneUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.VerifyUserPasswordUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.users.ProfileValidationResult
 import com.iberdrola.practicas2026.MarPG.domain.use_case.users.ValidateProfileUseCase
@@ -23,18 +22,15 @@ class ProfileViewModel @Inject constructor(
     private val userPrefs: UserPreferencesRepository,
     private val logAnalyticsUseCase: LogAnalyticsEventUseCase,
     private val validateProfile: ValidateProfileUseCase,
-    private val validateEmailUseCase: ValidateEmailUseCase,
-    private val validatePhoneUseCase: ValidatePhoneUseCase,
+    private val verifyUserPasswordUseCase: VerifyUserPasswordUseCase
 ) : ViewModel() {
 
     var state by mutableStateOf(ProfileState(isLoading = true))
         private set
 
-    private val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,}\$")
-
     init {
         loadSavedProfile()
-        logAnalyticsUseCase("view_profile_mar")
+        logAnalyticsUseCase("view_perfil_usuario")
     }
 
     private fun loadSavedProfile() {
@@ -56,6 +52,7 @@ class ProfileViewModel @Inject constructor(
     fun onEditClick() {
         if (state.showLogoutDialog || state.isLogoutClicked || state.isLoading || state.isSaving) return
         
+        logAnalyticsUseCase("click_editar_perfil")
         state = state.copy(isEditClicked = true)
         if (state.password.isNotEmpty()) {
             state = state.copy(
@@ -77,8 +74,9 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onSecurityConfirmClick() {
-        if (state.securityPasswordInput == state.password) {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            if (verifyUserPasswordUseCase(state.securityPasswordInput)) {
+                logAnalyticsUseCase("verificacion_seguridad_correcta")
                 state = state.copy(
                     showSecurityDialog = false,
                     isVerifying = true
@@ -90,13 +88,15 @@ class ProfileViewModel @Inject constructor(
                     securityPasswordInput = "",
                     isEditClicked = false
                 )
+            } else {
+                logAnalyticsUseCase("error_verificacion_seguridad", mapOf("motivo" to "contraseña incorrecta"))
+                state = state.copy(securityPasswordError = R.string.error_incorrect_password)
             }
-        } else {
-            state = state.copy(securityPasswordError = R.string.error_incorrect_password)
         }
     }
 
     fun onSecurityDismiss() {
+        logAnalyticsUseCase("click_cancelar_seguridad")
         state = state.copy(
             showSecurityDialog = false,
             securityPasswordInput = "",
@@ -106,6 +106,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onDiscardClick() {
+        logAnalyticsUseCase("click_descartar_cambios_perfil")
         loadSavedProfile()
         state = state.copy(isEditClicked = false)
     }
@@ -134,89 +135,69 @@ class ProfileViewModel @Inject constructor(
         state = state.copy(confirmPassword = newPassword, confirmPasswordError = null, isSaved = false)
     }
 
-    private fun isEmailValid(email: String): Boolean {
-        return emailPattern.matches(email)
-    }
-
     fun saveChanges(onSuccess: () -> Unit) {
-        state = state.copy(
-            nameError = null, 
-            emailError = null, 
-            phoneError = null, 
-            passwordError = null,
-            confirmPasswordError = null
+        logAnalyticsUseCase("click_guardar_perfil")
+
+        val validationResult = validateProfile(
+            name = state.name,
+            email = state.email,
+            phone = state.phone,
+            password = state.password,
+            confirmPassword = state.confirmPassword
         )
 
-        val isNameEmpty = state.name.trim().isEmpty()
-        val isEmailInvalid = !isEmailValid(state.email)
-        val isEmailEmpty = state.email.trim().isEmpty()
-        val isPasswordEmpty = state.password.trim().isEmpty()
-        val isPasswordTooShort = state.password.trim().isNotEmpty() && state.password.trim().length < 6
-        val passwordsMatch = state.password == state.confirmPassword
-        val isPhoneInvalid = state.phone.isNotEmpty() && state.phone.length != 9
-
-        var hasError = false
-
-        if (isNameEmpty) {
-            state = state.copy(nameError = R.string.error_field_required)
-            hasError = true
-        }
-        if (isEmailEmpty) {
-            state = state.copy(emailError = R.string.error_field_required)
-            hasError = true
-        } else {
-            if (isEmailInvalid) {
-                state = state.copy(emailError = R.string.error_invalid_email_format)
-                hasError = true
-            }
-        }
-
-        if (isPasswordEmpty) {
-            state = state.copy(passwordError = R.string.error_field_required)
-            hasError = true
-        } else if (isPasswordTooShort) {
-            state = state.copy(passwordError = R.string.error_password_too_short)
-            hasError = true
-        }
-
-        if (!passwordsMatch) {
-            state = state.copy(confirmPasswordError = R.string.error_passwords_do_not_match)
-            hasError = true
-        }
-
-        if (isPhoneInvalid) {
-            state = state.copy(phoneError = R.string.error_invalid_phone_format)
-            hasError = true
-        }
-
-        if (!hasError) {
-            state = state.copy(isSaveClicked = true)
-            viewModelScope.launch {
-                state = state.copy(isSaving = true)
-                delay(2000)
-                userPrefs.updateProfile(state)
+        when (validationResult) {
+            is ProfileValidationResult.Success -> {
                 state = state.copy(
-                    isSaving = false,
-                    isSaved = true,
-                    saveJustFinished = true
+                    nameError = null,
+                    emailError = null,
+                    phoneError = null,
+                    passwordError = null,
+                    confirmPasswordError = null,
+                    isSaveClicked = true
                 )
-                onSuccess()
-                delay(2000)
-                state = state.copy(
-                    saveJustFinished = false,
-                    isEditMode = false,
-                    isSaveClicked = false
-                )
-                logAnalyticsUseCase("profile_save_success")
+                viewModelScope.launch {
+                    state = state.copy(isSaving = true)
+                    delay(2000)
+                    userPrefs.updateProfile(state)
+                    state = state.copy(
+                        isSaving = false,
+                        isSaved = true,
+                        saveJustFinished = true
+                    )
+                    onSuccess()
+                    delay(2000)
+                    state = state.copy(
+                        saveJustFinished = false,
+                        isEditMode = false,
+                        isSaveClicked = false
+                    )
+                    logAnalyticsUseCase("exito_guardado_perfil")
+                }
             }
-        }else{
-            logAnalyticsUseCase("profile_save_error")
+            is ProfileValidationResult.Error -> {
+                state = state.copy(
+                    nameError = validationResult.nameError,
+                    emailError = validationResult.emailError,
+                    phoneError = validationResult.phoneError,
+                    passwordError = validationResult.passwordError,
+                    confirmPasswordError = validationResult.confirmPasswordError
+                )
+                logAnalyticsUseCase("error_validacion_perfil", mapOf(
+                    "error_nombre" to (validationResult.nameError != null),
+                    "error_email" to (validationResult.emailError != null),
+                    "error_password" to (validationResult.passwordError != null),
+                    "error_confirmacion" to (validationResult.confirmPasswordError != null),
+                    "error_telefono" to (validationResult.phoneError != null)
+                ))
+            }
         }
     }
 
     fun onLogoutClick() {
         if (state.showSecurityDialog || state.isEditMode || state.isEditClicked || state.isLoading || state.isSaving) return
 
+        logAnalyticsUseCase("click_cerrar_sesion")
         state = state.copy(
             showLogoutDialog = true,
             isLogoutClicked = true
@@ -224,12 +205,14 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onDismissLogoutDialog() {
+        logAnalyticsUseCase("click_cancelar_cierre_sesion")
         state = state.copy(
             showLogoutDialog = false,
             isLogoutClicked = false)
     }
 
     fun logout(onSuccess: () -> Unit) {
+        logAnalyticsUseCase("confirmacion_cierre_sesion")
         viewModelScope.launch {
             userPrefs.clearProfile()
             state = ProfileState()

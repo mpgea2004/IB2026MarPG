@@ -30,6 +30,7 @@ data class ElectronicInvoiceState(
     val remainingTime: String = "",
 
     val userProfile: ProfileState = ProfileState(),
+    val formattedPhone: String = "",
 
     val showNoPhoneDialog: Boolean = false,
     val newPhoneInput: String = "",
