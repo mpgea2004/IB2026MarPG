@@ -538,7 +538,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
     fun logAnalytics(name: String, params: Map<String, Any?> = emptyMap()) {
         logAnalyticsUseCase(name, params)
     }
-}
+
     fun onNavigateFinished() {
         state = state.copy(isNavigating = false)
     }

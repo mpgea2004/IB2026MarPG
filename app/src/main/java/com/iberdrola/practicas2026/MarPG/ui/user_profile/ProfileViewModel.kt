@@ -54,6 +54,8 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onEditClick() {
+        if (state.showLogoutDialog || state.isLogoutClicked || state.isLoading || state.isSaving) return
+        
         state = state.copy(isEditClicked = true)
         if (state.password.isNotEmpty()) {
             state = state.copy(
@@ -213,6 +215,8 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onLogoutClick() {
+        if (state.showSecurityDialog || state.isEditMode || state.isEditClicked || state.isLoading || state.isSaving) return
+
         state = state.copy(
             showLogoutDialog = true,
             isLogoutClicked = true

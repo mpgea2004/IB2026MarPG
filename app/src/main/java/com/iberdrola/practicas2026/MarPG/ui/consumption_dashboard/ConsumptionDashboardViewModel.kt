@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
+import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.invoice.GetInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ConsumptionDashboardViewModel @Inject constructor(
-    private val getInvoiceUseCase: GetInvoiceUseCase
+    private val getInvoiceUseCase: GetInvoiceUseCase,
+    private val logAnalyticsUseCase: LogAnalyticsEventUseCase
 ) : ViewModel() {
 
     var state by mutableStateOf(ConsumptionState())
@@ -25,11 +27,14 @@ class ConsumptionDashboardViewModel @Inject constructor(
     private var loadJob: Job? = null
 
     init {
+        logAnalyticsUseCase("view_dashboard_consumo")
         loadData()
     }
 
     fun setCloudMode(isCloud: Boolean) {
         if (state.isCloud != isCloud) {
+            val modeName = if (isCloud) "Modo Cloud activado" else "Modo Local activado"
+            logAnalyticsUseCase("click_toggle_cloud", mapOf("modo" to modeName))
             state = state.copy(
                 isCloud = isCloud,
                 isLoading = true
@@ -40,6 +45,7 @@ class ConsumptionDashboardViewModel @Inject constructor(
 
     fun onTypeSelected(type: ContractType) {
         if (state.selectedType != type) {
+            logAnalyticsUseCase("click_seleccionar_tipo_contrato", mapOf("tipo" to type.name))
             state = state.copy(
                 selectedType = type,
                 chartData = emptyList(),
@@ -62,6 +68,7 @@ class ConsumptionDashboardViewModel @Inject constructor(
 
             getInvoiceUseCase(isCloudToLoad)
                 .catch {
+                    logAnalyticsUseCase("error_carga_consumo", mapOf("mensaje" to "Error al obtener facturas"))
                     state = state.copy(isLoading = false)
                 }
                 .collect { allInvoices ->

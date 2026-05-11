@@ -39,7 +39,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,7 +55,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -86,10 +84,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ElectronicInvoiceDetailFormScreen(
-viewModel: ElectronicInvoiceViewModel,
-onBack: () -> Unit,
-onNext: () -> Unit,
-onCloseToHome: () -> Unit,
+    viewModel: ElectronicInvoiceViewModel,
+    onBack: () -> Unit,
+    onNext: () -> Unit,
+    onCloseToHome: () -> Unit,
 ) {
     val state = viewModel.state
     val context = LocalContext.current
@@ -105,6 +103,10 @@ onCloseToHome: () -> Unit,
         delay(100)
         isNavigating = false
         showPermissionErrorDialog = false
+        viewModel.logAnalytics(
+            "view_screen",
+            mapOf("screen_name" to "Formulario_Alta_Factura_Elec")
+        )
     }
 
     val requestPermissionThenNavigate = rememberPermissionsLauncher(
@@ -289,18 +291,11 @@ onCloseToHome: () -> Unit,
     val isButtonEnabled = viewModel.canContinue()
     val sheetState = rememberModalBottomSheetState()
 
-LaunchedEffect(Unit) {
-    viewModel.logAnalytics(
-        "view_screen",
-        mapOf("screen_name" to "Formulario_Alta_Factura_Elec")
-    )
-}
     if (state.showNoPhoneDialog) {
         SecurityPhoneDialog(state, viewModel, {
             requestPermissionThenNavigate()
         })
     }
-
 
     if (state.showSameEmailWarning) {
         WarningSameEmailDialog(viewModel = viewModel)
@@ -413,8 +408,6 @@ fun ElectronicInvoiceDetailFormContent(
             Spacer(modifier = Modifier.height(32.dp))
 
             AnimateElectronicFormItem(index = 1) {
-                Column{
-                    Text(stringResource(R.string.form_email_question), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, color = Color.Black)
                 Column {
                     Text(
                         stringResource(R.string.form_email_question),
@@ -557,33 +550,33 @@ fun ElectronicInvoiceDetailFormContent(
                 }
             }
             Spacer(modifier = Modifier.height(30.dp))
+        }
 
-            if (state.showLegalSheet) {
-                ModalBottomSheet(
-                    onDismissRequest = { events.onDismissLegal() },
-                    sheetState = sheetState,
-                    containerColor = WhiteApp
+        if (state.showLegalSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { events.onDismissLegal() },
+                sheetState = sheetState,
+                containerColor = WhiteApp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 48.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp)
-                            .padding(bottom = 48.dp)
-                    ) {
-                        Text(
-                            text = state.selectedLegalTitle ?: "",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = GreenDarkIberdrola,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = state.selectedLegalContent ?: "",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Black,
-                            lineHeight = 22.sp
-                        )
-                    }
+                    Text(
+                        text = state.selectedLegalTitle ?: "",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = GreenDarkIberdrola,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = state.selectedLegalContent ?: "",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Black,
+                        lineHeight = 22.sp
+                    )
                 }
             }
         }

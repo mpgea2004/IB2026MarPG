@@ -221,8 +221,6 @@ fun InvoiceListScreen(
         }
     }
 
-    val pagerState = rememberPagerState(pageCount = { 2 })
-
     LaunchedEffect(pagerState.currentPage) {
         viewModel.selectTab(pagerState.currentPage)
     }

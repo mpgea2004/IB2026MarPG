@@ -323,7 +323,6 @@ fun ElectronicInvoiceEditEmailContent(
         bottomBar = {
             ElectronicInvoiceBottomBar(
                 onBack = events.onBack,
-                onNext = events.onNext,
                 isNextEnabled = isButtonEnabled,
                 onNext = {
                     if (isButtonEnabled) {
@@ -331,7 +330,6 @@ fun ElectronicInvoiceEditEmailContent(
                         events.onNext()
                     }
                 },
-                isNextEnabled = isButtonEnabled,
                 isBackEnabled = isInteractionEnabled
             )
         }
