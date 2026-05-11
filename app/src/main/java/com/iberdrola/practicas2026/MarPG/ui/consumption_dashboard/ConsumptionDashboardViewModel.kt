@@ -5,6 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
@@ -30,7 +33,33 @@ class ConsumptionDashboardViewModel @Inject constructor(
 
     init {
         logAnalyticsUseCase("view_dashboard_consumo")
+        fetchRemoteConfig()
         loadData()
+    }
+
+    private fun fetchRemoteConfig() {
+        val remoteConfig = Firebase.remoteConfig
+        
+        remoteConfig.setDefaultsAsync(mapOf("enseñar_contratos_gas" to true))
+        
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 0
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+
+        remoteConfig.fetchAndActivate().addOnCompleteListener {
+            val isGasEnabled = remoteConfig.getBoolean("enseñar_contratos_gas")
+            state = state.copy(
+                isGasEnabled = isGasEnabled,
+                isConfigLoading = false
+            )
+            
+            if (!isGasEnabled && state.selectedType == ContractType.GAS) {
+                onTypeSelected(ContractType.LUZ)
+            }
+        }.addOnFailureListener {
+            state = state.copy(isConfigLoading = false)
+        }
     }
 
     fun setCloudMode(isCloud: Boolean) {
@@ -46,6 +75,8 @@ class ConsumptionDashboardViewModel @Inject constructor(
     }
 
     fun onTypeSelected(type: ContractType) {
+        if (!state.isGasEnabled && type == ContractType.GAS) return
+
         if (state.selectedType != type) {
             logAnalyticsUseCase("click_seleccionar_tipo_contrato", mapOf("tipo" to type.name))
             state = state.copy(

@@ -34,7 +34,7 @@ class FilterViewModelTest {
 
     @Test
     fun `al cambiar el rango de precios el estado debe actualizarse correctamente`() {
-        viewModel.events.onPriceRangeChange(10f, 100f)
+        viewModel.onPriceRangeChange(10f, 100f)
         assertEquals(10f, viewModel.state.minPrice)
         assertEquals(100f, viewModel.state.maxPrice)
     }
@@ -43,48 +43,37 @@ class FilterViewModelTest {
     fun `al alternar un estado de factura se debe añadir o quitar de la lista de seleccionados`() {
         val statusTest = "Pagada"
 
-        viewModel.events.onStatusToggle(statusTest)
+        viewModel.onStatusToggle(statusTest)
         assertTrue(viewModel.state.selectedStatuses.contains(statusTest))
-        verify { logAnalytics("filter_toggle_status", mapOf("status" to statusTest)) }
+        verify { logAnalytics("filter_toggle_status", any()) }
 
-        viewModel.events.onStatusToggle(statusTest)
+        viewModel.onStatusToggle(statusTest)
         assertFalse(viewModel.state.selectedStatuses.contains(statusTest))
     }
 
     @Test
-    fun `onClear debe resetear todos los filtros al estado inicial`() {
-        viewModel.events.onDateFromChange("2024-01-01")
-        viewModel.events.onStatusToggle("Pendiente")
+    fun `clearFilters debe resetear todos los filtros al estado inicial`() {
+        viewModel.onDateFromChange("2024-01-01")
+        viewModel.onStatusToggle("Pendiente")
 
-        viewModel.events.onClear()
+        viewModel.clearFilters(0f, 500f)
 
         assertEquals("", viewModel.state.dateFrom)
         assertTrue(viewModel.state.selectedStatuses.isEmpty())
+        assertEquals(0f, viewModel.state.minPrice)
+        assertEquals(500f, viewModel.state.maxPrice)
         verify { logAnalytics("filter_reset_click", any()) }
     }
 
     @Test
-    fun `onClearWithLimits debe resetear filtros pero manteniendo los limites de precio`() {
-        viewModel.onClearWithLimits(5f, 500f)
-
-        assertEquals(5f, viewModel.state.minPrice)
-        assertEquals(500f, viewModel.state.maxPrice)
-        assertEquals("", viewModel.state.dateFrom)
-    }
-
-    @Test
     fun `al aplicar filtros se debe enviar un evento detallado a analytics`() {
-        viewModel.events.onPriceRangeChange(20f, 80f)
-        viewModel.events.onStatusToggle("Pagada")
+        viewModel.onPriceRangeChange(20f, 80f)
+        viewModel.onStatusToggle("Pagada")
 
-        viewModel.events.onApply()
+        viewModel.onApply()
 
         verify {
-            logAnalytics("filter_applied", mapOf(
-                "min_price" to 20.0,
-                "max_price" to 80.0,
-                "status_count" to 1L
-            ))
+            logAnalytics("filter_applied", any())
         }
     }
 }

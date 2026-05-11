@@ -6,6 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceException
@@ -42,12 +45,28 @@ class ElectronicInvoiceListViewModel @Inject constructor(
     private var localData: List<ElectronicInvoice> = emptyList()
     private var isFirstEmission = true
 
-    var isGasEnabledConfig: Boolean? by mutableStateOf(null)
+    var isGasEnabledConfig: Boolean by mutableStateOf(true)
         private set
 
     init {
         logAnalyticsUseCase("view_seleccion_factura_electronica")
+        fetchRemoteConfig()
         loadInvoices()
+    }
+
+    private fun fetchRemoteConfig() {
+        val remoteConfig = Firebase.remoteConfig
+        remoteConfig.setDefaultsAsync(mapOf("show_gas_contracts" to true))
+
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 0
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+
+        remoteConfig.fetchAndActivate().addOnCompleteListener {
+            isGasEnabledConfig = remoteConfig.getBoolean("show_gas_contracts")
+            loadInvoices()
+        }
     }
 
     fun loadInvoices() {
@@ -84,7 +103,7 @@ class ElectronicInvoiceListViewModel @Inject constructor(
                     isRefreshing = false
                 }
                 .collect { invoiceList ->
-                    val filteredList = if (isGasEnabledConfig == false) {
+                    val filteredList = if (!isGasEnabledConfig) {
                         invoiceList.filter { it.type != ContractType.GAS }
                     } else {
                         invoiceList
@@ -138,7 +157,7 @@ class ElectronicInvoiceListViewModel @Inject constructor(
         viewModelScope.launch {
             isRefreshing = true
             logAnalyticsUseCase("click_reintentar_carga_factura_electronica")
-            loadInvoices()
+            fetchRemoteConfig()
             delay(500)
             isRefreshing = false
         }

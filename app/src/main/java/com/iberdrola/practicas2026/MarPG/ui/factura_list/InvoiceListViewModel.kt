@@ -7,6 +7,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceException
@@ -113,7 +116,23 @@ class InvoiceListViewModel @Inject constructor(
         observeFeedback()
         observeUserProfile()
         observeAmountVisibility()
+        fetchRemoteConfig()
     }
+
+    private fun fetchRemoteConfig(onComplete: () -> Unit = {}) {
+        val remoteConfig = Firebase.remoteConfig
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 0
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+
+        remoteConfig.fetchAndActivate().addOnCompleteListener {
+            val isEnabled = remoteConfig.getBoolean("show_gas_contracts")
+            updateGasAvailability(isEnabled)
+            onComplete()
+        }
+    }
+
     private fun observeUserProfile() {
         viewModelScope.launch {
             userPrefs.userProfileFlow.collect { profile ->
@@ -359,7 +378,9 @@ class InvoiceListViewModel @Inject constructor(
     private fun refreshInvoices(keepFilters: Boolean) {
         viewModelScope.launch {
             isRefreshing = true
-            loadInvoices(resetFilters = !keepFilters)
+            fetchRemoteConfig {
+                loadInvoices(resetFilters = !keepFilters)
+            }
             delay(500)
             isRefreshing = false
         }
