@@ -363,4 +363,10 @@
     <!-- Form -->
     <string name="form_email_format_hint">Formato: ejemplo@dominio.ext</string>
 
+    <!-- Crash Dialog -->
+    <string name="crash_dialog_title">Cuidado</string>
+    <string name="crash_dialog_message">Este botón enviará un fallo de prueba a Crashlytics y cerrará la app inmediatamente. ¿Deseas continuar?</string>
+    <string name="crash_dialog_confirm">Lanzar Crash</string>
+    <string name="crash_dialog_cancel">Cancelar</string>
+
 </resources>
