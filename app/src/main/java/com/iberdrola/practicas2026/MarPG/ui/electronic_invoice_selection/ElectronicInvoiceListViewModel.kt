@@ -45,13 +45,12 @@ class ElectronicInvoiceListViewModel @Inject constructor(
     private var localData: List<ElectronicInvoice> = emptyList()
     private var isFirstEmission = true
 
-    var isGasEnabledConfig: Boolean by mutableStateOf(true)
+    var isGasEnabledConfig: Boolean? by mutableStateOf(null)
         private set
 
     init {
         logAnalyticsUseCase("view_seleccion_factura_electronica")
         fetchRemoteConfig()
-        loadInvoices()
     }
 
     private fun fetchRemoteConfig() {
@@ -62,6 +61,8 @@ class ElectronicInvoiceListViewModel @Inject constructor(
             minimumFetchIntervalInSeconds = 0
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
+
+        if (!isRefreshing) state = ElectronicInvoiceListState.Loading
 
         remoteConfig.fetchAndActivate().addOnCompleteListener {
             isGasEnabledConfig = remoteConfig.getBoolean("show_gas_contracts")
@@ -103,7 +104,7 @@ class ElectronicInvoiceListViewModel @Inject constructor(
                     isRefreshing = false
                 }
                 .collect { invoiceList ->
-                    val filteredList = if (!isGasEnabledConfig) {
+                    val filteredList = if (isGasEnabledConfig == false) {
                         invoiceList.filter { it.type != ContractType.GAS }
                     } else {
                         invoiceList
@@ -154,13 +155,9 @@ class ElectronicInvoiceListViewModel @Inject constructor(
     }
 
     fun refreshInvoices() {
-        viewModelScope.launch {
-            isRefreshing = true
-            logAnalyticsUseCase("click_reintentar_carga_factura_electronica")
-            fetchRemoteConfig()
-            delay(500)
-            isRefreshing = false
-        }
+        isRefreshing = true
+        logAnalyticsUseCase("click_reintentar_carga_factura_electronica")
+        fetchRemoteConfig()
     }
 
     fun clearErrorMessage() {
