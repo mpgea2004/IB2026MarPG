@@ -6,6 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.ConfigUpdate
+import com.google.firebase.remoteconfig.ConfigUpdateListener
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.R
@@ -39,26 +42,38 @@ class ConsumptionDashboardViewModel @Inject constructor(
 
     private fun fetchRemoteConfig() {
         val remoteConfig = Firebase.remoteConfig
-        
-        remoteConfig.setDefaultsAsync(mapOf("enseñar_contratos_gas" to true))
+
+
+        remoteConfig.setDefaultsAsync(mapOf("show_gas_contracts" to true))
         
         val configSettings = remoteConfigSettings {
             minimumFetchIntervalInSeconds = 0
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
 
-        remoteConfig.fetchAndActivate().addOnCompleteListener {
-            val isGasEnabled = remoteConfig.getBoolean("enseñar_contratos_gas")
-            state = state.copy(
-                isGasEnabled = isGasEnabled,
-                isConfigLoading = false
-            )
-            
-            if (!isGasEnabled && state.selectedType == ContractType.GAS) {
-                onTypeSelected(ContractType.LUZ)
+        remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
+            override fun onUpdate(configUpdate: ConfigUpdate) {
+                remoteConfig.activate().addOnCompleteListener {
+                    updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
+                }
             }
-        }.addOnFailureListener {
-            state = state.copy(isConfigLoading = false)
+            override fun onError(error: FirebaseRemoteConfigException) {}
+        })
+
+        remoteConfig.fetchAndActivate().addOnCompleteListener {
+            val isGasEnabled = remoteConfig.getBoolean("show_gas_contracts")
+            updateGasAvailability(isGasEnabled)
+        }
+    }
+
+    private fun updateGasAvailability(isEnabled: Boolean) {
+        state = state.copy(
+            isGasEnabled = isEnabled,
+            isConfigLoading = false
+        )
+
+        if (!isEnabled && state.selectedType == ContractType.GAS) {
+            onTypeSelected(ContractType.LUZ)
         }
     }
 
