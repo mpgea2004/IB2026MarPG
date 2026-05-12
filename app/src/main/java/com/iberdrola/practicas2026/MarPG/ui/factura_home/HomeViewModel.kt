@@ -6,6 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.ConfigUpdate
+import com.google.firebase.remoteconfig.ConfigUpdateListener
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
@@ -34,13 +37,26 @@ class HomeViewModel @Inject constructor(
 
     private fun fetchRemoteConfig() {
         val remoteConfig = Firebase.remoteConfig
+        
+        remoteConfig.setDefaultsAsync(mapOf("show_gas_contracts" to true))
+
         val configSettings = remoteConfigSettings {
             minimumFetchIntervalInSeconds = 0
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
 
+        remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
+            override fun onUpdate(configUpdate: ConfigUpdate) {
+                remoteConfig.activate().addOnCompleteListener {
+                    val isEnabled = remoteConfig.getBoolean("show_gas_contracts")
+                    state = state.copy(isGasEnabled = isEnabled)
+                }
+            }
+            override fun onError(error: FirebaseRemoteConfigException) {}
+        })
+
         remoteConfig.fetchAndActivate().addOnCompleteListener {
-            val isGasEnabled = remoteConfig.getBoolean("enseñar_contratos_gas")
+            val isGasEnabled = remoteConfig.getBoolean("show_gas_contracts")
             logAnalyticsUseCase("remote_config_fetched", mapOf("enseñar_gas" to isGasEnabled))
             state = state.copy(isGasEnabled = isGasEnabled)
         }

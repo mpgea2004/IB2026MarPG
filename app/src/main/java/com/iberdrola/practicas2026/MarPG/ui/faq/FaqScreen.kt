@@ -5,11 +5,6 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,6 +29,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.Card
@@ -44,15 +40,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TooltipDefaults.rememberPlainTooltipPositionProvider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,6 +54,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -68,6 +62,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.remoteconfig.remoteConfig
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.BackgroundApp
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
@@ -76,6 +72,8 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun FaqScreen(
@@ -160,7 +158,26 @@ fun FaqContent(
                                 .size(48.dp)
                                 .clip(CircleShape)
                                 .combinedClickable(
-                                    onClick = { throw RuntimeException("Test Crash MarPG") },
+                                    onClick = {
+                                        val crashlytics = FirebaseCrashlytics.getInstance()
+                                        val remoteConfig = com.google.firebase.Firebase.remoteConfig
+
+                                        crashlytics.setCustomKey("pantalla_origen", "FAQ")
+
+                                        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+                                        val fechaLegible = LocalDateTime.now().format(formatter)
+                                        crashlytics.setCustomKey("fecha_error", fechaLegible)
+
+                                        val isGasEnabled = remoteConfig.getBoolean("show_gas_contracts")
+                                        crashlytics.setCustomKey("is_gas_enabled", isGasEnabled)
+
+                                        crashlytics.setCustomKey("items_totales", state.faqList.size)
+                                        crashlytics.setCustomKey("items_abiertos", state.expandedItems.size)
+
+                                        crashlytics.log("Crash forzado. Gas: $isGasEnabled. FAQs: ${state.faqList.size}")
+
+                                        throw RuntimeException("Crash Prueba MarPG - Gas: $isGasEnabled")
+                                    },
                                     onLongClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         scope.launch { tooltipState.show() }
