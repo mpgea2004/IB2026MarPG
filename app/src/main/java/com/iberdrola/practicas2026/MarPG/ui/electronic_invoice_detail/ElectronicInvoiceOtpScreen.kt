@@ -1,6 +1,14 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -15,13 +23,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,10 +36,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -42,9 +45,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -57,6 +61,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,16 +72,17 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.ImeAction.Companion.Done
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.components.IberdrolaTextField
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
@@ -100,11 +106,32 @@ fun ElectronicInvoiceOtpScreen(
 ) {
     val state = viewModel.state
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
     val notificationHandler = remember { NotificationHandler(context) }
     var showDiscardDialog by remember { mutableStateOf(false) }
+    var isNavigating by remember { mutableStateOf(false) }
 
-    var isNavigating by remember { mutableStateOf(true) }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.onPermissionGranted()
+        } else {
+            viewModel.updatePermissionPermanentlyDenied(true)
+        }
+    }
+
+    fun checkNotificationPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
 
     DisposableEffect(Unit) {
         viewModel.clearOtp()
@@ -114,9 +141,12 @@ fun ElectronicInvoiceOtpScreen(
     }
 
     LaunchedEffect(Unit) {
-        delay(100)
-        isNavigating = false
-        viewModel.startOtpSimulation()
+        val hasPermission = checkNotificationPermission()
+        if (hasPermission) {
+            viewModel.startOtpSimulation(true)
+        } else {
+            viewModel.onPermissionNeeded(false)
+        }
     }
 
     LaunchedEffect(state.showSimulatedNotification, state.simulatedOtpCode) {
@@ -136,6 +166,10 @@ fun ElectronicInvoiceOtpScreen(
         if (!isNavigating && !state.isLoading) {
             isNavigating = true
             onBack()
+            scope.launch {
+                delay(500)
+                isNavigating = false
+            }
         }
     }
 
@@ -171,6 +205,84 @@ fun ElectronicInvoiceOtpScreen(
         )
     }
 
+    if (state.showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            properties = DialogProperties(
+                dismissOnBackPress = false,
+                dismissOnClickOutside = false
+            ),
+            icon = {
+                Icon(
+                    Icons.Outlined.NotificationsOff,
+                    contentDescription = null,
+                    tint = GreenIberdrola,
+                    modifier = Modifier.size(48.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = stringResource(if (state.isPermissionPermanentlyDenied) R.string.permission_blocked_title else R.string.permission_needed_title),
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = IberPangeaFamily,
+                    textAlign = TextAlign.Center,
+                    color = GreenIberdrola
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(if (state.isPermissionPermanentlyDenied) R.string.permission_blocked_desc else R.string.permission_needed_desc),
+                    fontFamily = IberPangeaFamily,
+                    textAlign = TextAlign.Center,
+                    color = Color.Black
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (state.isPermissionPermanentlyDenied) {
+                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.fromParts("package", context.packageName, null)
+                            }
+                            context.startActivity(intent)
+                        } else {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                        }
+                        viewModel.dismissPermissionDialog()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenIberdrola),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                ) {
+                    Text(
+                        text = stringResource(if (state.isPermissionPermanentlyDenied) R.string.permission_go_to_settings else R.string.common_ok),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.dismissPermissionDialog()
+                        onCloseToHome()
+                    },
+                    modifier = Modifier
+                ) {
+                    Text(
+                        text = stringResource(R.string.permission_back),
+                        color = GreenIberdrola,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -192,7 +304,7 @@ fun ElectronicInvoiceOtpScreen(
         onOtpChange = { viewModel.onOtpChanged(it) },
         onResendOtp = {
             if (!state.isLoading && !isNavigating) {
-                viewModel.onResendOtp()
+                viewModel.onResendOtp(checkNotificationPermission())
             }
         },
         onCloseBanner = { viewModel.closeResendBanner() },
@@ -202,7 +314,8 @@ fun ElectronicInvoiceOtpScreen(
             if (state.otpInput.length == 6 && !isNavigating && !state.isLoading) {
                 viewModel.verifyOtpAndPerformUpdate()
             }
-        }
+        },
+        onDismissPermissionDialog = { viewModel.dismissPermissionDialog() }
     )
 
     LaunchedEffect(Unit) {
@@ -466,7 +579,7 @@ fun ElectronicInvoiceOtpContent(
                                                 .clip(RoundedCornerShape(8.dp))
                                                 .clickable(enabled = isInteractionEnabled) {
                                                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                    events.onResendOtp()
+                                                    events.onResendOtp(true)
                                                 }
                                                 .padding(vertical = 2.dp),
                                             fontFamily = IberPangeaFamily

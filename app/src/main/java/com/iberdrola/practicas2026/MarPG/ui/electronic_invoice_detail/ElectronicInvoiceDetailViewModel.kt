@@ -251,11 +251,17 @@ class ElectronicInvoiceViewModel @Inject constructor(
         state = state.copy(
             otpInput = "",
             error = null,
-            showSimulatedNotification = false
+            showSimulatedNotification = false,
+            simulatedOtpCode = ""
         )
     }
 
-    fun startOtpSimulation() {
+    fun startOtpSimulation(isPermissionGranted: Boolean = true) {
+        if (!isPermissionGranted) {
+            state = state.copy(showPermissionDialog = true)
+            return
+        }
+
         currentSimulationId++
         val simulationId = currentSimulationId
 
@@ -301,7 +307,12 @@ class ElectronicInvoiceViewModel @Inject constructor(
         }
     }
 
-    fun onResendOtp() {
+    fun onResendOtp(isPermissionGranted: Boolean = true) {
+        if (!isPermissionGranted) {
+            state = state.copy(showPermissionDialog = true)
+            return
+        }
+
         val type = state.selectedContract?.type ?: return
         if (state.resendAttempts > 0) {
             viewModelScope.launch {
@@ -319,7 +330,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
                 )
                 delay(2000)
                 state = state.copy(isLoading = false, showResendSuccess = true)
-                startOtpSimulation()
+                startOtpSimulation(isPermissionGranted = true)
                 logAnalytics("electronic_invoice_otp_resend_click", mapOf(
                     "attempts_remaining" to state.resendAttempts,
                     "message" to "Reenvío de código OTP solicitado"
@@ -542,5 +553,28 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun onNavigateFinished() {
         state = state.copy(isNavigating = false)
+    }
+
+    fun updatePermissionPermanentlyDenied(isDenied: Boolean) {
+        state = state.copy(
+            isPermissionPermanentlyDenied = isDenied,
+            showPermissionDialog = true
+        )
+    }
+
+    fun dismissPermissionDialog() {
+        state = state.copy(showPermissionDialog = false)
+    }
+
+    fun onPermissionGranted() {
+        state = state.copy(showPermissionDialog = false)
+        startOtpSimulation(true)
+    }
+
+    fun onPermissionNeeded(isPermanentlyDenied: Boolean) {
+        state = state.copy(
+            showPermissionDialog = true,
+            isPermissionPermanentlyDenied = isPermanentlyDenied
+        )
     }
 }

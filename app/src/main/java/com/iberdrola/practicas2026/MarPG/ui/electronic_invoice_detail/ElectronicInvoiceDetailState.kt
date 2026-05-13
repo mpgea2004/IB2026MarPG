@@ -49,7 +49,10 @@ data class ElectronicInvoiceState(
     val simulatedOtpCode: String = "",
     
     val showNoAttemptsDialog: Boolean = false,
-    val isNavigating: Boolean = false
+    val isNavigating: Boolean = false,
+
+    val showPermissionDialog: Boolean = false,
+    val isPermissionPermanentlyDenied: Boolean = false
 )
 
 enum class ElectronicInvoiceStep {
