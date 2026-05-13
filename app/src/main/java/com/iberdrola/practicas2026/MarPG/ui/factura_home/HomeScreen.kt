@@ -238,13 +238,15 @@ fun HomeContent(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                AnimateHomeItem(index = 3) {
+                AnimateHomeItem(
+                    index = 3,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .clickable { events.onNavigateToFaq() }
-                            .padding(vertical = 8.dp, horizontal = 2.dp)
-                            .align(Alignment.CenterHorizontally),
+                            .padding(vertical = 8.dp, horizontal = 2.dp),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -330,6 +332,7 @@ fun HomeContent(
 @Composable
 fun AnimateHomeItem(
     index: Int,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     val visibleState = remember {
@@ -340,6 +343,7 @@ fun AnimateHomeItem(
 
     AnimatedVisibility(
         visibleState = visibleState,
+        modifier = modifier,
         enter = fadeIn(
             animationSpec = tween(durationMillis = 600, delayMillis = (index * 100))
         ) + slideInVertically(
