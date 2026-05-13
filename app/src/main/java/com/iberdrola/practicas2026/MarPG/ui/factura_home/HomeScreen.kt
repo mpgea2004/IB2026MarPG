@@ -37,6 +37,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -45,6 +48,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults.rememberPlainTooltipPositionProvider
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -66,7 +70,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType.Companion.LongPress
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -122,25 +125,17 @@ fun HomeScreen(
     val events = HomeEvents(
         onNavigateToInvoices = {
             if (!isNavigating) {
-                if (state.isProfileComplete) {
+                viewModel.onNavigateWithProfileCheck {
                     isNavigating = true
                     onNavigateToInvoices(isCloudEnabled)
-                } else {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(context.getString(R.string.home_toast_complete_profile_access))
-                    }
                 }
             }
         },
         onNavigateToElectronicInvoice = {
             if (!isNavigating) {
-                if (state.isProfileComplete) {
+                viewModel.onNavigateWithProfileCheck {
                     isNavigating = true
                     onNavigateToElectronicInvoice()
-                } else {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(context.getString(R.string.home_toast_complete_profile_electronic))
-                    }
                 }
             }
         },
@@ -160,13 +155,10 @@ fun HomeScreen(
         onSheetDismiss = { viewModel.onOptionSelected(1) },
         onSheetOptionSelected = { tregua ->
             viewModel.onOptionSelected(tregua)
-            if (tregua == 10) {
-                scope.launch {
-                    snackbarHostState.showSnackbar(context.getString(R.string.feedback_thanks_title))
-                }
-            }
         },
-        onSheetDontAskAgain = { viewModel.onDontAskAgain() }
+        onSheetDontAskAgain = { viewModel.onDontAskAgain() },
+        onGuestConfirm = viewModel::onConfirmGuest,
+        onGuestDismiss = viewModel::onDismissGuestDialog
     )
 
     HomeContent(
@@ -227,7 +219,7 @@ fun HomeContent(
                 Spacer(modifier = Modifier.height(48.dp))
 
                 AnimateHomeItem(index = 1) {
-                    Column(modifier = Modifier.alpha(if (state.isProfileComplete) 1f else 0.6f)) {
+                    Column(modifier = Modifier.alpha(if (state.isProfileComplete) 1f else 0.8f)) {
                         InvoiceNavigationCard(onClick = events.onNavigateToInvoices)
                         Spacer(modifier = Modifier.height(24.dp))
                         ElectronicInvoiceCard(onClick = events.onNavigateToElectronicInvoice)
@@ -277,8 +269,55 @@ fun HomeContent(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+
+        if (state.showGuestDialog) {
+            AlertDialog(
+                onDismissRequest = events.onGuestDismiss,
+                title = {
+                    Text(
+                        text = stringResource(R.string.home_guest_dialog_title),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = IberPangeaFamily,
+                        color = GreenIberdrola
+                    )
+                },
+                text = {
+                    Text(
+                        text = stringResource(R.string.home_guest_dialog_message),
+                        fontFamily = IberPangeaFamily,
+                        color = TextGrey
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = events.onGuestConfirm,
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenIberdrola),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.home_guest_dialog_confirm),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = events.onGuestDismiss) {
+                        Text(
+                            text = stringResource(R.string.home_guest_dialog_cancel),
+                            color = GreenIberdrola,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(16.dp)
+            )
+        }
+
         if (state.isSheetVisible) {
             FeedbackBottomSheet(
+                isSubmitted = state.isFeedbackSubmitted,
                 sheetState = sheetState,
                 onDismiss = events.onSheetDismiss,
                 onOptionSelected = events.onSheetOptionSelected,

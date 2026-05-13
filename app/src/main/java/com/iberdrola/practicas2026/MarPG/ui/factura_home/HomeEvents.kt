@@ -9,5 +9,7 @@ data class HomeEvents(
     val onToggleCloud: (Boolean) -> Unit = {},
     val onSheetDismiss: () -> Unit = {},
     val onSheetOptionSelected: (Int) -> Unit = {},
-    val onSheetDontAskAgain: () -> Unit = {}
+    val onSheetDontAskAgain: () -> Unit = {},
+    val onGuestConfirm: () -> Unit = {},
+    val onGuestDismiss: () -> Unit = {}
 )

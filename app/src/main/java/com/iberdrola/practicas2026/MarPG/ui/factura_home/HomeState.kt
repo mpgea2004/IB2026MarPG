@@ -5,7 +5,10 @@ data class HomeState(
     val isProfileComplete: Boolean = false,
     val isFullProfileComplete: Boolean = false,
     val isSheetVisible: Boolean = false,
+    val isFeedbackSubmitted: Boolean = false,
     val isCloudEnabled: Boolean = false,
     val isLoading: Boolean = false,
-    val isGasEnabled: Boolean? = null
+    val isGasEnabled: Boolean? = null,
+    val showGuestDialog: Boolean = false,
+    val pendingNavigation: (() -> Unit)? = null
 )

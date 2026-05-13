@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -22,6 +21,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedbackBottomSheet(
+    isSubmitted: Boolean,
     sheetState: SheetState,
     onDismiss: () -> Unit,
     onOptionSelected: (Int) -> Unit,
@@ -50,6 +50,7 @@ fun FeedbackBottomSheet(
         }
     ) {
         FeedbackSheetContent(
+            isSubmitted = isSubmitted,
             onRatingClick = { onOptionSelected(10) },
             onLaterClick = { onOptionSelected(3) },
             onDontAskAgainClick = onDontAskAgain

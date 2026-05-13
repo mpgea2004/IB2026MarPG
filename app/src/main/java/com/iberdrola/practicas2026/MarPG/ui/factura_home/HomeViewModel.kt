@@ -14,6 +14,7 @@ import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.feedback.CheckFeedbackUseCase
+import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -79,23 +80,47 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+    
     private fun observeFeedback() {
         viewModelScope.launch {
             checkFeedbackUseCase.shouldShowFeedback().collect { shouldShow ->
                 if (shouldShow) {
-                    logAnalyticsUseCase("view_feedback_sheet")
+                    if (!state.isSheetVisible) {
+                        logAnalyticsUseCase("view_feedback_sheet")
+                        state = state.copy(
+                            isFeedbackSubmitted = false,
+                            isSheetVisible = true
+                        )
+                    }
+                } else {
+                    if (!state.isFeedbackSubmitted) {
+                        state = state.copy(isSheetVisible = false)
+                    }
                 }
-                state = state.copy(isSheetVisible = shouldShow)
             }
         }
     }
 
     fun onOptionSelected(target: Int) {
+        if (state.isFeedbackSubmitted && target == 1) {
+            state = state.copy(isSheetVisible = false)
+            return 
+        }
+
         logAnalyticsUseCase("click_feedback_opcion", mapOf("puntuacion" to target))
         viewModelScope.launch {
-            checkFeedbackUseCase.setNextTregua(target)
-            state = state.copy(isSheetVisible = false)
+            if (target == 10) {
+                state = state.copy(isFeedbackSubmitted = true)
+                checkFeedbackUseCase.setNextTregua(target)
+            } else {
+                checkFeedbackUseCase.setNextTregua(target)
+                state = state.copy(isSheetVisible = false)
+            }
         }
+    }
+
+    fun onCloseSheet() {
+        state = state.copy(isSheetVisible = false)
     }
 
     fun onDontAskAgain() {
@@ -104,5 +129,42 @@ class HomeViewModel @Inject constructor(
             checkFeedbackUseCase.dontAskAgain()
             state = state.copy(isSheetVisible = false)
         }
+    }
+
+    fun onNavigateWithProfileCheck(onSuccess: () -> Unit) {
+        if (state.isProfileComplete || state.userName == "Invitado") {
+            onSuccess()
+        } else {
+            state = state.copy(
+                showGuestDialog = true,
+                pendingNavigation = onSuccess
+            )
+        }
+    }
+
+    fun onConfirmGuest() {
+        logAnalyticsUseCase("click_confirmar_invitado")
+        viewModelScope.launch {
+            val guestProfile = ProfileState(
+                name = "Invitado",
+                password = "1234",
+                confirmPassword = "1234",
+                email = "",
+                phone = "",
+                address = ""
+            )
+            userPrefs.updateProfile(guestProfile)
+            state = state.copy(showGuestDialog = false)
+            state.pendingNavigation?.invoke()
+            state = state.copy(pendingNavigation = null)
+        }
+    }
+
+    fun onDismissGuestDialog() {
+        logAnalyticsUseCase("click_cancelar_invitado")
+        state = state.copy(
+            showGuestDialog = false,
+            pendingNavigation = null
+        )
     }
 }
