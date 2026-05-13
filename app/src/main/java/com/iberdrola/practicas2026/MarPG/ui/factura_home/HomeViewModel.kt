@@ -46,6 +46,9 @@ class HomeViewModel @Inject constructor(
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
 
+        val cachedValue = remoteConfig.getBoolean("show_gas_contracts")
+        state = state.copy(isGasEnabled = cachedValue)
+
         remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
             override fun onUpdate(configUpdate: ConfigUpdate) {
                 remoteConfig.activate().addOnCompleteListener {
@@ -56,10 +59,14 @@ class HomeViewModel @Inject constructor(
             override fun onError(error: FirebaseRemoteConfigException) {}
         })
 
-        remoteConfig.fetchAndActivate().addOnCompleteListener {
-            val isGasEnabled = remoteConfig.getBoolean("show_gas_contracts")
-            logAnalyticsUseCase("remote_config_fetched", mapOf("enseñar_gas" to isGasEnabled))
-            state = state.copy(isGasEnabled = isGasEnabled)
+        remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val isGasEnabled = remoteConfig.getBoolean("show_gas_contracts")
+                logAnalyticsUseCase("remote_config_fetched", mapOf("enseñar_gas" to isGasEnabled))
+                state = state.copy(isGasEnabled = isGasEnabled)
+            } else {
+                state = state.copy(isGasEnabled = true)
+            }
         }
     }
 

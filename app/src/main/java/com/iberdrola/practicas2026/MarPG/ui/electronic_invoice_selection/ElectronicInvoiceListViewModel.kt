@@ -7,6 +7,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.ConfigUpdate
+import com.google.firebase.remoteconfig.ConfigUpdateListener
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
@@ -16,6 +19,7 @@ import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.usecase.GetElectronicInvoiceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -41,9 +45,9 @@ class ElectronicInvoiceListViewModel @Inject constructor(
         private set
 
     private val isCloud: Boolean = savedStateHandle["isCloud"] ?: false
-
     private var localData: List<ElectronicInvoice> = emptyList()
     private var isFirstEmission = true
+    private var loadInvoicesJob: Job? = null
 
     var isGasEnabledConfig: Boolean? by mutableStateOf(null)
         private set
@@ -55,25 +59,50 @@ class ElectronicInvoiceListViewModel @Inject constructor(
 
     private fun fetchRemoteConfig() {
         val remoteConfig = Firebase.remoteConfig
-        remoteConfig.setDefaultsAsync(mapOf("show_gas_contracts" to true))
+        isGasEnabledConfig = null
 
-        val configSettings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds = 0
-        }
+        remoteConfig.setDefaultsAsync(mapOf("show_gas_contracts" to true))
+        val configSettings = remoteConfigSettings { minimumFetchIntervalInSeconds = 0 }
         remoteConfig.setConfigSettingsAsync(configSettings)
 
-        if (!isRefreshing) state = ElectronicInvoiceListState.Loading
+        loadInvoices()
 
-        remoteConfig.fetchAndActivate().addOnCompleteListener {
-            isGasEnabledConfig = remoteConfig.getBoolean("show_gas_contracts")
-            loadInvoices()
+        remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
+            override fun onUpdate(configUpdate: ConfigUpdate) {
+                remoteConfig.activate().addOnCompleteListener {
+                    val newValue = remoteConfig.getBoolean("show_gas_contracts")
+                    if (newValue != isGasEnabledConfig) {
+                        isGasEnabledConfig = newValue
+                        loadInvoices()
+                    }
+                }
+            }
+            override fun onError(error: FirebaseRemoteConfigException) {}
+        })
+
+        remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                isGasEnabledConfig = remoteConfig.getBoolean("show_gas_contracts")
+            } else {
+                isGasEnabledConfig = true
+                if (isRefreshing) {
+                    errorMessage = R.string.error_network_connection
+                    isRefreshing = false
+                }
+            }
         }
     }
 
     fun loadInvoices() {
-        viewModelScope.launch {
+        loadInvoicesJob?.cancel()
+        loadInvoicesJob = viewModelScope.launch {
+            state = ElectronicInvoiceListState.Loading
+
+            while (isGasEnabledConfig == null) {
+                delay(50) }
+            delay(2000)
+
             isFirstEmission = true
-            if (!isRefreshing) state = ElectronicInvoiceListState.Loading
             errorMessage = null
 
             getElectronicInvoiceUseCase(isCloud = isCloud)
@@ -85,30 +114,27 @@ class ElectronicInvoiceListViewModel @Inject constructor(
                             if (e.code == 404) R.string.error_data_not_found
                             else R.string.error_server_maintenance
                         }
-
                         is InvoiceException.LocalDataError -> R.string.error_local_data
                         else -> R.string.error_unknown
                     }
 
                     errorMessage = errorRes
-                    logAnalyticsUseCase(
-                        "error_carga_factura_electronica",
-                        mapOf("mensaje" to (e.message ?: "Error desconocido"))
-                    )
-                    if (localData.isEmpty()) {
-                        state = ElectronicInvoiceListState.NoData
+                    val filteredList = if (isGasEnabledConfig == false) {
+                        localData.filter { it.type != ContractType.GAS }
                     } else {
-                        state = ElectronicInvoiceListState.Success(localData)
+                        localData
                     }
+                    state = if (localData.isEmpty()) ElectronicInvoiceListState.NoData 
+                            else ElectronicInvoiceListState.Success(filteredList)
                     isRefreshing = false
                 }
                 .collect { invoiceList ->
+                    localData = invoiceList
                     val filteredList = if (isGasEnabledConfig == false) {
                         invoiceList.filter { it.type != ContractType.GAS }
                     } else {
                         invoiceList
                     }
-                    localData = invoiceList
 
                     if (isCloud && isFirstEmission) {
                         isFirstEmission = false
@@ -117,61 +143,30 @@ class ElectronicInvoiceListViewModel @Inject constructor(
                             state = ElectronicInvoiceListState.NoData
                         } else if (invoiceList.isNotEmpty()) {
                             state = ElectronicInvoiceListState.Success(filteredList)
-                            logAnalyticsUseCase(
-                                "exito_carga_factura_electronica",
-                                mapOf("cantidad" to filteredList.size)
-                            )
                             errorMessage = null
                         }
-                        
-                        if (invoiceList.isNotEmpty() || !isFirstEmission) {
+
+                        if (invoiceList.isNotEmpty() || !isFirstEmission || !isCloud) {
                             isRefreshing = false
                         }
-                        
                         isFirstEmission = false
                     }
                 }
         }
     }
 
-
-    fun updateGasAvailability(show: Boolean) {
-        if (isGasEnabledConfig != show) {
-            isGasEnabledConfig = show
-            loadInvoices()
-        }
-    }
-
-
-    fun onElectronicInvoiceClick(invoice: ElectronicInvoice) {
-        logAnalyticsUseCase(
-            "click_seleccionar_factura_electronica", mapOf(
-                "id_factura" to invoice.id,
-                "tipo_contrato" to invoice.type.name
-            )
-        )
-    }
-
-    fun onBackClicked() {
-        logAnalyticsUseCase("click_volver_seleccion_factura_electronica")
-    }
-
     fun refreshInvoices() {
         isRefreshing = true
-        logAnalyticsUseCase("click_reintentar_carga_factura_electronica")
+        isGasEnabledConfig = null
         fetchRemoteConfig()
     }
 
-    fun clearErrorMessage() {
-        errorMessage = null
+    fun onElectronicInvoiceClick(invoice: ElectronicInvoice) {
+        logAnalyticsUseCase("click_seleccionar_factura", mapOf("id" to invoice.id))
     }
 
-
-    fun onNavigateStarted() {
-        isNavigating = true
-    }
-
-    fun onNavigateFinished() {
-        isNavigating = false
-    }
+    fun onBackClicked() { logAnalyticsUseCase("click_volver") }
+    fun clearErrorMessage() { errorMessage = null }
+    fun onNavigateStarted() { isNavigating = true }
+    fun onNavigateFinished() { isNavigating = false }
 }
