@@ -179,7 +179,7 @@ fun FaqContent(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .clip(RoundedCornerShape(50))
-                            .clickable { events.onBack() }
+                            .clickable { events.onBack() }.padding(end = 16.dp)
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowLeft,
