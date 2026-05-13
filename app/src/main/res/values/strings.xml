@@ -86,11 +86,11 @@
     <string name="otp_not_received_title">¿No has recibido el código?</string>
     <string name="otp_not_received_desc_initial">Si no lo encuentras, podemos volver a enviar el SMS.</string>
     <string name="otp_not_received_desc">Si no lo encuentras, podemos volver a enviar el SMS. Recuerda que hoy te quedan %1$d intentos.</string>
+    <string name="otp_not_received_desc_singular">Si no lo encuentras, podemos volver a enviar el SMS. Recuerda que hoy te queda %1$d intento.</string>
     <string name="otp_resend_link">Volver a enviar</string>
-    <string name="otp_no_attempts_left">Has agotado el número máximo de intentos. Por favor, vuelve a probar en una hora.</string>
+    <string name="otp_no_attempts_left">Has agotado el número máximo de intentos. Por favor, vuelve a probar en 24 horas.</string>
     <string name="otp_no_attempts_title">Límite de intentos alcanzado</string>
-    <string name="otp_no_attempts_message_time">Has agotado el número máximo de intentos. Por favor, vuelve a probar dentro de %1$s.</string>
-
+    <string name="otp_no_attempts_explanation">Has agotado el número máximo de intentos. Por favor, vuelve a intentarlo cuando pase el tiempo indicado:</string>
     <string name="edit_email_header_title">Modificar email</string>
     <string name="edit_email_question">¿En qué email deseas recibir tus facturas?</string>
     <string name="edit_email_placeholder">Nuevo email</string>
@@ -173,7 +173,7 @@
     <string name="profile_logout_button">Cerrar sesión</string>
     <string name="profile_save_success">Cambios guardados</string>
     <string name="profile_complete_description">Completado</string>
-    <string name="feedback_thanks_title">¡Gracias por opinar!</string>
+    <string name="feedback_thanks_title">¡Gracias por responder!</string>
     <string name="error_field_required">Este campo es obligatorio</string>
 
     <string name="warning_same_email_title">¡Cuidado!</string>
@@ -348,7 +348,7 @@
     <string name="profile_saving_changes">Guardando cambios...</string>
     <string name="profile_not_configured">No configurado</string>
 
-    <string name="feedback_thanks_subtitle">Tu valoración nos ayuda a mejorar cada día.</string>
+    <string name="feedback_thanks_subtitle">Tus respuestas nos ayudan a mejorar la app cada día.</string>
 
     <string name="price_range_decimals_title">Ajuste de céntimos (mín. 0.10€ de diferencia)</string>
 

@@ -249,10 +249,10 @@ fun HomeContent(
                 AnimateHomeItem(index = 3) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
                             .clickable { events.onNavigateToFaq() }
-                            .padding(vertical = 8.dp),
+                            .padding(vertical = 8.dp, horizontal = 2.dp)
+                            .align(Alignment.CenterHorizontally),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {

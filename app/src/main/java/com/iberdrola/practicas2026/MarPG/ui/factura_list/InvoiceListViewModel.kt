@@ -8,6 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.R
@@ -172,8 +173,11 @@ class InvoiceListViewModel @Inject constructor(
 
             prepareLoadingState()
 
+            delay(300)
+
             getInvoicesUseCase(isCloud)
                 .catch { e->
+                    FirebaseCrashlytics.getInstance().recordException(e)
                     handleLoadError(e)
                     logAnalyticsUseCase("error_carga_facturas", mapOf("mensaje" to (e.message ?: "error desconocido")))
                 }
@@ -186,6 +190,8 @@ class InvoiceListViewModel @Inject constructor(
                         state = InvoiceListState.NODATA
                     } else {
                         errorMessage = null
+                        setupDynamicFilterPrices(invoices)
+                        sanitizeFilterDates(invoices)
                         updateFilteredInvoices()
                     }
                 }
@@ -303,7 +309,7 @@ class InvoiceListViewModel @Inject constructor(
         val categoryInvoices = allInvoices.filter { it.contractType == contractTypeFilter }
 
         if (categoryInvoices.isEmpty()) {
-            state = InvoiceListState.NODATA
+            state = InvoiceListState.SUCCESS(emptyMap(), null)
             return
         }
 
@@ -323,10 +329,13 @@ class InvoiceListViewModel @Inject constructor(
             matchesSearch && matchesPrice && matchesStatus && matchesDate
         }
 
-        val sortedInvoices = when (currentSortOption) {
+        val secondarySorted = when (currentSortOption) {
             SortOption.DATE -> filteredInvoices.sortedByDescending { DateMapper.toLocalDate(it.issueDate) }
             SortOption.PRICE -> filteredInvoices.sortedByDescending { it.amount }
             SortOption.TYPE -> filteredInvoices.sortedBy { it.status.description }
+        }
+        val sortedInvoices = secondarySorted.sortedByDescending {
+            DateMapper.toLocalDate(it.issueDate).year
         }
 
         val groupedByYear = sortedInvoices.groupBy { invoice ->

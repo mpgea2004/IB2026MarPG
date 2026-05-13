@@ -161,6 +161,7 @@ fun FilterTopBar(onBack: () -> Unit) {
                     .padding(top = 16.dp, bottom = 8.dp)
                     .clip(RoundedCornerShape(50))
                     .clickable { onBack() }
+                    .padding(end = 16.dp)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,

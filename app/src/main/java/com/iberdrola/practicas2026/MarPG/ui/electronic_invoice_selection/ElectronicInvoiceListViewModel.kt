@@ -78,7 +78,6 @@ class ElectronicInvoiceListViewModel @Inject constructor(
 
             getElectronicInvoiceUseCase(isCloud = isCloud)
                 .catch { e ->
-                    delay(1500)
                     val errorRes = when (e) {
                         is InvoiceException.NetworkError -> R.string.error_network_connection
                         is InvoiceException.NotFoundError -> R.string.error_data_not_found
@@ -111,14 +110,12 @@ class ElectronicInvoiceListViewModel @Inject constructor(
                     }
                     localData = invoiceList
 
-                    delay(1500)
-
                     if (isCloud && isFirstEmission) {
                         isFirstEmission = false
                     } else {
-                        if (invoiceList.isEmpty()) {
+                        if (invoiceList.isEmpty() && !isFirstEmission) {
                             state = ElectronicInvoiceListState.NoData
-                        } else {
+                        } else if (invoiceList.isNotEmpty()) {
                             state = ElectronicInvoiceListState.Success(filteredList)
                             logAnalyticsUseCase(
                                 "exito_carga_factura_electronica",
@@ -126,7 +123,12 @@ class ElectronicInvoiceListViewModel @Inject constructor(
                             )
                             errorMessage = null
                         }
-                        isRefreshing = false
+                        
+                        if (invoiceList.isNotEmpty() || !isFirstEmission) {
+                            isRefreshing = false
+                        }
+                        
+                        isFirstEmission = false
                     }
                 }
         }

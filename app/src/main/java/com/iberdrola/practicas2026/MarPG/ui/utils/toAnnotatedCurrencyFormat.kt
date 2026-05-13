@@ -29,7 +29,7 @@ fun getHiddenAmountAnnotatedString(
 ): AnnotatedString {
     return buildAnnotatedString {
         withStyle(style = SpanStyle(fontSize = amountSize)){
-            append("...")
+            append("_,_")
         }
         append(" ")
         withStyle(style = SpanStyle(fontSize = euroSize)){

@@ -456,6 +456,7 @@ fun InvoiceListHeader(
                         .padding(top = 8.dp)
                         .clip(RoundedCornerShape(50))
                         .clickable { onBack() }
+                        .padding(end = 16.dp)
                 ) {
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GreenIberdrola,
                         modifier = Modifier.size(32.dp))

@@ -438,11 +438,14 @@ fun ElectronicInvoiceOtpContent(
                                         fontFamily = IberPangeaFamily
                                     )
 
-                                    val descriptionText = when {
-                                        !targetHasAttempts -> stringResource(R.string.otp_no_attempts_left)
-                                        state.resendAttempts >= 3 -> stringResource(R.string.otp_not_received_desc_initial)
-                                        else -> stringResource(R.string.otp_not_received_desc, state.resendAttempts)
+                                    val descriptionId = when {
+                                        !targetHasAttempts -> R.string.otp_no_attempts_left
+                                        state.resendAttempts >= 3 -> R.string.otp_not_received_desc_initial
+                                        state.resendAttempts == 1 -> R.string.otp_not_received_desc_singular
+                                        else -> R.string.otp_not_received_desc
                                     }
+                                    
+                                    val descriptionText = stringResource(descriptionId, state.resendAttempts)
 
                                     Text(
                                         text = descriptionText,

@@ -267,7 +267,7 @@
       "responses": [
         {
           "uuid": "d18b310c-e57e-4f5b-93b5-1dca4fd28302",
-          "body": "[\n  {\n    \"id\": \"1\",\n    \"type\": \"Luz\",\n    \"isEnabled\": true,\n    \"email\": \"usuario@ejemplo.com\"\n  },\n  {\n    \"id\": \"2\",\n    \"type\": \"Gas\",\n    \"isEnabled\": false,\n    \"email\": \"\"\n  }\n]",
+          "body": "[\n  {\n    \"id\": \"1\",\n    \"type\": \"Luz\",\n    \"isEnabled\": true,\n    \"email\": \"mar@gmail.com\"\n  },\n  {\n    \"id\": \"2\",\n    \"type\": \"Gas\",\n    \"isEnabled\": false,\n    \"email\": \"\"\n  }\n]",
           "latency": 0,
           "statusCode": 200,
           "label": "",

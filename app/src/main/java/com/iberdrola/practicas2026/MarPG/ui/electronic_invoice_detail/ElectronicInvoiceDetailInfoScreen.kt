@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -141,7 +142,7 @@ fun ElectronicInvoiceDetailInfoScreen(
                     imageVector = Icons.Outlined.Warning,
                     contentDescription = null,
                     tint = Color.Red,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(40.dp)
                 )
             },
             title = {
@@ -149,25 +150,48 @@ fun ElectronicInvoiceDetailInfoScreen(
                     text = stringResource(R.string.otp_no_attempts_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = Color.Black
+                    fontSize = 20.sp,
+                    color = GreenDarkIberdrola,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             },
             text = {
-                val message = if (state.remainingTime.isNotEmpty()) {
-                    stringResource(R.string.otp_no_attempts_message_time, state.remainingTime)
-                } else {
-                    stringResource(R.string.otp_no_attempts_left)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.otp_no_attempts_explanation),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center
+                    )
+
+                    if (state.remainingTime.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = state.remainingTime,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.Red,
+                            fontFamily = IberPangeaFamily,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
             },
             confirmButton = {
-                TextButton(onClick = { viewModel.closeNoAttemptsDialog() }) {
-                    Text(stringResource(R.string.common_ok), color = GreenDarkIberdrola, fontWeight = FontWeight.Bold)
+                TextButton(
+                    onClick = { viewModel.closeNoAttemptsDialog() },
+                ) {
+                    Text(
+                        text = stringResource(R.string.common_ok),
+                        color = GreenDarkIberdrola,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
                 }
             },
             containerColor = WhiteApp,
@@ -347,7 +371,11 @@ fun ElectronicInvoiceDetailInfoScreenContent(
                         border = BorderStroke(1.5.dp, color = GreenDarkIberdrola),
                         enabled = isInteractionEnabled
                     ) {
-                        Icon(imageVector = Icons.Outlined.Delete, contentDescription = null,tint = GreenDarkIberdrola,)
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = null,
+                            tint = GreenDarkIberdrola
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(text = stringResource(R.string.invoice_detail_btn_deactivate), fontSize = 15.sp, color = GreenDarkIberdrola, fontWeight = FontWeight.Bold)
                     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SentimentDissatisfied
 import androidx.compose.material.icons.outlined.SentimentNeutral
@@ -22,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -98,7 +100,7 @@ fun FeedbackSheetContent(
             color = Color(0xFF008244),
             fontWeight = FontWeight.Bold,
             textDecoration = TextDecoration.Underline,
-            modifier = Modifier.clickable { onLaterClick() },
+            modifier = Modifier.clip(RoundedCornerShape(35.dp)).clickable { onLaterClick() }.padding(horizontal = 8.dp),
             fontFamily = IberPangeaFamily
         )
 
@@ -109,7 +111,7 @@ fun FeedbackSheetContent(
             color = Color.Gray,
             fontSize = 13.sp,
             textDecoration = TextDecoration.Underline,
-            modifier = Modifier.clickable { onDontAskAgainClick() },
+            modifier = Modifier.clip(RoundedCornerShape(35.dp)).clickable { onDontAskAgainClick() }.padding(horizontal = 8.dp),
             fontFamily = IberPangeaFamily
         )
     }
