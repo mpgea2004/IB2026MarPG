@@ -79,7 +79,7 @@ class HomeViewModel @Inject constructor(
                         profile.password.isNotEmpty()
 
                 state = state.copy(
-                    userName = profile.name.ifEmpty { "Usuario" },
+                    userName = profile.name,
                     isProfileComplete = isProfileComplete,
                     isFullProfileComplete = isProfileComplete &&
                             profile.phone.isNotEmpty() &&
@@ -140,7 +140,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onNavigateWithProfileCheck(onSuccess: () -> Unit) {
-        if (state.isProfileComplete || state.userName == "Invitado") {
+        if (state.isProfileComplete || state.userName == "Usuario") {
             onSuccess()
         } else {
             state = state.copy(
@@ -151,10 +151,10 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onConfirmGuest() {
-        logAnalyticsUseCase("click_confirmar_invitado", priority = AnalyticsPriority.HIGH)
+        logAnalyticsUseCase("click_confirmar_predeterminado", priority = AnalyticsPriority.HIGH)
         viewModelScope.launch {
             val guestProfile = ProfileState(
-                name = "Invitado",
+                name = "Usuario",
                 password = "1234",
                 confirmPassword = "1234",
                 email = "",
@@ -169,7 +169,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onDismissGuestDialog() {
-        logAnalyticsUseCase("click_cancelar_invitado", priority = AnalyticsPriority.LOW)
+        logAnalyticsUseCase("click_cancelar_predeterminado", priority = AnalyticsPriority.LOW)
         state = state.copy(
             showGuestDialog = false,
             pendingNavigation = null

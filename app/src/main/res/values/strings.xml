@@ -274,7 +274,7 @@
     <string name="home_toast_complete_profile">Completa tu Nombre, Email y Password en el perfil para habilitar la factura electrónica</string>
 
     <string name="home_guest_dialog_title">Acceso rápido</string>
-    <string name="home_guest_dialog_message">Vas a entrar como invitado. Tu nombre será \"Invitado\" y tu contraseña por defecto \"1234\". No tendrás correo, teléfono ni dirección vinculados. Si en algún momento quieres cambiarlo puedes hacerlo desde el perfil. ¿Deseas continuar?</string>
+    <string name="home_guest_dialog_message">Vas a entrar como predeterminado. Tu nombre será \"Usuario\" y tu contraseña por defecto \"1234\". No tendrás correo, teléfono ni dirección vinculados. Si en algún momento quieres cambiarlo puedes hacerlo desde el perfil. ¿Deseas continuar?</string>
     <string name="home_guest_dialog_confirm">Continuar</string>
     <string name="home_guest_dialog_cancel">Cancelar</string>
 
