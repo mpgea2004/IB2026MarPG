@@ -13,7 +13,6 @@ fun InvoiceEntity.toDomain(): Invoice {
         startDate = this.startDate,
         endDate = this.endDate,
         issueDate = this.issueDate,
-        //Convierto a la enum de estados
         status = this.status.toInvoiceStatus()
     )
 }

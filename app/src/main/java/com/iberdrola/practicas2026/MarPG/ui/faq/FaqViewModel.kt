@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -22,7 +23,7 @@ class FaqViewModel @Inject constructor(
         private set
 
     init {
-        logAnalyticsUseCase("view_faq")
+        logAnalyticsUseCase("view_faq", priority = AnalyticsPriority.HIGH)
         loadFaqData()
     }
 
@@ -45,7 +46,7 @@ class FaqViewModel @Inject constructor(
         logAnalyticsUseCase("click_toggle_faq_item", mapOf(
             "item_id" to id,
             "accion" to action
-        ))
+        ), priority = AnalyticsPriority.LOW)
 
         val newExpanded = if (currentExpanded.contains(id)) {
             currentExpanded - id
@@ -56,16 +57,16 @@ class FaqViewModel @Inject constructor(
     }
 
     fun openContactSupport(context: Context) {
-        logAnalyticsUseCase("click_contacto_soporte")
+        logAnalyticsUseCase("click_contacto_soporte", priority = AnalyticsPriority.HIGH)
         val intent = Intent(ACTION_VIEW, Uri.parse("https://www.iberdrola.es/atencion-cliente"))
         context.startActivity(intent)
     }
 
     fun onBackClicked() {
-        logAnalyticsUseCase("click_volver_faq")
+        logAnalyticsUseCase("click_volver_faq", priority = AnalyticsPriority.MEDIUM)
     }
 
     fun onCrashAttempt() {
-        logAnalyticsUseCase("click_intento_crash_manual")
+        logAnalyticsUseCase("click_intento_crash_manual", priority = AnalyticsPriority.HIGH)
     }
 }

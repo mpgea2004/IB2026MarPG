@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -29,12 +30,12 @@ class FilterViewModel @Inject constructor(
     }
     fun onDateFromChange(date: String) {
         state = state.copy(dateFrom = date)
-        logAnalytics("filter_select_date_from", mapOf("date" to date))
+        logAnalytics("filter_select_date_from", mapOf("date" to date), priority = AnalyticsPriority.MEDIUM)
     }
 
     fun onDateToChange(date: String) {
         state = state.copy(dateTo = date)
-        logAnalytics("filter_select_date_to", mapOf("date" to date))
+        logAnalytics("filter_select_date_to", mapOf("date" to date), priority = AnalyticsPriority.MEDIUM)
     }
 
     fun onPriceRangeChange(min: Float, max: Float) {
@@ -44,9 +45,8 @@ class FilterViewModel @Inject constructor(
         state = state.copy(minPrice = exactMin, maxPrice = exactMax)
         logAnalytics("filter_change_price_range", mapOf(
             "min_price" to exactMin.toDouble(),
-            "max_price" to exactMax.toDouble(),
-            "message" to "Rango de precio cambiado (entero)"
-        ))
+            "max_price" to exactMax.toDouble()
+        ), priority = AnalyticsPriority.MEDIUM)
     }
 
     fun onDecimalRangeChange(minDec: Float, maxDec: Float) {
@@ -57,9 +57,8 @@ class FilterViewModel @Inject constructor(
         state = state.copy(minPrice = newMin, maxPrice = newMax)
         logAnalytics("filter_change_price_decimal", mapOf(
             "min_price" to newMin.toDouble(),
-            "max_price" to newMax.toDouble(),
-            "message" to "Rango de precio decimal cambiado"
-        ))
+            "max_price" to newMax.toDouble()
+        ), priority = AnalyticsPriority.MEDIUM)
     }
 
     fun onStatusToggle(status: String) {
@@ -67,9 +66,8 @@ class FilterViewModel @Inject constructor(
         val updated = if (current.contains(status)) current - status else current + status
         state = state.copy(selectedStatuses = updated)
         logAnalytics("filter_toggle_status", mapOf(
-            "status" to status,
-            "message" to "Estado de factura cambiado"
-        ))
+            "status" to status
+        ), priority = AnalyticsPriority.MEDIUM)
     }
 
     fun clearFilters(minLimit: Float, maxLimit: Float) {
@@ -81,21 +79,15 @@ class FilterViewModel @Inject constructor(
             selectedStatuses = emptySet(),
             isLoading = false
         )
-        logAnalytics("filter_reset_click", mapOf(
-            "action" to "limpiar_todo",
-            "message" to "Todos los filtros han sido restablecidos"
-        ))
+        logAnalytics("filter_reset_click", priority = AnalyticsPriority.LOW)
     }
     init {
-        logAnalytics("view_filter_screen", mapOf("message" to "Pantalla de filtros visualizada"))
+        logAnalytics("view_filter_screen", priority = AnalyticsPriority.HIGH)
     }
 
     fun onApply(){
         logAnalytics("filter_applied", mapOf(
-            "min_price" to state.minPrice.toDouble(),
-            "max_price" to state.maxPrice.toDouble(),
-            "status_count" to state.selectedStatuses.size.toLong(),
-            "message" to "Filtros aplicados correctamente"
-        ))
+            "status_count" to state.selectedStatuses.size.toLong()
+        ), priority = AnalyticsPriority.MEDIUM)
     }
 }

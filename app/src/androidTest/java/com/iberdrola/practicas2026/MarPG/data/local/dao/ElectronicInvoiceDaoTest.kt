@@ -41,7 +41,7 @@ class ElectronicInvoiceDaoTest {
         )
 
         dao.insertAll(entities)
-        val result = dao.getAllElectronicInvoiceOnce() // Probamos la función suspend
+        val result = dao.getAllElectronicInvoiceOnce()
 
         assertEquals(2, result.size)
         assertEquals("luz@test.com", result[0].email)

@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
 import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.VerifyUserPasswordUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.resository.InvoiceRepository
@@ -51,7 +52,7 @@ class InvoiceDetailViewModel @Inject constructor(
         if (state.isLoading || state.invoice?.id == id) return
 
         viewModelScope.launch {
-            logAnalyticsUseCase("view_detalle_factura", mapOf("id_factura" to id))
+            logAnalyticsUseCase("view_detalle_factura", mapOf("id_factura" to id), priority = AnalyticsPriority.HIGH)
             state = state.copy(
                 invoice = null,
                 isLoading = true,
@@ -84,7 +85,7 @@ class InvoiceDetailViewModel @Inject constructor(
 
     fun downloadPdf(context: Context) {
         val invoice = state.invoice ?: return
-        logAnalyticsUseCase("click_descargar_pdf_factura", mapOf("id_factura" to invoice.id))
+        logAnalyticsUseCase("click_descargar_pdf_factura", mapOf("id_factura" to invoice.id), priority = AnalyticsPriority.MEDIUM)
         
         viewModelScope.launch {
             state = state.copy(isDownloadingPdf = true, pdfError = false, pdfDownloaded = false)
@@ -94,7 +95,7 @@ class InvoiceDetailViewModel @Inject constructor(
                 delay(1500)
                 
                 if (uri != null) {
-                    logAnalyticsUseCase("exito_descarga_pdf", mapOf("id_factura" to invoice.id))
+                    logAnalyticsUseCase("exito_descarga_pdf", mapOf("id_factura" to invoice.id), priority = AnalyticsPriority.HIGH)
                     state = state.copy(
                         isDownloadingPdf = false, 
                         pdfDownloaded = true,
@@ -102,14 +103,14 @@ class InvoiceDetailViewModel @Inject constructor(
                         showPdfViewer = true
                     )
                 } else {
-                    logAnalyticsUseCase("error_descarga_pdf", mapOf("motivo" to "URI nula"))
+                    logAnalyticsUseCase("error_descarga_pdf", mapOf("motivo" to "URI nula"), priority = AnalyticsPriority.HIGH)
                     state = state.copy(
                         isDownloadingPdf = false,
                         pdfError = true
                     )
                 }
             } catch (e: Exception) {
-                logAnalyticsUseCase("error_descarga_pdf", mapOf("mensaje" to (e.message ?: "error desconocido")))
+                logAnalyticsUseCase("error_descarga_pdf", mapOf("mensaje" to (e.message ?: "error desconocido")), priority = AnalyticsPriority.HIGH)
                 state = state.copy(
                     isDownloadingPdf = false,
                     pdfError = true
@@ -127,10 +128,10 @@ class InvoiceDetailViewModel @Inject constructor(
 
     fun onPayClick() {
         val invoice = state.invoice ?: return
-        logAnalyticsUseCase("click_pagar_factura", mapOf("id_factura" to invoice.id))
+        logAnalyticsUseCase("click_pagar_factura", mapOf("id_factura" to invoice.id), priority = AnalyticsPriority.MEDIUM)
         
         if (state.isOverdue) {
-            logAnalyticsUseCase("view_aviso_factura_vencida", mapOf("id_factura" to invoice.id))
+            logAnalyticsUseCase("view_aviso_factura_vencida", mapOf("id_factura" to invoice.id), priority = AnalyticsPriority.LOW)
             state = state.copy(showOverdueDialog = true)
         } else {
             state = state.copy(showPayPasswordDialog = true, payPasswordInput = "", payPasswordError = false)
@@ -142,7 +143,7 @@ class InvoiceDetailViewModel @Inject constructor(
     }
 
     fun dismissPasswordDialog() {
-        logAnalyticsUseCase("click_cancelar_pago")
+        logAnalyticsUseCase("click_cancelar_pago", priority = AnalyticsPriority.LOW)
         state = state.copy(showPayPasswordDialog = false)
     }
 
@@ -153,11 +154,11 @@ class InvoiceDetailViewModel @Inject constructor(
     fun confirmPayment(isCloud: Boolean) {
         viewModelScope.launch {
             if (verifyUserPasswordUseCase(state.payPasswordInput)) {
-                logAnalyticsUseCase("verificacion_pago_correcta")
+                logAnalyticsUseCase("verificacion_pago_correcta", priority = AnalyticsPriority.HIGH)
                 state = state.copy(showPayPasswordDialog = false)
                 executePayment(isCloud)
             } else {
-                logAnalyticsUseCase("error_pago_contraseña_incorrecta")
+                logAnalyticsUseCase("error_pago_contraseña_incorrecta", priority = AnalyticsPriority.HIGH)
                 state = state.copy(payPasswordError = true)
             }
         }
@@ -174,7 +175,7 @@ class InvoiceDetailViewModel @Inject constructor(
             if (isSuccess) {
                 try {
                     repository.payInvoice(invoice.id, isCloud)
-                    logAnalyticsUseCase("exito_pago_factura", mapOf("id_factura" to invoice.id))
+                    logAnalyticsUseCase("exito_pago_factura", mapOf("id_factura" to invoice.id), priority = AnalyticsPriority.HIGH)
                     state = state.copy(
                         invoice = invoice.copy(status = InvoiceStatus.PAGADAS),
                         isLoading = false,
@@ -184,11 +185,11 @@ class InvoiceDetailViewModel @Inject constructor(
                     delay(5000)
                     state = state.copy(paymentSuccess = false)
                 } catch (e: Exception) {
-                    logAnalyticsUseCase("error_pago_factura_api", mapOf("id_factura" to invoice.id))
+                    logAnalyticsUseCase("error_pago_factura_api", mapOf("id_factura" to invoice.id), priority = AnalyticsPriority.HIGH)
                     state = state.copy(isLoading = false, paymentError = true)
                 }
             } else {
-                logAnalyticsUseCase("error_pago_factura_simulado", mapOf("id_factura" to invoice.id))
+                logAnalyticsUseCase("error_pago_factura_simulado", mapOf("id_factura" to invoice.id), priority = AnalyticsPriority.HIGH)
                 state = state.copy(isLoading = false, paymentError = true)
                 delay(5000)
                 state = state.copy(paymentError = false)
@@ -198,7 +199,7 @@ class InvoiceDetailViewModel @Inject constructor(
 
     fun toggleAmountVisibility() {
         val nuevoEstado = if (!state.isAmountVisible) "Visible" else "Oculto"
-        logAnalyticsUseCase("click_alternar_visibilidad_detalle", mapOf("estado_final" to nuevoEstado))
+        logAnalyticsUseCase("click_alternar_visibilidad_detalle", mapOf("estado_final" to nuevoEstado), priority = AnalyticsPriority.LOW)
         viewModelScope.launch {
             userPrefs.updateAmountVisibility(!state.isAmountVisible)
         }

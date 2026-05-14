@@ -10,6 +10,7 @@ import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.FormatUserPhoneUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateElectronicInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateUserPhoneUseCase
@@ -47,7 +48,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     init {
         observeUserProfile()
-        logAnalytics("view_electronic_invoice_flow_start", mapOf("message" to "Inicio del flujo de factura electrónica"))
+        logAnalytics("view_electronic_invoice_flow_start", mapOf("message" to "Inicio del flujo de factura electrónica"), priority = AnalyticsPriority.HIGH)
         observeOtpAttempts()
     }
 
@@ -129,9 +130,8 @@ class ElectronicInvoiceViewModel @Inject constructor(
         val typeName = if (contract.type == ContractType.LUZ) "Luz" else "Gas"
         logAnalytics("electronic_invoice_contract_selected", mapOf(
             "contract_type" to typeName,
-            "already_enabled" to contract.isEnabled,
-            "message" to "Contrato seleccionado"
-        ))
+            "already_enabled" to contract.isEnabled
+        ), priority = AnalyticsPriority.MEDIUM)
     }
 
     fun onEmailChanged(nuevoEmail: String) {
@@ -163,7 +163,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun verifyOtpAndPerformUpdate() {
         if (state.otpInput == state.simulatedOtpCode) {
-            logAnalytics("otp_verification_success", mapOf("message" to "Verificación de OTP correcta"))
+            logAnalytics("otp_verification_success", priority = AnalyticsPriority.HIGH)
             val type = state.selectedContract?.type
             viewModelScope.launch {
                 if (type != null) {
@@ -172,7 +172,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
             }
             performUpdate()
         } else {
-            logAnalytics("otp_verification_error", mapOf("reason" to "Código incorrecto"))
+            logAnalytics("otp_verification_error", mapOf("reason" to "Código incorrecto"), priority = AnalyticsPriority.HIGH)
             state = state.copy(error = R.string.error_incorrect_otp)
         }
     }
@@ -201,12 +201,11 @@ class ElectronicInvoiceViewModel @Inject constructor(
                 val typeName = if (contract.type == ContractType.LUZ) "Luz" else "Gas"
                 logAnalytics("electronic_invoice_update_success", mapOf(
                     "type" to typeName,
-                    "step" to "confirmacion_final",
-                    "message" to "Factura electrónica actualizada con éxito"
-                ))
+                    "step" to "confirmacion_final"
+                ), priority = AnalyticsPriority.HIGH)
             } catch (e: Exception) {
                 state = state.copy(isLoading = false, error = R.string.error_unexpected)
-                logAnalytics("electronic_invoice_api_error", mapOf("message" to "Error al actualizar factura electrónica"))
+                logAnalytics("electronic_invoice_api_error", priority = AnalyticsPriority.HIGH)
             }
         }
     }
@@ -232,10 +231,10 @@ class ElectronicInvoiceViewModel @Inject constructor(
                     isSuccess = true,
                     error = null
                 )
-                logAnalytics("electronic_invoice_deactivate_success", mapOf("message" to "Desactivación de factura electrónica exitosa"))
+                logAnalytics("electronic_invoice_deactivate_success", priority = AnalyticsPriority.HIGH)
             } catch (e: Exception) {
                 state = state.copy(isLoading = false, error = R.string.error_unexpected)
-                logAnalytics("electronic_invoice_deactivate_error", mapOf("reason" to "Error en la desactivación"))
+                logAnalytics("electronic_invoice_deactivate_error", mapOf("reason" to "Error en la desactivación"), priority = AnalyticsPriority.HIGH)
             }
         }
     }
@@ -332,12 +331,11 @@ class ElectronicInvoiceViewModel @Inject constructor(
                 state = state.copy(isLoading = false, showResendSuccess = true)
                 startOtpSimulation(isPermissionGranted = true)
                 logAnalytics("electronic_invoice_otp_resend_click", mapOf(
-                    "attempts_remaining" to state.resendAttempts,
-                    "message" to "Reenvío de código OTP solicitado"
-                ))
+                    "attempts_remaining" to state.resendAttempts
+                ), priority = AnalyticsPriority.MEDIUM)
             }
         }else {
-            logAnalytics("electronic_invoice_otp_resend_limit_reached", mapOf("message" to "Límite de reenvíos OTP alcanzado"))
+            logAnalytics("electronic_invoice_otp_resend_limit_reached", priority = AnalyticsPriority.MEDIUM)
         }
     }
 
@@ -353,9 +351,8 @@ class ElectronicInvoiceViewModel @Inject constructor(
             showLegalSheet = true
         )
         logAnalytics("click_show_legal_detail", mapOf(
-            "title" to title,
-            "message" to "Visualización de detalle legal"
-        ))
+            "title" to title
+        ), priority = AnalyticsPriority.LOW)
     }
 
     fun onDismissLegalSheet() {
@@ -364,7 +361,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
 
     fun onContinueClick(onNavigateToOtp: () -> Unit) {
         if (state.resendAttempts <= 0 && state.simulatedOtpCode.isEmpty()) {
-            logAnalytics("click_continue_no_otp_attempts", mapOf("message" to "Click en continuar sin intentos OTP"))
+            logAnalytics("click_continue_no_otp_attempts", priority = AnalyticsPriority.MEDIUM)
             state = state.copy(showNoAttemptsDialog = true)
             return
         }
@@ -373,9 +370,8 @@ class ElectronicInvoiceViewModel @Inject constructor(
             val email = state.emailInput.trim()
             if (!validateEmailUseCase(email)) {
                 logAnalytics("validation_error_email", mapOf(
-                    "email" to email,
-                    "message" to "Error de validación: email no válido"
-                ))
+                    "email" to email
+                ), priority = AnalyticsPriority.MEDIUM)
                 state = state.copy(error = R.string.error_invalid_email_format)
             }
             return
@@ -386,20 +382,20 @@ class ElectronicInvoiceViewModel @Inject constructor(
         if (isSameEmail && !hasAcknowledgedSameEmail) {
             state = state.copy(showSameEmailWarning = true)
             hasAcknowledgedSameEmail = true
-            logAnalytics("view_same_email_warning", mapOf("message" to "Aviso de mismo email mostrado"))
+            logAnalytics("view_same_email_warning", priority = AnalyticsPriority.LOW)
             return
         }
 
         if (state.userProfile.phone.isEmpty()) {
             state = state.copy(showNoPhoneDialog = true)
-            logAnalytics("electronic_invoice_missing_phone_alert", mapOf("message" to "Alerta: falta teléfono del usuario"))
+            logAnalytics("electronic_invoice_missing_phone_alert", priority = AnalyticsPriority.MEDIUM)
         } else {
             state = state.copy(showSameEmailWarning = false)
             state = state.copy(
                 currentStep = ElectronicInvoiceStep.VERIFICATION,
                 showSameEmailWarning = false
             )
-            logAnalytics("click_continue_to_otp", mapOf("message" to "Continuar hacia verificación OTP"))
+            logAnalytics("click_continue_to_otp", priority = AnalyticsPriority.MEDIUM)
             onNavigateToOtp()
         }
     }
@@ -434,7 +430,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
                 if (isPasswordCorrect) {
                     val wasUpdated = updateUserPhoneUseCase(state.newPhoneInput)
                     if (wasUpdated) {
-                        logAnalytics("save_phone_success", mapOf("message" to "Teléfono guardado correctamente"))
+                        logAnalytics("save_phone_success", priority = AnalyticsPriority.HIGH)
                         state = state.copy(
                             showNoPhoneDialog = false,
                             passwordInput = "",
@@ -442,17 +438,17 @@ class ElectronicInvoiceViewModel @Inject constructor(
                         )
                         onSuccess()
                     } else {
-                        logAnalytics("save_phone_error", mapOf("reason" to "Formato de teléfono inválido"))
+                        logAnalytics("save_phone_error", mapOf("reason" to "Formato de teléfono inválido"), priority = AnalyticsPriority.HIGH)
                         state = state.copy(error = R.string.error_invalid_phone_format)
                     }
                 } else {
-                    logAnalytics("save_phone_error", mapOf("reason" to "Contraseña incorrecta"))
+                    logAnalytics("save_phone_error", mapOf("reason" to "Contraseña incorrecta"), priority = AnalyticsPriority.HIGH)
                     state = state.copy(
                         error = R.string.error_incorrect_password
                     )
                 }
             } catch (e: Exception) {
-                logAnalytics("save_phone_error", mapOf("reason" to "Error inesperado al guardar teléfono"))
+                logAnalytics("save_phone_error", mapOf("reason" to "Error inesperado al guardar teléfono"), priority = AnalyticsPriority.HIGH)
                 state = state.copy(error = R.string.error_unexpected)
             } finally {
                 state = state.copy(isLoading = false)
@@ -465,7 +461,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
 
     fun onDeactivateClick() {
-        logAnalytics("click_deactivate_electronic_invoice", mapOf("message" to "Click en desactivar factura electrónica"))
+        logAnalytics("click_deactivate_electronic_invoice", priority = AnalyticsPriority.MEDIUM)
         if (state.userProfile.address.isEmpty()) {
             state = state.copy(showNoAddressDialog = true)
         } else {
@@ -483,16 +479,16 @@ class ElectronicInvoiceViewModel @Inject constructor(
                 val isPasswordCorrect = verifyUserPasswordUseCase(state.passwordInput)
 
                 if (isPasswordCorrect) {
-                    logAnalytics("save_address_and_deactivate_success", mapOf("message" to "Dirección guardada y desactivación solicitada"))
+                    logAnalytics("save_address_and_deactivate_success", priority = AnalyticsPriority.HIGH)
                     userPrefs.updateAddress(address)
                     state = state.copy(showNoAddressDialog = false, passwordInput = "")
                     performDeactivate()
                 } else {
-                    logAnalytics("save_address_and_deactivate_error", mapOf("reason" to "Contraseña incorrecta"))
+                    logAnalytics("save_address_and_deactivate_error", mapOf("reason" to "Contraseña incorrecta"), priority = AnalyticsPriority.HIGH)
                     state = state.copy(error = R.string.error_incorrect_password)
                 }
             } catch (e: Exception) {
-                logAnalytics("save_address_and_deactivate_error", mapOf("reason" to "Error inesperado al guardar dirección"))
+                logAnalytics("save_address_and_deactivate_error", mapOf("reason" to "Error inesperado al guardar dirección"), priority = AnalyticsPriority.HIGH)
                 state = state.copy(error = R.string.error_unexpected)
             } finally {
                 state = state.copy(isLoading = false)
@@ -513,12 +509,12 @@ class ElectronicInvoiceViewModel @Inject constructor(
     }
 
     fun discardChanges() {
-        logAnalytics("click_discard_electronic_invoice_changes", mapOf("message" to "Cambios de factura electrónica descartados"))
+        logAnalytics("click_discard_electronic_invoice_changes", priority = AnalyticsPriority.LOW)
         state.selectedContract?.let { selectContract(it) }
     }
 
     fun onEditClick(onNavigate: () -> Unit) {
-        logAnalytics("click_edit_electronic_invoice", mapOf("message" to "Click en editar factura electrónica"))
+        logAnalytics("click_edit_electronic_invoice", priority = AnalyticsPriority.MEDIUM)
         if (state.resendAttempts <= 0 && state.simulatedOtpCode.isEmpty()) {
             state = state.copy(showNoAttemptsDialog = true)
         } else {
@@ -541,14 +537,13 @@ class ElectronicInvoiceViewModel @Inject constructor(
             else -> "electronic_invoice_activation_success"
         }
         logAnalytics(eventName, mapOf(
-            "contract_type" to contractType,
-            "message" to "Proceso finalizado con éxito"
-        ))
-        logAnalytics("view_screen", mapOf("screen_name" to "Pantalla de éxito final"))
+            "contract_type" to contractType
+        ), priority = AnalyticsPriority.HIGH)
+        logAnalytics("view_screen", mapOf("screen_name" to "Pantalla de éxito final"), priority = AnalyticsPriority.HIGH)
     }
 
-    fun logAnalytics(name: String, params: Map<String, Any?> = emptyMap()) {
-        logAnalyticsUseCase(name, params)
+    fun logAnalytics(name: String, params: Map<String, Any?> = emptyMap(), priority: AnalyticsPriority = AnalyticsPriority.MEDIUM) {
+        logAnalyticsUseCase(name, params, priority)
     }
 
     fun onNavigateFinished() {

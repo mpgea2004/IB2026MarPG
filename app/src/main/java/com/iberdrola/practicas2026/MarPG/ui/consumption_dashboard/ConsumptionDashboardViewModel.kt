@@ -13,6 +13,7 @@ import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.invoice.GetInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
@@ -36,7 +37,7 @@ class ConsumptionDashboardViewModel @Inject constructor(
     private var loadJob: Job? = null
 
     init {
-        logAnalyticsUseCase("view_dashboard_consumo")
+        logAnalyticsUseCase("view_dashboard_consumo", priority = AnalyticsPriority.HIGH)
         fetchRemoteConfig()
         loadData()
     }
@@ -77,6 +78,8 @@ class ConsumptionDashboardViewModel @Inject constructor(
             isConfigLoading = false
         )
 
+        logAnalyticsUseCase("actualizacion_remota_gas_dashboard", mapOf("habilitado" to isEnabled), priority = AnalyticsPriority.LOW)
+
         if (!isEnabled && state.selectedType == ContractType.GAS) {
             onTypeSelected(ContractType.LUZ)
         }
@@ -84,8 +87,8 @@ class ConsumptionDashboardViewModel @Inject constructor(
 
     fun setCloudMode(isCloud: Boolean) {
         if (state.isCloud != isCloud) {
-            val modeName = if (isCloud) "Modo Cloud activado" else "Modo Local activado"
-            logAnalyticsUseCase("click_toggle_cloud", mapOf("modo" to modeName))
+            val modeName = if (isCloud) "Cloud" else "Local"
+            logAnalyticsUseCase("click_cambiar_modo_datos", mapOf("modo" to modeName), priority = AnalyticsPriority.MEDIUM)
             state = state.copy(
                 isCloud = isCloud,
                 isLoading = true
@@ -98,7 +101,7 @@ class ConsumptionDashboardViewModel @Inject constructor(
         if (state.isGasEnabled == false && type == ContractType.GAS) return
 
         if (state.selectedType != type) {
-            logAnalyticsUseCase("click_seleccionar_tipo_contrato", mapOf("tipo" to type.name))
+            logAnalyticsUseCase("click_cambio_tipo_grafico", mapOf("tipo" to type.name), priority = AnalyticsPriority.MEDIUM)
             state = state.copy(
                 selectedType = type,
                 chartData = emptyList(),
@@ -127,7 +130,7 @@ class ConsumptionDashboardViewModel @Inject constructor(
 
             getInvoiceUseCase(isCloudToLoad)
                 .catch {
-                    logAnalyticsUseCase("error_carga_consumo", mapOf("mensaje" to "Error al obtener facturas"))
+                    logAnalyticsUseCase("error_carga_dashboard", mapOf("tipo" to typeToLoad.name), priority = AnalyticsPriority.HIGH)
                     state = state.copy(isLoading = false)
                 }
                 .collect { allInvoices ->

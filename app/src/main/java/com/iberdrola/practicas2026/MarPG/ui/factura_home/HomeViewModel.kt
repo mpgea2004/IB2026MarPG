@@ -12,6 +12,7 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.feedback.CheckFeedbackUseCase
 import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileState
@@ -30,7 +31,7 @@ class HomeViewModel @Inject constructor(
         private set
 
     init {
-        logAnalyticsUseCase("view_home")
+        logAnalyticsUseCase("view_home", priority = AnalyticsPriority.HIGH)
         fetchRemoteConfig()
         observeFeedback()
         observeUserProfile()
@@ -62,7 +63,7 @@ class HomeViewModel @Inject constructor(
         remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val isGasEnabled = remoteConfig.getBoolean("show_gas_contracts")
-                logAnalyticsUseCase("remote_config_fetched", mapOf("enseñar_gas" to isGasEnabled))
+                logAnalyticsUseCase("remote_config_fetched", mapOf("enseñar_gas" to isGasEnabled), priority = AnalyticsPriority.LOW)
                 state = state.copy(isGasEnabled = isGasEnabled)
             } else {
                 state = state.copy(isGasEnabled = true)
@@ -93,7 +94,7 @@ class HomeViewModel @Inject constructor(
             checkFeedbackUseCase.shouldShowFeedback().collect { shouldShow ->
                 if (shouldShow) {
                     if (!state.isSheetVisible) {
-                        logAnalyticsUseCase("view_feedback_sheet")
+                        logAnalyticsUseCase("view_feedback_sheet", priority = AnalyticsPriority.LOW)
                         state = state.copy(
                             isFeedbackSubmitted = false,
                             isSheetVisible = true
@@ -114,7 +115,7 @@ class HomeViewModel @Inject constructor(
             return 
         }
 
-        logAnalyticsUseCase("click_feedback_opcion", mapOf("puntuacion" to target))
+        logAnalyticsUseCase("click_feedback_opcion", mapOf("puntuacion" to target), priority = AnalyticsPriority.HIGH)
         viewModelScope.launch {
             if (target == 10) {
                 state = state.copy(isFeedbackSubmitted = true)
@@ -131,7 +132,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onDontAskAgain() {
-        logAnalyticsUseCase("click_feedback_no_preguntar_otra")
+        logAnalyticsUseCase("click_feedback_no_preguntar_otra", priority = AnalyticsPriority.MEDIUM)
         viewModelScope.launch {
             checkFeedbackUseCase.dontAskAgain()
             state = state.copy(isSheetVisible = false)
@@ -150,7 +151,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onConfirmGuest() {
-        logAnalyticsUseCase("click_confirmar_invitado")
+        logAnalyticsUseCase("click_confirmar_invitado", priority = AnalyticsPriority.HIGH)
         viewModelScope.launch {
             val guestProfile = ProfileState(
                 name = "Invitado",
@@ -168,7 +169,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onDismissGuestDialog() {
-        logAnalyticsUseCase("click_cancelar_invitado")
+        logAnalyticsUseCase("click_cancelar_invitado", priority = AnalyticsPriority.LOW)
         state = state.copy(
             showGuestDialog = false,
             pendingNavigation = null

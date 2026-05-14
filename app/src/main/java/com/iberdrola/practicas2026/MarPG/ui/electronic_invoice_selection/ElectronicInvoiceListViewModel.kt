@@ -16,6 +16,7 @@ import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceException
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.usecase.GetElectronicInvoiceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -53,7 +54,7 @@ class ElectronicInvoiceListViewModel @Inject constructor(
         private set
 
     init {
-        logAnalyticsUseCase("view_seleccion_factura_electronica")
+        logAnalyticsUseCase("view_seleccion_factura_electronica", priority = AnalyticsPriority.HIGH)
         fetchRemoteConfig()
     }
 
@@ -118,6 +119,7 @@ class ElectronicInvoiceListViewModel @Inject constructor(
                         else -> R.string.error_unknown
                     }
 
+                    logAnalyticsUseCase("error_carga_facturas_electronicas", mapOf("error" to e.message.toString()), priority = AnalyticsPriority.HIGH)
                     errorMessage = errorRes
                     val filteredList = if (isGasEnabledConfig == false) {
                         localData.filter { it.type != ContractType.GAS }
@@ -156,16 +158,19 @@ class ElectronicInvoiceListViewModel @Inject constructor(
     }
 
     fun refreshInvoices() {
+        logAnalyticsUseCase("click_refrescar_seleccion_electronica", priority = AnalyticsPriority.LOW)
         isRefreshing = true
         isGasEnabledConfig = null
         fetchRemoteConfig()
     }
 
     fun onElectronicInvoiceClick(invoice: ElectronicInvoice) {
-        logAnalyticsUseCase("click_seleccionar_factura", mapOf("id" to invoice.id))
+        logAnalyticsUseCase("click_seleccionar_factura", mapOf("id" to invoice.id, "tipo" to invoice.type.name), priority = AnalyticsPriority.MEDIUM)
     }
 
-    fun onBackClicked() { logAnalyticsUseCase("click_volver") }
+    fun onBackClicked() { 
+        logAnalyticsUseCase("click_volver_seleccion_electronica", priority = AnalyticsPriority.MEDIUM) 
+    }
     fun clearErrorMessage() { errorMessage = null }
     fun onNavigateStarted() { isNavigating = true }
     fun onNavigateFinished() { isNavigating = false }
