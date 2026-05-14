@@ -9,6 +9,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.remoteconfig.ConfigUpdate
+import com.google.firebase.remoteconfig.ConfigUpdateListener
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.R
@@ -45,6 +48,8 @@ class InvoiceListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    val isCloud: Boolean = savedStateHandle["isCloud"] ?: false
+
     var state by mutableStateOf<InvoiceListState>(InvoiceListState.LOADING)
         private set
 
@@ -61,8 +66,6 @@ class InvoiceListViewModel @Inject constructor(
         private set
 
     var allInvoices : List<Invoice> = emptyList()
-
-    private val isCloud: Boolean = savedStateHandle["isCloud"] ?: false
 
     var errorMessage by mutableStateOf<Int?>(null)
         private set
@@ -124,14 +127,34 @@ class InvoiceListViewModel @Inject constructor(
         val remoteConfig = Firebase.remoteConfig
         val configSettings = remoteConfigSettings {
             minimumFetchIntervalInSeconds = 0
+            fetchTimeoutInSeconds = 2
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
 
-        remoteConfig.fetchAndActivate().addOnCompleteListener {
-            val isEnabled = remoteConfig.getBoolean("show_gas_contracts")
-            updateGasAvailability(isEnabled)
-            onComplete()
+        val defaults = mapOf("show_gas_contracts" to true)
+        remoteConfig.setDefaultsAsync(defaults).addOnCompleteListener {
+            remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
+                val isEnabled = if (task.isSuccessful) {
+                    remoteConfig.getBoolean("show_gas_contracts")
+                } else {
+                    true
+                }
+                updateGasAvailability(isEnabled)
+                onComplete()
+            }
         }
+
+        remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
+            override fun onUpdate(configUpdate: ConfigUpdate) {
+                remoteConfig.activate().addOnCompleteListener {
+                    updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
+                }
+            }
+
+            override fun onError(error: FirebaseRemoteConfigException) {
+                FirebaseCrashlytics.getInstance().recordException(error)
+            }
+        })
     }
 
     private fun observeUserProfile() {
@@ -173,7 +196,11 @@ class InvoiceListViewModel @Inject constructor(
 
             prepareLoadingState()
 
-            delay(300)
+            if (!isCloud) {
+                delay((1000..3000).random().toLong())
+            } else {
+                delay(300)
+            }
 
             getInvoicesUseCase(isCloud)
                 .catch { e->

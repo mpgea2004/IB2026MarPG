@@ -34,7 +34,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -95,12 +94,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.Firebase
-import com.google.firebase.remoteconfig.ConfigUpdate
-import com.google.firebase.remoteconfig.ConfigUpdateListener
-import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
-import com.google.firebase.remoteconfig.remoteConfig
-import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
@@ -139,7 +132,12 @@ fun InvoiceListScreen(
     onNavigateToInvoiceDetail: (Invoice) -> Unit,
     onNavigateToConsumption: () -> Unit
 ) {
-    val isGasEnabled = viewModel.isGasEnabled
+    if (viewModel.isGasEnabled == null) {
+        LoadingScreen()
+        return
+    }
+
+    val isGasEnabled = viewModel.isGasEnabled ?: (if (viewModel.isCloud) false else true)
 
     var isNavigating by remember { mutableStateOf(true) }
 
@@ -177,37 +175,6 @@ fun InvoiceListScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val pullToRefreshState = rememberPullToRefreshState()
-    val remoteConfig = Firebase.remoteConfig
-
-    LaunchedEffect(Unit) {
-        val configSettings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds = 0
-        }
-        remoteConfig.setConfigSettingsAsync(configSettings)
-
-        val defaults = mapOf("show_gas_contracts" to true)
-        remoteConfig.setDefaultsAsync(defaults)
-
-        remoteConfig.fetchAndActivate().addOnCompleteListener {
-            val isEnabled = remoteConfig.getBoolean("show_gas_contracts")
-            viewModel.updateGasAvailability(isEnabled)
-        }
-
-        remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
-            override fun onUpdate(configUpdate: ConfigUpdate) {
-                remoteConfig.activate().addOnCompleteListener {
-                    viewModel.updateGasAvailability(remoteConfig.getBoolean("show_gas_contracts"))
-                }
-            }
-            override fun onError(error: FirebaseRemoteConfigException) {}
-        })
-    }
-
-
-    if (isGasEnabled == null) {
-        LoadingScreen()
-        return
-    }
 
     val pagerState = rememberPagerState(pageCount = { if (isGasEnabled) 2 else 1 })
 
@@ -342,8 +309,6 @@ fun InvoiceListScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ){
-            val listState = rememberLazyListState()
-
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
@@ -963,7 +928,7 @@ fun SortChip(
             Surface(
                 color = Color.DarkGray,
                 shape = RoundedCornerShape(4.dp)
-            ) {
+              ) {
                 Text(
                     text = stringResource(R.string.invoice_list_sort_by, text),
                     color = Color.White,

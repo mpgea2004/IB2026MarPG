@@ -35,7 +35,6 @@ import androidx.compose.material.icons.outlined.GasMeter
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -60,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
+import com.iberdrola.practicas2026.MarPG.ui.components.list.LoadingScreen
 import com.iberdrola.practicas2026.MarPG.ui.components.shimmerBrush
 import com.iberdrola.practicas2026.MarPG.ui.factura_filter.FilterTopBar
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
@@ -88,6 +88,11 @@ fun ConsumptionDashboardScreen(
 ) {
     val state = viewModel.state
     
+    if (state.isGasEnabled == null) {
+        LoadingScreen()
+        return
+    }
+
     var isNavigating by remember { mutableStateOf(false) }
 
     val handleBack = {
@@ -101,7 +106,7 @@ fun ConsumptionDashboardScreen(
         handleBack()
     }
 
-    ConsumptionDashboardContent(
+     ConsumptionDashboardContent(
         state = state,
         events = ConsumptionDashboardEvents(
             onBack = handleBack,
@@ -115,6 +120,8 @@ fun ConsumptionDashboardContent(
     state: ConsumptionState,
     events: ConsumptionDashboardEvents
 ) {
+    val isGasEnabled = state.isGasEnabled == true
+
     Scaffold(
         containerColor = Color.White,
         topBar = {
@@ -133,124 +140,108 @@ fun ConsumptionDashboardContent(
                     )
                 )
         ) {
-            if (state.isConfigLoading) {
-                ShimmerConsumptionDashboard(
-                    brush = shimmerBrush(),
-                    isGasEnabled = state.isGasEnabled,
-                    modifier = Modifier.padding(top = padding.calculateTopPadding())
-                )
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = padding.calculateTopPadding())
-                        .navigationBarsPadding()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 24.dp, vertical = 16.dp)
-                ) {
-                    AnimateConsumptionItem(index = 0) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.consumption_title),
-                                    fontSize = 32.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontFamily = IberPangeaFamily,
-                                    color = GreenIberdrola
-                                )
-                                Text(
-                                    text = stringResource(R.string.consumption_subtitle),
-                                    fontSize = 16.sp,
-                                    color = TextGrey,
-                                    fontWeight = FontWeight.Medium,
-                                    fontFamily = IberPangeaFamily
-                                )
-                            }
-                            
-                            Surface(
-                                color = GreenIberdrola.copy(alpha = 0.1f),
-                                shape = CircleShape,
-                                modifier = Modifier.size(56.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = if (!state.isGasEnabled || state.selectedType == ContractType.LUZ) Icons.Outlined.ElectricBolt else Icons.Outlined.GasMeter,
-                                        contentDescription = null,
-                                        tint = GreenIberdrola,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    if (state.isGasEnabled) {
-                        Spacer(modifier = Modifier.height(32.dp))
-
-                        AnimateConsumptionItem(index = 1) {
-                            SuministroToggle(
-                                selectedType = state.selectedType,
-                                onTypeSelected = { events.onTypeSelected(it) }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = padding.calculateTopPadding())
+                    .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
+            ) {
+                AnimateConsumptionItem(index = 0) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.consumption_title),
+                                fontSize = 32.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontFamily = IberPangeaFamily,
+                                color = GreenIberdrola
+                            )
+                            Text(
+                                text = stringResource(R.string.consumption_subtitle),
+                                fontSize = 16.sp,
+                                color = TextGrey,
+                                fontWeight = FontWeight.Medium,
+                                fontFamily = IberPangeaFamily
                             )
                         }
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    AnimatedContent(
-                        targetState = state.isLoading,
-                        transitionSpec = {
-                            fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
-                        },
-                        label = "loading_content_transition"
-                    ) { isLoading ->
-                        if (isLoading) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(350.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    color = GreenIberdrola,
-                                    strokeWidth = 4.dp,
-                                    modifier = Modifier.size(48.dp)
+                        
+                        Surface(
+                            color = GreenIberdrola.copy(alpha = 0.1f),
+                            shape = CircleShape,
+                            modifier = Modifier.size(56.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = if (!isGasEnabled || state.selectedType == ContractType.LUZ) Icons.Outlined.ElectricBolt else Icons.Outlined.GasMeter,
+                                    contentDescription = null,
+                                    tint = GreenIberdrola,
+                                    modifier = Modifier.size(28.dp)
                                 )
                             }
+                        }
+                    }
+                }
+
+                if (isGasEnabled) {
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    AnimateConsumptionItem(index = 1) {
+                        SuministroToggle(
+                            selectedType = state.selectedType,
+                            onTypeSelected = { events.onTypeSelected(it) }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                AnimatedContent(
+                    targetState = state.isLoading,
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
+                    },
+                    label = "loading_content_transition"
+                ) { isLoading ->
+                    if (isLoading) {
+                        ShimmerConsumptionDashboard(
+                            brush = shimmerBrush(),
+                            isGasEnabled = isGasEnabled
+                        )
+                    } else {
+                        if (state.chartData.isEmpty()) {
+                            AnimateConsumptionItem(index = 0) {
+                                EmptyConsumptionState()
+                            }
                         } else {
-                            if (state.chartData.isEmpty()) {
-                                AnimateConsumptionItem(index = 0) {
-                                    EmptyConsumptionState()
+                            Column {
+                                val baseIndex = if (isGasEnabled) 2 else 1
+                                
+                                AnimateConsumptionItem(index = baseIndex) {
+                                    ConsumptionChart(state.chartData)
                                 }
-                            } else {
-                                Column {
-                                    val baseIndex = if (state.isGasEnabled) 2 else 1
-                                    
-                                    AnimateConsumptionItem(index = baseIndex) {
-                                        ConsumptionChart(state.chartData)
-                                    }
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    AnimateConsumptionItem(index = baseIndex + 1) {
-                                        ComparisonCard(
-                                            message = state.comparisonMessage.asString(),
-                                            isPositive = state.isPositiveTrend
-                                        )
-                                    }
-                                    
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    AnimateConsumptionItem(index = baseIndex + 2) {
-                                        SavingsTipCard()
-                                    }
+                                Spacer(modifier = Modifier.height(24.dp))
+                                AnimateConsumptionItem(index = baseIndex + 1) {
+                                    ComparisonCard(
+                                        message = state.comparisonMessage.asString(),
+                                        isPositive = state.isPositiveTrend
+                                    )
+                                }
+                                
+                                Spacer(modifier = Modifier.height(24.dp))
+                                AnimateConsumptionItem(index = baseIndex + 2) {
+                                    SavingsTipCard()
                                 }
                             }
                         }
                     }
-                    
-                    Spacer(modifier = Modifier.height(32.dp))
                 }
+                
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
@@ -260,29 +251,16 @@ fun ConsumptionDashboardContent(
 fun ShimmerConsumptionDashboard(brush: Brush, isGasEnabled: Boolean, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .fillMaxWidth()
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Box(modifier = Modifier.size(180.dp, 36.dp).clip(RoundedCornerShape(8.dp)).background(brush))
-                Spacer(modifier = Modifier.height(12.dp))
-                Box(modifier = Modifier.size(240.dp, 18.dp).clip(RoundedCornerShape(4.dp)).background(brush))
-            }
-            Box(modifier = Modifier.size(56.dp).clip(CircleShape).background(brush))
-        }
-        
-        Spacer(modifier = Modifier.height(48.dp))
-        
-        if (isGasEnabled) {
-            Box(modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(24.dp)).background(brush))
-            Spacer(modifier = Modifier.height(32.dp))
-        }
-        
         Box(modifier = Modifier.fillMaxWidth().height(300.dp).clip(RoundedCornerShape(28.dp)).background(brush))
         
         Spacer(modifier = Modifier.height(24.dp))
         
+        Box(modifier = Modifier.fillMaxWidth().height(80.dp).clip(RoundedCornerShape(24.dp)).background(brush))
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         Box(modifier = Modifier.fillMaxWidth().height(80.dp).clip(RoundedCornerShape(24.dp)).background(brush))
     }
 }

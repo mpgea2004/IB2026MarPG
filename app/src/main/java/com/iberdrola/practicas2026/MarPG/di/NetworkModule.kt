@@ -39,11 +39,6 @@ object NetworkModule {
             "https://localhost:3000/"
         }
 
-        Log.d("NetworkModule", ">>> CONFIGURACIÓN DE RED <<<")
-        Log.d("NetworkModule", "URL Base: $url")
-        Log.d("NetworkModule", "Protocolo: ${if (url.startsWith("https")) "HTTPS (Seguro)" else "HTTP (No seguro)"}")
-        Log.d("NetworkModule", "Dispositivo: ${if (url.contains("10.0.2.2")) "Emulador" else "Móvil Físico (localhost)"}")
-
         return url
     }
 

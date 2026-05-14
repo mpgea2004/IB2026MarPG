@@ -11,5 +11,5 @@ data class ConsumptionState(
     val comparisonMessage: UiText = UiText.DynamicString(""),
     val isPositiveTrend: Boolean = false,
     val isCloud: Boolean = false,
-    val isGasEnabled: Boolean = true
+    val isGasEnabled: Boolean? = null
 )

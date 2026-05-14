@@ -19,6 +19,7 @@ import com.iberdrola.practicas2026.MarPG.domain.utils.DateMapper
 import com.iberdrola.practicas2026.MarPG.ui.utils.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,14 +43,23 @@ class ConsumptionDashboardViewModel @Inject constructor(
 
     private fun fetchRemoteConfig() {
         val remoteConfig = Firebase.remoteConfig
-
-
-        remoteConfig.setDefaultsAsync(mapOf("show_gas_contracts" to true))
-        
         val configSettings = remoteConfigSettings {
             minimumFetchIntervalInSeconds = 0
+            fetchTimeoutInSeconds = 2
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
+
+        val defaults = mapOf("show_gas_contracts" to true)
+        remoteConfig.setDefaultsAsync(defaults).addOnCompleteListener {
+            remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
+                val isEnabled = if (task.isSuccessful) {
+                    remoteConfig.getBoolean("show_gas_contracts")
+                } else {
+                    true
+                }
+                updateGasAvailability(isEnabled)
+            }
+        }
 
         remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
             override fun onUpdate(configUpdate: ConfigUpdate) {
@@ -59,11 +69,6 @@ class ConsumptionDashboardViewModel @Inject constructor(
             }
             override fun onError(error: FirebaseRemoteConfigException) {}
         })
-
-        remoteConfig.fetchAndActivate().addOnCompleteListener {
-            val isGasEnabled = remoteConfig.getBoolean("show_gas_contracts")
-            updateGasAvailability(isGasEnabled)
-        }
     }
 
     private fun updateGasAvailability(isEnabled: Boolean) {
@@ -90,7 +95,7 @@ class ConsumptionDashboardViewModel @Inject constructor(
     }
 
     fun onTypeSelected(type: ContractType) {
-        if (!state.isGasEnabled && type == ContractType.GAS) return
+        if (state.isGasEnabled == false && type == ContractType.GAS) return
 
         if (state.selectedType != type) {
             logAnalyticsUseCase("click_seleccionar_tipo_contrato", mapOf("tipo" to type.name))
@@ -112,6 +117,12 @@ class ConsumptionDashboardViewModel @Inject constructor(
 
             if (!state.isLoading) {
                 state = state.copy(isLoading = true)
+            }
+
+            if (!isCloudToLoad) {
+                delay((1000..3000).random().toLong())
+            } else {
+                delay(300)
             }
 
             getInvoiceUseCase(isCloudToLoad)
