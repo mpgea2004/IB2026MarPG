@@ -1,6 +1,8 @@
 package com.iberdrola.practicas2026.MarPG.domain.use_case.invoice
 
+import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.Invoice
+import com.iberdrola.practicas2026.MarPG.domain.model.InvoiceStatus
 import com.iberdrola.practicas2026.MarPG.domain.resository.InvoiceRepository
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -19,15 +21,6 @@ class GetInvoiceUseCaseTest {
 
     private lateinit var useCase: GetInvoiceUseCase
     private val repository = mockk<InvoiceRepository>()
-    private val invoiceAntigua = mockk<Invoice> {
-        every { issueDate } returns "01/01/2023"
-    }
-    private val invoiceNueva = mockk<Invoice> {
-        every { issueDate } returns "20/05/2024"
-    }
-    private val invoiceMedia = mockk<Invoice> {
-        every { issueDate } returns "15/02/2024"
-    }
 
     @Before
     fun setUp() {
@@ -41,17 +34,25 @@ class GetInvoiceUseCaseTest {
 
     @Test
     fun `debe llamar al repositorio con el parametro isCloud correcto`() = runTest {
-        every { repository.getAllInvoices(true) } returns flowOf(emptyList())
+        every { repository.getAllInvoices(any()) } returns flowOf(emptyList())
+
         useCase(isCloud = true).first()
         verify { repository.getAllInvoices(true) }
+
+        useCase(isCloud = false).first()
+        verify { repository.getAllInvoices(false) }
     }
 
     @Test
     fun `debe devolver las facturas ordenadas por fecha de forma descendente`() = runTest {
-        val listaDesordenada = listOf(invoiceAntigua, invoiceNueva, invoiceMedia)
-        every { repository.getAllInvoices(any()) } returns flowOf(listaDesordenada)
+        val invoices = listOf(
+            createInvoice("1", "01/01/2023"),
+            createInvoice("2", "20/05/2024"),
+            createInvoice("3", "15/02/2024")
+        )
+        every { repository.getAllInvoices(any()) } returns flowOf(invoices)
 
-        val result = useCase(isCloud = false).first()
+        val result = useCase(isCloud = true).first()
 
         assertEquals(3, result.size)
         assertEquals("20/05/2024", result[0].issueDate)
@@ -60,9 +61,21 @@ class GetInvoiceUseCaseTest {
     }
 
     @Test
-    fun `si el repositorio devuelve una lista vacia el caso de uso debe devolver lista vacia`() = runTest {
+    fun `si el repositorio devuelve una lista vacia debe retornar lista vacia`() = runTest {
         every { repository.getAllInvoices(any()) } returns flowOf(emptyList())
-        val result = useCase(isCloud = false).first()
+
+        val result = useCase(isCloud = true).first()
+
         assertTrue(result.isEmpty())
     }
+
+    private fun createInvoice(id: String, issueDate: String) = Invoice(
+        id = id,
+        contractType = ContractType.LUZ,
+        amount = 100.0,
+        startDate = "01/01/2020",
+        endDate = "01/02/2020",
+        issueDate = issueDate,
+        status = InvoiceStatus.PAGADAS
+    )
 }

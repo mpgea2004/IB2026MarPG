@@ -10,7 +10,7 @@ import org.junit.Test
 class InvoiceMapperTest {
 
     @Test
-    fun `InvoiceEntity toDomain mapea correctamente tipos LUZ y GAS`() {
+    fun `InvoiceEntity toDomain mapea bien tipos LUZ y GAS`() {
         val entityLuz = createInvoiceEntity(id = "1", type = "LUZ")
         val entityGas = createInvoiceEntity(id = "2", type = "GAS")
 
@@ -22,18 +22,18 @@ class InvoiceMapperTest {
     }
 
     @Test
-    fun `InvoiceDto toDomain maneja minúsculas en el tipo de contrato`() {
+    fun `InvoiceDto toDomain maneja case insensitive en el tipo de contrato`() {
         val dto = createInvoiceDto(type = "luz")
-
         val domain = dto.toDomain()
-
         assertEquals(ContractType.LUZ, domain.contractType)
+
+        val dto2 = createInvoiceDto(type = "GAS")
+        val domain2 = dto2.toDomain()
+        assertEquals(ContractType.GAS, domain2.contractType)
     }
 
     @Test
     fun `toInvoiceStatus mapea todos los strings conocidos correctamente`() {
-        val estados = listOf("Pagadas", "Pendientes de Pago", "En trámite de cobro", "Anuladas", "Cuota Fija")
-
         assertEquals(InvoiceStatus.PAGADAS, createInvoiceDto(status = "Pagadas").toDomain().status)
         assertEquals(InvoiceStatus.PENDIENTES_PAGO, createInvoiceDto(status = "Pendientes de Pago").toDomain().status)
         assertEquals(InvoiceStatus.EN_TRAMITE, createInvoiceDto(status = "En trámite de cobro").toDomain().status)
@@ -43,25 +43,23 @@ class InvoiceMapperTest {
 
     @Test
     fun `toInvoiceStatus devuelve ANULADAS por defecto ante un string desconocido`() {
-        val dto = createInvoiceDto(status = "Estado Inventado")
-
+        val dto = createInvoiceDto(status = "Estado Desconocido")
         val domain = dto.toDomain()
-
         assertEquals(InvoiceStatus.ANULADAS, domain.status)
     }
 
     @Test
-    fun `toEntityList convierte correctamente una lista de DTOs para Room`() {
+    fun `toEntityList convierte correctamente una lista de dtos para Room manteniendo mayusculas`() {
         val dtoList = listOf(
-            createInvoiceDto(id = "1"),
-            createInvoiceDto(id = "2")
+            createInvoiceDto(id = "1", type = "luz"),
+            createInvoiceDto(id = "2", type = "gas")
         )
 
         val entityList = dtoList.toEntityList()
 
         assertEquals(2, entityList.size)
-        assertEquals("1", entityList[0].id)
-        assertEquals("2", entityList[1].id)
+        assertEquals("LUZ", entityList[0].contractType)
+        assertEquals("GAS", entityList[1].contractType)
     }
 
     private fun createInvoiceEntity(id: String = "1", type: String = "LUZ") = InvoiceEntity(

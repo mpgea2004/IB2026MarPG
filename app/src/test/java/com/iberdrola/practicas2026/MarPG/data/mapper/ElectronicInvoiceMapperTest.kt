@@ -30,7 +30,7 @@ class ElectronicInvoiceMapperTest {
     fun `toDomain debe usar LUZ por defecto si el tipo en la base de datos es invalido`() {
         val entity = ElectronicInvoiceEntity(
             id = "999",
-            type = "CONTRATO_INVENTADO",
+            type = "DESCONOCIDO",
             isEnabled = false,
             email = ""
         )
@@ -41,7 +41,7 @@ class ElectronicInvoiceMapperTest {
     }
 
     @Test
-    fun `ElectronicInvoiceDto toEntity mapea correctamente desde el objeto de red`() {
+    fun `ElectronicInvoiceDto toEntity mapea bien desde el objeto de red`() {
         val dto = ElectronicInvoiceDto(
             id = "id_api",
             type = "LUZ",
@@ -54,10 +54,11 @@ class ElectronicInvoiceMapperTest {
         assertEquals(dto.id, entity.id)
         assertEquals(dto.type, entity.type)
         assertEquals(dto.isEnabled, entity.isEnabled)
+        assertEquals(dto.email, entity.email)
     }
 
     @Test
-    fun `ElectronicInvoice toEntity mapea correctamente el Enum a String`() {
+    fun `ElectronicInvoice toEntity mapea correctamente el Enum a string`() {
         val domain = ElectronicInvoice(
             id = "dom_1",
             type = ContractType.GAS,
@@ -69,5 +70,7 @@ class ElectronicInvoiceMapperTest {
 
         assertEquals("GAS", entity.type)
         assertEquals(domain.id, entity.id)
+        assertEquals(domain.isEnabled, entity.isEnabled)
+        assertEquals(domain.email, entity.email)
     }
 }

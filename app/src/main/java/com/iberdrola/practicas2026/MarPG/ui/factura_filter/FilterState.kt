@@ -1,8 +1,5 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_filter
 
-/**
- * Estado que representa los filtros seleccionados por el usuario.
- */
 data class FilterState(
     val dateFrom: String = "",
     val dateTo: String = "",

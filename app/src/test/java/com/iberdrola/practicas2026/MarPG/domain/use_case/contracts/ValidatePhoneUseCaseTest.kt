@@ -16,45 +16,21 @@ class ValidatePhoneUseCaseTest {
 
     @Test
     fun `cuando el telefono tiene 9 digitos exactos debe ser valido`() {
-        val phone = "600123456"
-
-        val result = useCase(phone)
-
-        assertTrue("El teléfono de 9 dígitos debería ser válido", result)
+        assertTrue(useCase("600123456"))
+        assertTrue(useCase("912345678"))
     }
 
     @Test
-    fun `cuando el telefono tiene menos de 9 digitos debe ser invalido`() {
-        val phone = "60012345"
-
-        val result = useCase(phone)
-
-        assertFalse("Menos de 9 dígitos no debe permitirse", result)
+    fun `cuando el telefono no tiene 9 digitos debe ser invalido`() {
+        assertFalse(useCase("60012345"))
+        assertFalse(useCase("6001234567"))
+        assertFalse(useCase(""))
     }
 
     @Test
-    fun `cuando el telefono tiene mas de 9 digitos debe ser invalido`() {
-        val phone = "6001234567"
-
-        val result = useCase(phone)
-
-        assertFalse("Más de 9 dígitos no debe permitirse", result)
-    }
-
-    @Test
-    fun `cuando el telefono contiene letras debe ser invalido`() {
-        val phone = "60012345a"
-
-        val result = useCase(phone)
-
-        assertFalse("No se deben permitir letras en el teléfono", result)
-    }
-
-    @Test
-    fun `cuando el string esta vacio debe ser invalido`() {
-        val phone = ""
-        val result = useCase(phone)
-
-        assertFalse("Un string vacío no es un teléfono válido", result)
+    fun `cuando el telefono contiene caracteres no numericos debe ser invalido`() {
+        assertFalse(useCase("60012345a"))
+        assertFalse(useCase("600-12345"))
+        assertFalse(useCase(" 600123456"))
     }
 }

@@ -6,7 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iberdrola.practicas2026.MarPG.data.local.entities.ElectronicInvoiceEntity
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -34,7 +34,7 @@ class ElectronicInvoiceDaoTest {
     }
 
     @Test
-    fun insertAllAndGetAll_ShouldReturnCorrectData() = runTest {
+    fun insertAllAndGetAll_ShouldReturnCorrectData() = runBlocking {
         val entities = listOf(
             ElectronicInvoiceEntity(id = "1", type = "LUZ", isEnabled = true, email = "luz@test.com"),
             ElectronicInvoiceEntity(id = "2", type = "GAS", isEnabled = false, email = "")
@@ -44,12 +44,12 @@ class ElectronicInvoiceDaoTest {
         val result = dao.getAllElectronicInvoiceOnce()
 
         assertEquals(2, result.size)
-        assertEquals("luz@test.com", result[0].email)
-        assertEquals("GAS", result[1].type)
+        assertTrue(result.any { it.id == "1" && it.type == "LUZ" && it.email == "luz@test.com" })
+        assertTrue(result.any { it.id == "2" && it.type == "GAS" && it.isEnabled == false })
     }
 
     @Test
-    fun updateElectronicInvoice_ShouldModifyExistingRecord() = runTest {
+    fun updateElectronicInvoice_ShouldModifyExistingRecord() = runBlocking {
         val initial = ElectronicInvoiceEntity(id = "1", type = "LUZ", isEnabled = false, email = "")
         dao.insertAll(listOf(initial))
 
@@ -63,13 +63,18 @@ class ElectronicInvoiceDaoTest {
     }
 
     @Test
-    fun flow_ShouldEmitNewData_WhenDatabaseIsUpdated() = runTest {
+    fun flow_ShouldEmitNewData_WhenDatabaseIsUpdated() = runBlocking {
         val entities = listOf(ElectronicInvoiceEntity(id = "1", type = "LUZ", isEnabled = true, email = "test@test.com"))
 
         dao.insertAll(entities)
 
-        val result = dao.getAllElectronicInvoice().first()
-        assertEquals(1, result.size)
-        assertEquals("test@test.com", result[0].email)
+        val firstEmission = dao.getAllElectronicInvoice().first()
+        assertEquals(1, firstEmission.size)
+
+        val newEntity = ElectronicInvoiceEntity(id = "2", type = "GAS", isEnabled = true, email = "gas@test.com")
+        dao.insertAll(listOf(newEntity))
+
+        val secondEmission = dao.getAllElectronicInvoice().first()
+        assertEquals(2, secondEmission.size)
     }
 }

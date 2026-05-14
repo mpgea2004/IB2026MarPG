@@ -1,19 +1,28 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_selection
 
 import androidx.lifecycle.SavedStateHandle
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
+import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.remoteConfig
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.usecase.GetElectronicInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.MainDispatcherRule
-import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.slot
+import io.mockk.unmockkAll
 import io.mockk.verify
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -27,9 +36,12 @@ class ElectronicInvoiceListViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
-    private lateinit var viewModel: ElectronicInvoiceListViewModel
+
     private val getElectronicInvoiceUseCase = mockk<GetElectronicInvoiceUseCase>(relaxed = true)
     private val logAnalyticsUseCase = mockk<LogAnalyticsEventUseCase>(relaxed = true)
+    private val remoteConfig = mockk<FirebaseRemoteConfig>(relaxed = true)
+
+    private lateinit var viewModel: ElectronicInvoiceListViewModel
 
     private val mockInvoices = listOf(
         ElectronicInvoice(id = "1", isEnabled = false, type = ContractType.LUZ, email = "luz@test.com"),
@@ -38,7 +50,25 @@ class ElectronicInvoiceListViewModelTest {
 
     @Before
     fun setUp() {
-        every { getElectronicInvoiceUseCase(any()) } returns flowOf(mockInvoices)
+        mockkStatic("com.google.firebase.remoteconfig.RemoteConfigKt")
+        mockkStatic("com.google.firebase.FirebaseKt")
+        
+        every { Firebase.remoteConfig } returns remoteConfig
+        
+        val mockTask = mockk<Task<Boolean>>(relaxed = true)
+        every { remoteConfig.fetchAndActivate() } returns mockTask
+        every { remoteConfig.setDefaultsAsync(any<Map<String, Any>>()) } returns mockk(relaxed = true)
+        every { remoteConfig.setConfigSettingsAsync(any()) } returns mockk(relaxed = true)
+        
+        val slot = slot<OnCompleteListener<Boolean>>()
+        every { mockTask.addOnCompleteListener(capture(slot)) } answers {
+            slot.captured.onComplete(mockTask)
+            mockTask
+        }
+        every { mockTask.isSuccessful } returns true
+        every { remoteConfig.getBoolean("show_gas_contracts") } returns true
+
+        every { getElectronicInvoiceUseCase(any()) } returns flowOf(mockInvoices, mockInvoices)
 
         viewModel = ElectronicInvoiceListViewModel(
             getElectronicInvoiceUseCase = getElectronicInvoiceUseCase,
@@ -49,35 +79,36 @@ class ElectronicInvoiceListViewModelTest {
 
     @After
     fun tearDown() {
-        clearAllMocks()
+        unmockkAll()
     }
 
     @Test
-    fun `al iniciar el ViewModel se deben cargar los contratos y mostrar SUCCESS`() = runTest {
+    fun `al iniciar el ViewModel se deben cargar los contratos tras el delay del principio`() = runTest {
+        advanceTimeBy(2001)
         advanceUntilIdle()
 
         val currentState = viewModel.state
 
-        assertTrue("El estado debería ser Success", currentState is ElectronicInvoiceListState.Success)
+        assertTrue(currentState is ElectronicInvoiceListState.Success)
 
         if (currentState is ElectronicInvoiceListState.Success) {
             assertEquals(2, currentState.contracts.size)
         }
 
-        verify { logAnalyticsUseCase("view_electronic_invoice_selection") }
+        verify { logAnalyticsUseCase("view_seleccion_factura_electronica", priority = AnalyticsPriority.HIGH) }
     }
 
     @Test
-    fun `cuando la carga falla se debe mostrar el estado de error y loguear en analytics`() = runTest {
+    fun `cuando la carga falla se debe mostrar mensaje de error y loguear en analyhtics`() = runTest {
         val errorMsg = "Error de red"
         every { getElectronicInvoiceUseCase(any()) } returns flow { throw Exception(errorMsg) }
 
-        viewModel.onRetryClicked()
+        viewModel.loadInvoices()
+        advanceTimeBy(2001)
         advanceUntilIdle()
 
-        assertTrue(viewModel.state is ElectronicInvoiceListState.Error)
-        assertEquals(errorMsg, (viewModel.state as ElectronicInvoiceListState.Error).message)
-        verify { logAnalyticsUseCase("elec_invoice_load_error", mapOf("error" to errorMsg)) }
+        assertEquals(com.iberdrola.practicas2026.MarPG.R.string.error_unknown, viewModel.errorMessage)
+        verify { logAnalyticsUseCase("error_carga_facturas_electronicas", mapOf("error" to errorMsg), AnalyticsPriority.HIGH) }
     }
 
     @Test
@@ -87,10 +118,10 @@ class ElectronicInvoiceListViewModelTest {
         viewModel.onElectronicInvoiceClick(invoice)
 
         verify {
-            logAnalyticsUseCase("elec_invoice_selected", mapOf(
+            logAnalyticsUseCase("click_seleccionar_factura", mapOf(
                 "id" to "1",
-                "type" to "LUZ"
-            ))
+                "tipo" to "LUZ"
+            ), AnalyticsPriority.MEDIUM)
         }
     }
 
@@ -98,6 +129,14 @@ class ElectronicInvoiceListViewModelTest {
     fun `el boton de volver debe registrar la accion en analytics`() {
         viewModel.onBackClicked()
 
-        verify { logAnalyticsUseCase("elec_invoice_back_click") }
+        verify { logAnalyticsUseCase("click_volver_seleccion_electronica", priority = AnalyticsPriority.MEDIUM) }
+    }
+
+    @Test
+    fun `refreshInvoices debe activar el estado de refresco y registrar el evento`() {
+        viewModel.refreshInvoices()
+        
+        assertTrue(viewModel.isRefreshing)
+        verify { logAnalyticsUseCase("click_refrescar_seleccion_electronica", priority = AnalyticsPriority.LOW) }
     }
 }

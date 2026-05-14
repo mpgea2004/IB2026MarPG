@@ -6,7 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iberdrola.practicas2026.MarPG.data.local.entities.InvoiceEntity
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -44,7 +44,7 @@ class InvoiceDaoTest {
     )
 
     @Test
-    fun insertAndGetAllInvoices_ShouldReturnCorrectData() = runTest {
+    fun insertAndGetAllInvoices_ShouldReturnCorrectData() = runBlocking {
         val invoices = listOf(
             createMockInvoice("FAC-1", 45.0),
             createMockInvoice("FAC-2", 30.0)
@@ -58,17 +58,17 @@ class InvoiceDaoTest {
     }
 
     @Test
-    fun clearCache_ShouldLeaveTableEmpty() = runTest {
+    fun clearCache_ShouldLeaveTableEmpty() = runBlocking {
         dao.insertInvoices(listOf(createMockInvoice("1",  10.0)))
 
         dao.clearCache()
 
         val result = dao.getAllInvoicesOnce()
-        assertTrue("La lista debería estar vacía tras clearCache", result.isEmpty())
+        assertTrue("La lista deberia estar vacía tras clearCache", result.isEmpty())
     }
 
     @Test
-    fun refreshCache_ShouldReplaceOldDataWithNewData() = runTest {
+    fun refreshCache_ShouldReplaceOldDataWithNewData() = runBlocking {
         val oldData = listOf(createMockInvoice("OLD",  1.0))
         dao.insertInvoices(oldData)
 
@@ -80,7 +80,7 @@ class InvoiceDaoTest {
 
         val result = dao.getAllInvoicesOnce()
         assertEquals(2, result.size)
-        assertTrue("El registro OLD debería haber sido borrado", result.none { it.id == "OLD" })
+        assertTrue("El registro antiguo debería haber sido borrado", result.none { it.id == "OLD" })
         assertEquals("NEW-1", result[0].id)
     }
 }

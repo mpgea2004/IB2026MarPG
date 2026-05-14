@@ -1,6 +1,14 @@
 package com.iberdrola.practicas2026.MarPG.ui.components.contract_selection
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -70,7 +78,7 @@ fun ErrorComponent(
                 contentColor = Color.White
             ),
             modifier = Modifier.fillMaxWidth(0.7f),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(50.dp)
+            shape = RoundedCornerShape(50.dp)
         ) {
             Text(
                 text = stringResource(R.string.error_button_retry),

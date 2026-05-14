@@ -5,7 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iberdrola.practicas2026.MarPG.data.local.entities.UserProfileEntity
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -43,26 +43,27 @@ class UserDaoTest {
         )
 
     @Test
-    fun getUser_WhenDatabaseIsEmpty_ShouldReturnNull() = runTest {
+    fun getUser_WhenDatabaseIsEmpty_ShouldReturnNull() = runBlocking {
         val result = dao.getUser()
 
         assertNull("Debería ser null si no hay usuario guardado", result)
     }
 
     @Test
-    fun saveUser_AndGet_ShouldReturnCorrectUser() = runTest {
-        val user = createMockUser(name = "Mario", email = "mario@iberdrola.es")
+    fun saveUser_AndGet_ShouldReturnCorrectUser() = runBlocking {
+        val user = createMockUser(name = "Mar", email = "mar@iberdrola.es")
 
         dao.saveUser(user)
         val result = dao.getUser()
 
-        assertEquals("Mario", result?.name)
+        assertEquals("Mar", result?.name)
         assertEquals(0, result?.id)
-        assertEquals("mario@iberdrola.es", result?.email)
+        assertEquals("mar@iberdrola.es", result?.email)
+        assertEquals("600000000", result?.phoneNumber)
     }
 
     @Test
-    fun saveUser_OnConflict_ShouldReplaceOldUser() = runTest {
+    fun saveUser_OnConflict_ShouldReplaceOldUser() = runBlocking {
         val oldUser = createMockUser(name = "Viejo", email = "old@test.com")
         dao.saveUser(oldUser)
 
@@ -72,5 +73,6 @@ class UserDaoTest {
         val result = dao.getUser()
         assertEquals("Nuevo", result?.name)
         assertEquals("new@test.com", result?.email)
+        assertEquals(1, db.openHelper.writableDatabase.compileStatement("SELECT COUNT(*) FROM user_profile").simpleQueryForLong().toInt())
     }
 }
