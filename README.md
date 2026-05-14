@@ -1,163 +1,289 @@
-# ⚡ Iberdrola Android - Prácticas 2026 (MarPG)
+# Viewnext App Android Iberdrola - Prácticas 2026 (MarPG)
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.x-blue.svg)](https://kotlinlang.org/)
 [![Compose](https://img.shields.io/badge/Jetpack_Compose-2024.12.01-green.svg)](https://developer.android.com/jetpack/compose)
 [![Hilt](https://img.shields.io/badge/Hilt-2.51.1-orange.svg)](https://dagger.dev/hilt/)
+[![Room](https://img.shields.io/badge/Room-2.6.x-red.svg)](https://developer.android.com/training/data-storage/room)
+[![Firebase](https://img.shields.io/badge/Firebase-BOM-yellow.svg)](https://firebase.google.com)
 [![Platform](https://img.shields.io/badge/Platform-Android-brightgreen.svg)](https://developer.android.com)
 
 <p align="center">
   <img src="app/screenshots/portada.png" width="400" alt="Portada de la Aplicación">
 </p>
 
-Este repositorio contiene la solución técnica avanzada desarrollada para el programa de formación de **Iberdrola / Viewnext**. El proyecto no solo cumple con los hitos de las entregas oficiales, sino que integra módulos de valor añadido bajo estándares de industria.
+Solución técnica avanzada desarrollada para el programa de formación de Viewnext. Esta aplicación implementa una de gestión de facturas y contratos de energía, integrando arquitectura limpia, patrones de diseño avanzados y amplia instrumentación de monitorización.
 
 ---
 
-## 🏗️ Arquitectura y Stack Tecnológico
+## Arquitectura y Stack Tecnológico
 
-La aplicación se rige por los principios de **Clean Architecture** y **MVVM**, garantizando un desacoplamiento total entre la lógica de negocio y la interfaz de usuario.
+La aplicación sigue los principios de Clean Architecture con patrón MVVM para garantizar escalabilidad, mantenibilidad y testabilidad.
 
-### 🧬 Capas del Sistema
-*   **`domain`**: Lógica de negocio pura (**Use Cases**) sin dependencias de frameworks.
-*   **`data`**: Gestión de datos con **Retrofit** para API y **Room** como caché persistente (**SSOT**).
-*   **`ui`**: Interfaces reactivas construidas íntegramente en **Jetpack Compose**.
+### Capas del Sistema
+- **domain**: Lógica de negocio pura (Use Cases) sin dependencias de frameworks
+- **data**: Gestión de datos con Retrofit (API REST) y Room (caché persistente)
+- **ui**: Interfaces reactivas en Jetpack Compose
 
-### 🛠️ Especificaciones Técnicas
-*   **Single Source of Truth (SSOT):** Room actúa como única fuente de verdad. La UI observa la DB, y la red actualiza la DB.
-*   **Gestión de Estados:** Implementación de `StateFlow` y `SharedFlow` para una comunicación reactiva.
-*   **Inyección de Dependencias:** **Hilt** (Dagger) para la gestión del ciclo de vida de los componentes.
-*   **Persistencia Híbrida:**
-    *   **Room:** Para datos complejos y relacionales (Facturas, Contratos).
-    *   **DataStore (Preferences):** Gestión de estados atómicos (conteo de feedback, sesión de usuario).
+### Stack Tecnológico
+- Language: Kotlin 1.9.x
+- UI Framework: Jetpack Compose 2024.12.01
+- DI Container: Hilt 2.51.1 (Dagger)
+- Base Datos: Room 2.6.x
+- Network: Retrofit 2.11.x + Gson
+- State Management: StateFlow / SharedFlow
+- Local Storage: DataStore Preferences
+- Analytics: Google Analytics
+- Crash Reporting: Firebase Crashlytics
+- Remote Config: Firebase Remote Config
+
+### Patrones y Principios
+- Single Source of Truth (SSOT): Room actúa como única fuente de verdad
+- Reactive Programming: Flows para comunicación asíncrona
+- Dependency Injection: Hilt para gestión del ciclo de vida
+- Repository Pattern: Abstracción de fuentes de datos
+- Use Case Pattern: Encapsulación de lógica de negocio
 
 ---
 
-## 📂 Estructura del Proyecto
 
-```text
-app/src/main/java/com/iberdrola/.../MarPG/
-├── data/           # Implementaciones de Repositorios, API y DB
-│   ├── local/      # Room (Entities, DAOs, Database)
-│   ├── network/    # Retrofit (Services, Exceptions)
-│   └── mapper/     # Conversión DTO <-> Entity <-> Domain
-├── di/             # Módulos de Hilt (AppModule, NetworkModule)
-├── domain/         # Casos de Uso y Modelos de Negocio
-├── ui/             # UI Components, Screens y ViewModels
-└── MainApplication.kt
+## Estructura del Proyecto
+
+```
+app/src/main/java/com/iberdrola/practicas2026/MarPG/
+├── MainActivity.kt
+├── MainApplication.kt
+├── permissions/
+├── di/
+│   ├── AppModule.kt
+│   └── NetworkModule.kt
+├── domain/
+│   ├── model/
+│   │   ├── Invoice.kt
+│   │   ├── ElectronicInvoice.kt
+│   │   ├── ContractType.kt
+│   │   └── InvoiceStatus.kt
+│   ├── use_case/
+│   │   ├── invoice/
+│   │   │   └── GetInvoiceUseCase.kt
+│   │   ├── contracts/
+│   │   ├── events/
+│   │   ├── feedback/
+│   │   └── users/
+│   ├── repository/
+│   │   ├── InvoiceRepository.kt
+│   │   └── ElectronicInvoiceRepository.kt
+│   └── utils/
+├── data/
+│   ├── network/
+│   │   ├── InvoiceApiServer.kt
+│   │   ├── ElectronicInvoiceApiService.kt
+│   │   └── InvoiceException.kt
+│   ├── local/
+│   │   ├── database/
+│   │   ├── dao/
+│   │   ├── entities/
+│   │   └── preferences/
+│   ├── mapper/
+│   ├── dto/
+│   └── repository/
+└── ui/
+    ├── theme/
+    ├── home/
+    ├── factura_home/
+    ├── factura_list/
+    ├── factura_detail/
+    ├── factura_filter/
+    ├── user_profile/
+    ├── electronic_invoice_selection/
+    ├── electronic_invoice_detail/
+    ├── consumption_dashboard/
+    ├── faq/
+    ├── components/
+    └── utils/
 ```
 
 ---
 
-## 📱 Flujo de Navegación y Pantallas
-
-Se ha diseñado un grafo de navegación optimizado que incluye pantallas adicionales para una gestión completa:
-
-### Esquema de Navegación (Flow)
-```mermaid
-graph TD
-    A[Home]
-    A --> B[Listado de Facturas]
-    B --> C[Filtros Avanzados]
-    A --> D[Perfil de Usuario]
-    D --> F[Botón Crashlytics]
-    A --> E[Listado Factura Electrónica]
-    E --> G[Detalle Factura Electrónica/activa]
-    E --> H[Detalle Factura Electrónica/noactiva]
-    H --> M[Activar Factura Electrónica]
-    G --> I[Éxito Desactivar Factura Electrónica]
-    G --> J[Modificar Email]
-    J/M --> K[Código Verificación Factura Electrónica]
-    K --> L[Éxito Factura Electrónica]
-```
+## Pantallas y Flujo de Navegación
 
 ### Detalle de Pantallas
 
 #### Home (Personalizada)
-Es el centro de control principal. Ofrece accesos directos y una vista general para mejorar la usabilidad.
-<img src="app/screenshots/home.png" width="250" alt="Pantalla Home">
+Centro de control principal con accesos rápidos a facturas, perfil y facturación electrónica. Incluye selector de origen de datos (API/Local) y feedback sheet.
+
+Archivo: `ui/factura_home/HomeScreen.kt`
 
 #### Perfil de Usuario (Personalizada)
-Sección para que el usuario gestione su número de teléfono y email, datos clave para la facturación electrónica.
-<img src="app/screenshots/perfil_usuario.png" width="250" alt="Pantalla Perfil de Usuario">
+Sección para gestionar datos personales: nombre, email, teléfono y contraseña. Pudiendolos editar pidiendo siempre la contraseña.
 
-#### Feed de Facturas
-Lista principal de todas las facturas. Incluye efectos de carga (Shimmer) y responde a los filtros y la conexión de red.
-<img src="app/screenshots/feed_facturas.png" width="250" alt="Pantalla Feed de Facturas">
+Archivo: `ui/user_profile/ProfileScreen.kt`
 
-#### Filtrado de Facturas
-Pantalla con filtros avanzados para buscar facturas específicas.
-<img src="app/screenshots/filtrado_facturas.png" width="250" alt="Pantalla Filtrado de Facturas">
+#### Listado de Facturas
+Lista principal de todas las facturas con efectos de carga (Shimmer) y responde a filtros y conexión de red. Soporta tabs para Luz/Gas. Desde esta pantalla podemos activar/desactivar la visualización del importe de las facturas, acceder a filtrado, a detalle de factura y a mi consumo.
 
-#### Feed de Facturas Electrónicas
-Muestra el estado de la facturación electrónica para los distintos contratos.
-<img src="app/screenshots/feed_factura_electronica.png" width="250" alt="Pantalla Feed Facturas Electrónicas">
+Archivo: `ui/factura_list/InvoiceListScreen.kt`
+
+#### Filtros Avanzados
+Pantalla con filtros avanzados para buscar facturas específicas por fecha, importe y estado.
+
+Archivo: `ui/factura_filter/FilterScreen.kt`
+
+#### Detalle de Factura
+Pantalla con detalle de la factura en la que podemos activar/desactivar la visualización del importe de las facturas(relacionado con el de listado), podemos descargar la factura, copiar su número de factura y pagarla si es podible.
+
+Archivo: `ui/factura_detail/InvoiceDetailScreen.kt`
+
+#### Consumo
+Pantalla con gráfico del consumo de la energía de los contratos.
+
+#### Preguntas frecuentes
+Pantalla con preguntas frecuentes de los usuarios y enlace a atención al cliente de iberdrola. Además ahí está escondido el botón de error para crashlytics.
+
+Archivo: `ui/faq/FaqScreen.kt`t`
+
+#### Selector de Contratos
+Muestra el estado de la facturación electrónica para los distintos contratos disponibles.
+
+Archivo: `ui/electronic_invoice_selection/ElectronicInvoiceListScreen.kt`
 
 #### Detalle Factura Electrónica Activa
-Muestra los datos y opciones de configuración de una factura electrónica activada.
-<img src="app/screenshots/detalle_factura_electronica_activa.png" width="250" alt="Pantalla Detalle Factura Electrónica Activa">
+Muestra los datos y opciones de configuración de una factura electrónica activada. Permite editar email o desactivar el servicio.
 
-#### Éxito Desactivar Factura Electrónica (Personalizada)
+Archivo: `ui/electronic_invoice_detail/ElectronicInvoiceDetailInfoScreen.kt`
+
+#### Desactivación de Factura Electrónica (Personalizada)
 Mensaje de confirmación que aparece tras desactivar correctamente el servicio.
-<img src="app/screenshots/exito_desactivar_factura_electronica.png" width="250" alt="Pantalla Éxito Desactivar Factura Electrónica">
 
-#### Edición Email de Factura Electrónica Activa
-Formulario sencillo para cambiar la dirección de correo electrónico.
-<img src="app/screenshots/edicion_email_factura_electronica.png" width="250" alt="Pantalla Edición Email Factura Electrónica">
+Archivo: `ui/electronic_invoice_detail/SuccessScreen.kt`
+
+#### Edición de Email
+Formulario para cambiar la dirección de correo electrónico de envío de facturas electrónicas.
+
+Archivo: `ui/electronic_invoice_detail/ElectronicInvoiceEditEmailScreen.kt`
 
 #### Activación de Factura Electrónica
 Proceso inicial para dar de alta el servicio en un contrato.
-<img src="app/screenshots/activacion_factura_electronica.png" width="250" alt="Pantalla Activación Factura Electrónica">
 
-#### Código Verificación de Factura Electrónica
-Pantalla de seguridad para introducir el código recibido (SMS/Email).
-<img src="app/screenshots/codigo_verificacion_factura_electronica.png" width="250" alt="Pantalla Código Verificación Factura Electrónica">
+Archivo: `ui/electronic_invoice_detail/ElectronicInvoiceDetailFormScreen.kt`
+
+#### Código de Verificación OTP
+Pantalla para introducir el código recibido (SMS/Email). Incluye reenviación y contador de intentos. Estos mensajes se mandan a través de notificaciones.
+
+Archivo: `ui/electronic_invoice_detail/ElectronicInvoiceOtpScreen.kt`
+Componente: `ui/components/contract_selection/ResendSuccessBanner.kt`
 
 #### Éxito de Factura Electrónica
-Mensaje final que confirma que el proceso se ha completado con éxito.
-<img src="app/screenshots/exito_factura_electronica.png" width="250" alt="Pantalla Éxito Factura Electrónica">
+Mensaje final que confirma la completitud del proceso.
+
+Archivo: `ui/electronic_invoice_detail/SuccessScreen.kt`
 
 ---
 
-## 🌟 Funcionalidades de Valor Añadido
-#### Gestión de Facturación Electrónica
-Implementación de un flujo completo de activación, modificación y **desactivación**. Incluye lógica de validación mediante código de verificación.
+## Funcionalidades Principales
 
-#### Switch de Conectividad
-Selector de modo para forzar el Modo Offline, permitiendo validar la robustez de la caché local.
+### Gestión de Facturas
+- Listado completo de facturas (Luz y Gas)
+- Vista detallada de facturas con opciones de pago
+- Descarga de PDF y compartición
+- Filtros avanzados (fecha, importe, estado)
+- Búsqueda por ID de factura
 
-#### Feedback Inteligente
-Uso de DataStore para persistir el número de visualizaciones del diálogo de feedback.
+### Facturación Electrónica
+- Activación/desactivación de servicio
+- Validación mediante código OTP (notificación de app)
+- Modificación de email de envío
+- Estados persistentes
 
-#### Gestión de Sesión de Usuario (DataStore)
-Uso de **Preferences DataStore** para gestionar un perfil de usuario reactivo. Las pantallas reaccionan instantáneamente a cambios en el email o teléfono.
+### Gestión de Usuario
+- Perfil personalizable (nombre, email, teléfono)
+- Contraseña segura (cifrada en local)
+- Ocultamiento de importes
 
----
+### Conectividad Inteligente
+- Selector de origen de datos (API/Local)
+- Caché automático con Room
+- Sincronización offline-first
+- Indicadores de estado de conexión
 
-## 🚀 Instalación y Configuración
+### Dashboard de Consumo
+- Gráficos de consumo histórico
+- Comparativas de períodos
+- Consejos de ahorro energético
 
-1.  **Clonar repositorio:**
-    ```bash
-    git clone https://github.com/mpgea2004/IB2026MarPG.git
-    ```
-2.  **Configurar Firebase:** Añadir el archivo `google-services.json` en la carpeta `app/`.
-3.  **Sincronizar:** Abrir con Android Studio Ladybug o superior y sincronizar Gradle.
-4.  **Ejecutar:** `./gradlew assembleDebug`
-
----
-
-## 🧪 Estrategia de Testing
-
-*   **Unit Tests (test):** Validación de lógica en Use Cases (ej. `FormatUserPhoneUseCaseTest`), validadores y Mappers.
-*   **Android Tests (androidTest):** Pruebas de integración para validar operaciones CRUD en Room (ej. `UserDaoTest`).
-
----
-
-## 📊 Monitorización (Cuarta Entrega)
-*   **Google Analytics:** Tracking de navegación y registro de eventos (`filter_applied`, etc.).
-*   **Crashlytics:** Reporte de errores. Se incluye un botón de fallo forzado en la pantalla de Perfil.
-*   **Remote Config:** Configuración dinámica para el filtrado de contratos de Gas.
+### Instrumentación
+- Google Analytics para tracking
+- Firebase Crashlytics para errores
+- Remote Config dinámico
+- Logs estructurados
 
 ---
 
-## ✒️ Desarrollado por
-**MarPG** - Prácticas de Especialización Android 2026  (Viewnext)
+## Instalación y Configuración
+
+### Requisitos
+- Android Studio Ladybug (2024.1) o superior
+- JDK 17+
+- Gradle 8.x
+- Android SDK 33+
+
+### Pasos de instalación
+
+1. Clonar repositorio:
+   git clone https://github.com/mpgea2004/IB2026MarPG.git
+
+2. Configurar Firebase:
+   - Descargar google-services.json desde Firebase Console
+   - Colocar en carpeta app/
+
+3. Sincronizar Gradle:
+   ./gradlew clean
+   ./gradlew build
+
+4. Configurar Mockoon (opcional):
+   - Descargar e instalar desde https://mockoon.com/
+   - Importar: app/src/main/res/raw/mockoon_iberdrola.json
+   - Ejecutar en https://localhost:3000
+
+5. Ejecutar aplicación:
+   ./gradlew assembleDebug
+   O desde Android Studio: Run > Run 'app'
+
+### Configuración de Versiones
+- Target SDK: 34 (Android 14)
+- Min SDK: 24 (Android 7)
+- Compile SDK: 3
+
+## Desarrollado por
+
+MarPG - Prácticas de DAM
+Programa: Viewnext Android
+Año: 2026
+
+---
+
+## Estrategia de Testing
+
+### Unit Tests (test/)
+Validación de lógica en Use Cases, validadores y Mappers:
+
+- GetInvoiceUseCaseTest: Obtención de facturas
+- ValidateEmailUseCaseTest: Regex de validación
+- ValidatePhoneUseCaseTest: Formato telefónico
+- FormatUserPhoneUseCaseTest: Enmascaramiento
+- VerifyUserPasswordUseCaseTest: Validación de contraseña
+- InvoiceListViewModelTest: Estados y filtros
+- FilterViewModelTest: Lógica de filtrado
+- ProfileViewModelTest: Datos personales
+- HomeViewModelTest: Inicialización
+- ElectronicInvoiceViewModelTest: Flujo de activación
+- InvoiceMapperTest: Conversión DTO > Domain
+- ElectronicInvoiceMapperTest: Mappeo de fact. electrónica
+
+### Android Tests (androidTest/)
+Pruebas de integración CRUD en Room:
+
+- InvoiceDaoTest: Operaciones de facturas
+- UserDaoTest: Gestión de usuario
+- ElectronicInvoiceDaoTest: Persistencia
+- InvoiceDatabaseTest: Validación de singleton
+
