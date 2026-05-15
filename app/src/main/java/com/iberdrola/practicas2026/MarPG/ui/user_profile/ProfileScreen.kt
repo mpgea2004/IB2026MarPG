@@ -133,6 +133,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
+    onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state = viewModel.state
@@ -236,7 +237,7 @@ fun ProfileScreen(
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.onDismissLogoutDialog()
-                    viewModel.logout { onBack() }
+                    viewModel.logout { onLogout() }
                 }) {
                     Text(
                         text = stringResource(R.string.profile_logout_button),
@@ -420,7 +421,7 @@ fun ProfileScreen(
                             .clip(RoundedCornerShape(50))
                             .combinedClickable(
                                 onClick = handleBackAction
-                            )
+                            ).padding(end = 16.dp)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,

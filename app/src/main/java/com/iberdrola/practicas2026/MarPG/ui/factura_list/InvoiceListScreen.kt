@@ -657,7 +657,7 @@ fun InvoiceListContent(
                                             onLongClick = {
                                                 scope.launch { searchTooltipState.show() }
                                             }
-                                        )
+                                        ).padding(2.dp)
                                 )
                             }
                         },

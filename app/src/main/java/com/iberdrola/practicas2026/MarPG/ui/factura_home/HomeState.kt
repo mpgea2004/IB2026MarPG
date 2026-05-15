@@ -9,6 +9,5 @@ data class HomeState(
     val isCloudEnabled: Boolean = false,
     val isLoading: Boolean = false,
     val isGasEnabled: Boolean? = null,
-    val showGuestDialog: Boolean = false,
     val pendingNavigation: (() -> Unit)? = null
 )

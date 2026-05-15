@@ -128,7 +128,7 @@ class InvoiceListViewModel @Inject constructor(
         val remoteConfig = Firebase.remoteConfig
         val configSettings = remoteConfigSettings {
             minimumFetchIntervalInSeconds = 0
-            fetchTimeoutInSeconds = 2
+            fetchTimeoutInSeconds = 1
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
 

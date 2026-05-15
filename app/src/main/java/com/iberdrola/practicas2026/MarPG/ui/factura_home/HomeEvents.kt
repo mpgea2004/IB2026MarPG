@@ -10,6 +10,4 @@ data class HomeEvents(
     val onSheetDismiss: () -> Unit = {},
     val onSheetOptionSelected: (Int) -> Unit = {},
     val onSheetDontAskAgain: () -> Unit = {},
-    val onGuestConfirm: () -> Unit = {},
-    val onGuestDismiss: () -> Unit = {}
 )

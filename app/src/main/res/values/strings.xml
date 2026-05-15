@@ -298,7 +298,6 @@
     <string name="pdf_footer_eco">Gracias por contribuir al medio ambiente con la factura digital.</string>
     <string name="pdf_share_title">Compartir factura con...</string>
 
-    <!-- Consumption Dashboard -->
     <string name="consumption_title">Mi Consumo</string>
     <string name="consumption_subtitle">Analiza tus gastos energéticos</string>
     <string name="consumption_tab_electricity">Electricidad</string>
@@ -314,20 +313,17 @@
     <string name="consumption_first_invoice_gas">Esta es tu primera factura de Gas. ¡Bienvenido!</string>
     <string name="consumption_no_data">Sin datos disponibles</string>
 
-    <!-- FAQ -->
     <string name="faq_title">Preguntas Frecuentes</string>
     <string name="faq_subtitle">Resolvemos tus dudas sobre la aplicación</string>
     <string name="faq_contact_title">¿Aún tienes dudas?</string>
     <string name="faq_contact_subtitle">Contacta con soporte técnico</string>
 
-    <!-- OTP -->
     <string name="otp_notification_header">IBERDROLA</string>
     <string name="otp_notification_time">ahora</string>
     <string name="otp_notification_message">Iberdrola: Su código es %1$s. No lo comparta.</string>
     <string name="otp_simulated_notification_title">Código de seguridad Iberdrola</string>
     <string name="otp_simulated_notification_message">Tu código para la factura electrónica de %1$s es: %2$s</string>
 
-    <!-- FAQ Items -->
     <string name="faq_q1">¿Cómo puedo ver mis facturas?</string>
     <string name="faq_a1">Puedes ver tus facturas pulsando en la tarjeta \'Mis Facturas\' de la pantalla principal. Allí podrás filtrar por fecha, importe o estado.</string>
     <string name="faq_q2">¿Qué es el modo Nube?</string>
@@ -341,14 +337,12 @@
 
     <string name="invoice_list_amount_hidden">... €</string>
 
-    <!-- Status Badge -->
     <string name="status_paid">Pagada</string>
     <string name="status_pending">Pendiente de pago</string>
     <string name="status_processing">En trámite de cobro</string>
     <string name="status_cancelled">Anulada</string>
     <string name="status_fixed">Cuota fija</string>
 
-    <!-- Profile Extra -->
     <string name="profile_security_dialog_text">Introduce tu contraseña actual para realizar cambios en el perfil.</string>
     <string name="profile_saving_changes">Guardando cambios...</string>
     <string name="profile_not_configured">No configurado</string>
@@ -357,7 +351,6 @@
 
     <string name="price_range_decimals_title">Ajuste de céntimos (mín. 0.10€ de diferencia)</string>
 
-    <!-- Permissions -->
     <string name="permission_blocked_title">Permiso Bloqueado</string>
     <string name="permission_needed_title">Permiso Necesario</string>
     <string name="permission_blocked_desc">Has desactivado las notificaciones de forma permanente. Para continuar, debes activarlas manualmente en los ajustes de la aplicación.</string>
@@ -365,13 +358,38 @@
     <string name="permission_go_to_settings">IR A AJUSTES</string>
     <string name="permission_back">VOLVER</string>
 
-    <!-- Form -->
     <string name="form_email_format_hint">Formato: ejemplo@dominio.ext</string>
 
-    <!-- Crash Dialog -->
     <string name="crash_dialog_title">Cuidado</string>
     <string name="crash_dialog_message">Este botón enviará un fallo de prueba a Crashlytics y cerrará la app inmediatamente. ¿Deseas continuar?</string>
     <string name="crash_dialog_confirm">Lanzar Crash</string>
     <string name="crash_dialog_cancel">Cancelar</string>
+
+
+    <string name="login_logo_description">Logo Iberdrola</string>
+    <string name="login_title">Iniciar sesión</string>
+    <string name="login_subtitle">Accede a tu cuenta Iberdrola</string>
+    <string name="login_email_label">Correo electrónico</string>
+    <string name="login_password_label">Contraseña</string>
+    <string name="login_password_visibility">Ver contraseña</string>
+    <string name="login_button">Entrar</string>
+    <string name="login_register_question">¿Aún no eres cliente?</string>
+    <string name="login_register_action">Regístrate ahora</string>
+
+    <string name="register_logo_description">Logo Iberdrola</string>
+    <string name="register_title">Crear cuenta</string>
+    <string name="register_subtitle">Regístrate en Iberdrola</string>
+    <string name="register_name_label">Nombre completo</string>
+    <string name="register_email_label">Correo electrónico</string>
+    <string name="register_password_label">Contraseña</string>
+    <string name="register_confirm_password_label">Confirmar contraseña</string>
+    <string name="register_password_visibility">Ver contraseña</string>
+    <string name="register_button">Registrarse</string>
+    <string name="register_login_question">¿Ya tienes cuenta?</string>
+    <string name="register_login_action">Inicia sesión</string>
+
+    <string name="first_screen">Pantalla de inicio</string>
+
+
 
 </resources>

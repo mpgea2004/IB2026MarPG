@@ -142,41 +142,31 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `navegar con check de perfil debe mostrar dialogo si no esta completo`() = runTest {
+    fun `navegar con check de perfil debe llamar el callback onSuccess`() = runTest {
         userProfileFlow.value = ProfileState(name = "Mar", email = "")
         advanceUntilIdle()
         
         var navigated = false
         viewModel.onNavigateWithProfileCheck { navigated = true }
 
-        assertTrue(viewModel.state.showGuestDialog)
-        assertNotNull(viewModel.state.pendingNavigation)
-        assertFalse(navigated)
+        advanceUntilIdle()
+        assertTrue(navigated)
     }
 
     @Test
-    fun `al confirmar invitado se debe actualizar el perfil y ejecutar navegacion pendiente`() = runTest {
+    fun `al navegar con check de perfil debe ejecutar el callback`() = runTest {
         var navigated = false
         viewModel.onNavigateWithProfileCheck { navigated = true }
-        
-        viewModel.onConfirmGuest()
-        
+
         advanceUntilIdle()
-        coVerify { userPrefs.updateProfile(any()) }
-        assertFalse(viewModel.state.showGuestDialog)
         assertTrue(navigated)
-        assertNull(viewModel.state.pendingNavigation)
-        verify { logAnalytics("click_confirmar_predeterminado", priority = AnalyticsPriority.HIGH) }
     }
 
     @Test
-    fun `al cancelar dialogo de invitado se debe limpiar el estado`() {
-        viewModel.onNavigateWithProfileCheck { }
-        
-        viewModel.onDismissGuestDialog()
-        
-        assertFalse(viewModel.state.showGuestDialog)
-        assertNull(viewModel.state.pendingNavigation)
-        verify { logAnalytics("click_cancelar_predeterminado", priority = AnalyticsPriority.LOW) }
+    fun `onNavigateWithProfileCheck debe ser llamado sin errores`() {
+        var callbackExecuted = false
+        viewModel.onNavigateWithProfileCheck { callbackExecuted = true }
+
+        assertTrue(callbackExecuted)
     }
 }

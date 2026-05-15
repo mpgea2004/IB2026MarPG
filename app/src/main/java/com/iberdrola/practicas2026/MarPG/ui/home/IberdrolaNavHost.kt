@@ -35,9 +35,13 @@ import com.iberdrola.practicas2026.MarPG.ui.factura_home.HomeScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
 import com.iberdrola.practicas2026.MarPG.ui.faq.FaqScreen
+import com.iberdrola.practicas2026.MarPG.ui.login.LoginScreen
+import com.iberdrola.practicas2026.MarPG.ui.login.RegisterScreen
 import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileScreen
 
 object Routes {
+    const val LOGIN = "login"
+    const val REGISTER = "register"
     const val USER_PROFILE = "user_profile"
     const val HOME = "home"
     const val INVOICE_LIST = "invoice_list/{isCloud}"
@@ -54,13 +58,51 @@ object Routes {
 }
 
 @Composable
-fun IberdrolaNavHost(navController: NavHostController) {
+fun IberdrolaNavHost(navController: NavHostController, startDestination: String = Routes.LOGIN) {
     var isCloudEnabled by remember { mutableStateOf(false) }
 
     NavHost(
         navController = navController,
-        startDestination = Routes.HOME
+        startDestination = startDestination
     ) {
+        composable(
+            route = Routes.LOGIN,
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) {
+            LoginScreen(
+                onNavigateToHome = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    }
+                },
+                onNavigateToRegister = {
+                    navController.navigate(Routes.REGISTER)
+                }
+            )
+        }
+
+        composable(
+            route = Routes.REGISTER,
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) + fadeOut(animationSpec = tween(400)) }
+        ) {
+            RegisterScreen(
+                onRegisterSuccess = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
         composable(
             route = Routes.HOME,
             enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) + fadeIn(animationSpec = tween(400)) },
@@ -130,6 +172,11 @@ fun IberdrolaNavHost(navController: NavHostController) {
                 onBack = {
                     if (navController.currentDestination?.route == Routes.USER_PROFILE) {
                         navController.popBackStack()
+                    }
+                },
+                onLogout = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     }
                 }
             )

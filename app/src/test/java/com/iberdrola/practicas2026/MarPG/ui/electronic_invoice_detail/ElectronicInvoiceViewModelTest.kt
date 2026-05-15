@@ -4,7 +4,11 @@ import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesR
 import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
 import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
-import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.*
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.FormatUserPhoneUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateElectronicInvoiceUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateUserPhoneUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.ValidateEmailUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.VerifyUserPasswordUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileState
 import io.mockk.clearAllMocks

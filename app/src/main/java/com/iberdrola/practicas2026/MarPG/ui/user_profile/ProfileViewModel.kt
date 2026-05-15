@@ -215,6 +215,7 @@ class ProfileViewModel @Inject constructor(
     fun logout(onSuccess: () -> Unit) {
         logAnalyticsUseCase("confirmacion_cierre_sesion", priority = AnalyticsPriority.HIGH)
         viewModelScope.launch {
+            userPrefs.setLoggedIn(false)
             userPrefs.clearProfile()
             state = ProfileState()
             onSuccess()

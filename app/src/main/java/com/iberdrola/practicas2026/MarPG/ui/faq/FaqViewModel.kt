@@ -61,12 +61,4 @@ class FaqViewModel @Inject constructor(
         val intent = Intent(ACTION_VIEW, Uri.parse("https://www.iberdrola.es/atencion-cliente"))
         context.startActivity(intent)
     }
-
-    fun onBackClicked() {
-        logAnalyticsUseCase("click_volver_faq", priority = AnalyticsPriority.MEDIUM)
-    }
-
-    fun onCrashAttempt() {
-        logAnalyticsUseCase("click_intento_crash_manual", priority = AnalyticsPriority.HIGH)
-    }
 }

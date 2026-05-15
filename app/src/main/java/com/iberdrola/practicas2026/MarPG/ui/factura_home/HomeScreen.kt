@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.AlertDialog
@@ -157,8 +158,6 @@ fun HomeScreen(
             viewModel.onOptionSelected(tregua)
         },
         onSheetDontAskAgain = { viewModel.onDontAskAgain() },
-        onGuestConfirm = viewModel::onConfirmGuest,
-        onGuestDismiss = viewModel::onDismissGuestDialog
     )
 
     HomeContent(
@@ -246,12 +245,12 @@ fun HomeContent(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .clickable { events.onNavigateToFaq() }
-                            .padding(vertical = 8.dp, horizontal = 2.dp),
+                            .padding(vertical = 8.dp, horizontal = 4.dp),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.HelpOutline,
+                            imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
                             contentDescription = null,
                             tint = GreenIberdrola,
                             modifier = Modifier.size(20.dp)
@@ -270,51 +269,6 @@ fun HomeContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
-        }
-
-        if (state.showGuestDialog) {
-            AlertDialog(
-                onDismissRequest = events.onGuestDismiss,
-                title = {
-                    Text(
-                        text = stringResource(R.string.home_guest_dialog_title),
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = IberPangeaFamily,
-                        color = GreenIberdrola
-                    )
-                },
-                text = {
-                    Text(
-                        text = stringResource(R.string.home_guest_dialog_message),
-                        fontFamily = IberPangeaFamily,
-                        color = TextGrey
-                    )
-                },
-                confirmButton = {
-                    Button(
-                        onClick = events.onGuestConfirm,
-                        colors = ButtonDefaults.buttonColors(containerColor = GreenIberdrola),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.home_guest_dialog_confirm),
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = events.onGuestDismiss) {
-                        Text(
-                            text = stringResource(R.string.home_guest_dialog_cancel),
-                            color = GreenIberdrola,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                },
-                containerColor = Color.White,
-                shape = RoundedCornerShape(16.dp)
-            )
         }
 
         if (state.isSheetVisible) {

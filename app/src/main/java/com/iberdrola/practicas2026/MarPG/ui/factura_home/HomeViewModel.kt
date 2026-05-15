@@ -140,39 +140,6 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onNavigateWithProfileCheck(onSuccess: () -> Unit) {
-        if (state.isProfileComplete || state.userName == "Usuario") {
-            onSuccess()
-        } else {
-            state = state.copy(
-                showGuestDialog = true,
-                pendingNavigation = onSuccess
-            )
-        }
-    }
-
-    fun onConfirmGuest() {
-        logAnalyticsUseCase("click_confirmar_predeterminado", priority = AnalyticsPriority.HIGH)
-        viewModelScope.launch {
-            val guestProfile = ProfileState(
-                name = "Usuario",
-                password = "1234",
-                confirmPassword = "1234",
-                email = "",
-                phone = "",
-                address = ""
-            )
-            userPrefs.updateProfile(guestProfile)
-            state = state.copy(showGuestDialog = false)
-            state.pendingNavigation?.invoke()
-            state = state.copy(pendingNavigation = null)
-        }
-    }
-
-    fun onDismissGuestDialog() {
-        logAnalyticsUseCase("click_cancelar_predeterminado", priority = AnalyticsPriority.LOW)
-        state = state.copy(
-            showGuestDialog = false,
-            pendingNavigation = null
-        )
+        onSuccess()
     }
 }

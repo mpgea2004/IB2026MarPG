@@ -26,6 +26,7 @@ class UserPreferencesRepository @Inject constructor(
         val ADDRESS = stringPreferencesKey("address")
         val PASSWORD = stringPreferencesKey("password")
         val AMOUNT_VISIBLE = booleanPreferencesKey("amount_visible")
+        val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
         
         val OTP_RESEND_ATTEMPTS_LUZ = intPreferencesKey("otp_resend_attempts_luz")
         val LAST_OTP_RESEND_TIMESTAMP_LUZ = longPreferencesKey("last_otp_resend_timestamp_luz")
@@ -40,12 +41,17 @@ class UserPreferencesRepository @Inject constructor(
             email = prefs[PreferencesKeys.EMAIL] ?: "",
             phone = prefs[PreferencesKeys.PHONE] ?: "",
             address = prefs[PreferencesKeys.ADDRESS] ?: "",
-            password = prefs[PreferencesKeys.PASSWORD] ?: ""
+            password = prefs[PreferencesKeys.PASSWORD] ?: "",
+            isLoggedIn = prefs[PreferencesKeys.IS_LOGGED_IN] ?: false
         )
     }
 
     val amountVisibleFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[PreferencesKeys.AMOUNT_VISIBLE] ?: true
+    }
+
+    val isLoggedInFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.IS_LOGGED_IN] ?: false
     }
 
     fun getOtpResendDataFlow(type: ContractType): Flow<Pair<Int, Long>> = context.dataStore.data.map { prefs ->
@@ -68,6 +74,13 @@ class UserPreferencesRepository @Inject constructor(
             prefs[PreferencesKeys.PHONE] = state.phone
             prefs[PreferencesKeys.ADDRESS] = state.address
             prefs[PreferencesKeys.PASSWORD] = state.password
+            prefs[PreferencesKeys.IS_LOGGED_IN] = state.isLoggedIn
+        }
+    }
+
+    suspend fun setLoggedIn(isLoggedIn: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.IS_LOGGED_IN] = isLoggedIn
         }
     }
 
