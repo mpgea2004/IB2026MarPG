@@ -1,9 +1,13 @@
 package com.iberdrola.practicas2026.MarPG.data.local.preferences
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
 import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +25,14 @@ class UserPreferencesRepository @Inject constructor(
         val PHONE = stringPreferencesKey("phone")
         val ADDRESS = stringPreferencesKey("address")
         val PASSWORD = stringPreferencesKey("password")
+        val AMOUNT_VISIBLE = booleanPreferencesKey("amount_visible")
+        val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
+        
+        val OTP_RESEND_ATTEMPTS_LUZ = intPreferencesKey("otp_resend_attempts_luz")
+        val LAST_OTP_RESEND_TIMESTAMP_LUZ = longPreferencesKey("last_otp_resend_timestamp_luz")
+        
+        val OTP_RESEND_ATTEMPTS_GAS = intPreferencesKey("otp_resend_attempts_gas")
+        val LAST_OTP_RESEND_TIMESTAMP_GAS = longPreferencesKey("last_otp_resend_timestamp_gas")
     }
 
     val userProfileFlow: Flow<ProfileState> = context.dataStore.data.map { prefs ->
@@ -29,8 +41,30 @@ class UserPreferencesRepository @Inject constructor(
             email = prefs[PreferencesKeys.EMAIL] ?: "",
             phone = prefs[PreferencesKeys.PHONE] ?: "",
             address = prefs[PreferencesKeys.ADDRESS] ?: "",
-            password = prefs[PreferencesKeys.PASSWORD] ?: ""
+            password = prefs[PreferencesKeys.PASSWORD] ?: "",
+            isLoggedIn = prefs[PreferencesKeys.IS_LOGGED_IN] ?: false
         )
+    }
+
+    val amountVisibleFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.AMOUNT_VISIBLE] ?: true
+    }
+
+    val isLoggedInFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.IS_LOGGED_IN] ?: false
+    }
+
+    fun getOtpResendDataFlow(type: ContractType): Flow<Pair<Int, Long>> = context.dataStore.data.map { prefs ->
+        when (type) {
+            ContractType.LUZ -> Pair(
+                prefs[PreferencesKeys.OTP_RESEND_ATTEMPTS_LUZ] ?: 3,
+                prefs[PreferencesKeys.LAST_OTP_RESEND_TIMESTAMP_LUZ] ?: 0L
+            )
+            ContractType.GAS -> Pair(
+                prefs[PreferencesKeys.OTP_RESEND_ATTEMPTS_GAS] ?: 3,
+                prefs[PreferencesKeys.LAST_OTP_RESEND_TIMESTAMP_GAS] ?: 0L
+            )
+        }
     }
 
     suspend fun updateProfile(state: ProfileState) {
@@ -40,12 +74,58 @@ class UserPreferencesRepository @Inject constructor(
             prefs[PreferencesKeys.PHONE] = state.phone
             prefs[PreferencesKeys.ADDRESS] = state.address
             prefs[PreferencesKeys.PASSWORD] = state.password
+            prefs[PreferencesKeys.IS_LOGGED_IN] = state.isLoggedIn
+        }
+    }
+
+    suspend fun setLoggedIn(isLoggedIn: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.IS_LOGGED_IN] = isLoggedIn
+        }
+    }
+
+    suspend fun clearProfile() {
+        context.dataStore.edit { prefs ->
+            prefs.clear()
         }
     }
 
     suspend fun updatePhone(newPhone: String) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.PHONE] = newPhone
+        }
+    }
+
+    suspend fun updatePassword(newPass: String) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.PASSWORD] = newPass
+        }
+    }
+
+    suspend fun updateAddress(newAddress: String) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.ADDRESS] = newAddress
+        }
+    }
+
+    suspend fun updateAmountVisibility(visible: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.AMOUNT_VISIBLE] = visible
+        }
+    }
+
+    suspend fun updateOtpResendData(type: ContractType, attempts: Int, timestamp: Long) {
+        context.dataStore.edit { prefs ->
+            when (type) {
+                ContractType.LUZ -> {
+                    prefs[PreferencesKeys.OTP_RESEND_ATTEMPTS_LUZ] = attempts
+                    prefs[PreferencesKeys.LAST_OTP_RESEND_TIMESTAMP_LUZ] = timestamp
+                }
+                ContractType.GAS -> {
+                    prefs[PreferencesKeys.OTP_RESEND_ATTEMPTS_GAS] = attempts
+                    prefs[PreferencesKeys.LAST_OTP_RESEND_TIMESTAMP_GAS] = timestamp
+                }
+            }
         }
     }
 }

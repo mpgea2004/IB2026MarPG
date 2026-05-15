@@ -1,5 +1,31 @@
 package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,35 +39,62 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.NotificationsOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction.Companion.Done
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import com.iberdrola.practicas2026.MarPG.R
+import com.iberdrola.practicas2026.MarPG.ui.components.IberdrolaTextField
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceBottomBar
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.ElectronicInvoiceHeader
 import com.iberdrola.practicas2026.MarPG.ui.components.contract_selection.LoadingOverlay
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
+import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
+import com.iberdrola.practicas2026.MarPG.ui.utils.NotificationHandler
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -52,27 +105,206 @@ fun ElectronicInvoiceOtpScreen(
     onNext: () -> Unit
 ) {
     val state = viewModel.state
-    val isNextEnabled = viewModel.isNextEnabled
-    val events = viewModel.events.copy(
-        onBack = onBack,
-        onClose = onCloseToHome
-    )
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
+    val notificationHandler = remember { NotificationHandler(context) }
+    var showDiscardDialog by remember { mutableStateOf(false) }
+    var isNavigating by remember { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.onPermissionGranted()
+        } else {
+            viewModel.updatePermissionPermanentlyDenied(true)
+        }
+    }
+
+    fun checkNotificationPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    DisposableEffect(Unit) {
+        viewModel.clearOtp()
+        onDispose {
+            viewModel.clearOtp()
+        }
+    }
 
     LaunchedEffect(Unit) {
-        viewModel.updateStep(ElectronicInvoiceStep.VERIFICATION)
-        events.onViewScreen("Verificacion_OTP_Mar")
+        val hasPermission = checkNotificationPermission()
+        if (hasPermission) {
+            viewModel.startOtpSimulation(true)
+        } else {
+            viewModel.onPermissionNeeded(false)
+        }
+    }
+
+    LaunchedEffect(state.showSimulatedNotification, state.simulatedOtpCode) {
+        if (state.showSimulatedNotification && state.simulatedOtpCode.isNotEmpty()) {
+            notificationHandler.showSimpleNotification(
+                contentTitle = context.getString(R.string.otp_simulated_notification_title),
+                contentText = context.getString(
+                    R.string.otp_simulated_notification_message,
+                    state.selectedContract?.type?.toString() ?: "",
+                    state.simulatedOtpCode
+                )
+            )
+        }
+    }
+
+    val handleBack = {
+        if (!isNavigating && !state.isLoading) {
+            isNavigating = true
+            onBack()
+            scope.launch {
+                delay(500)
+                isNavigating = false
+            }
+        }
+    }
+
+    val handleClose = {
+        if (!isNavigating && !state.isLoading) {
+            showDiscardDialog = true
+        }
+    }
+
+    BackHandler(enabled = !showDiscardDialog) { handleBack() }
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(stringResource(R.string.form_discard_changes_title), color = GreenDarkIberdrola, fontFamily = IberPangeaFamily, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.form_discard_changes_message), color = Color.Black, fontFamily = IberPangeaFamily) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDiscardDialog = false
+                    isNavigating = true
+                    onCloseToHome()
+                }) {
+                    Text(stringResource(R.string.profile_discard_button), color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text(stringResource(R.string.security_dialog_cancel), color = GreenDarkIberdrola)
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    if (state.showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            properties = DialogProperties(
+                dismissOnBackPress = false,
+                dismissOnClickOutside = false
+            ),
+            icon = {
+                Icon(
+                    Icons.Outlined.NotificationsOff,
+                    contentDescription = null,
+                    tint = GreenIberdrola,
+                    modifier = Modifier.size(48.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = stringResource(if (state.isPermissionPermanentlyDenied) R.string.permission_blocked_title else R.string.permission_needed_title),
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = IberPangeaFamily,
+                    textAlign = TextAlign.Center,
+                    color = GreenIberdrola
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(if (state.isPermissionPermanentlyDenied) R.string.permission_blocked_desc else R.string.permission_needed_desc),
+                    fontFamily = IberPangeaFamily,
+                    textAlign = TextAlign.Center,
+                    color = Color.Black
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.dismissPermissionDialog()
+                        onCloseToHome()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenIberdrola),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                ) {
+                    Text(
+                        text = stringResource(R.string.permission_back),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            containerColor = WhiteApp,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 
     LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess) onNext()
+        if (state.isSuccess) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            isNavigating = true
+            onNext()
+        }
+    }
+
+    val phoneToShow = remember(state.userProfile.phone) {
+        val rawPhone = state.userProfile.phone
+        if (rawPhone.length >= 3) {
+            "******${rawPhone.takeLast(3)}"
+        } else {
+            "******"
+        }
+    }
+
+    val events = ElectronicInvoiceEvents(
+        onOtpChange = { viewModel.onOtpChanged(it) },
+        onResendOtp = {
+            if (!state.isLoading && !isNavigating) {
+                viewModel.onResendOtp(checkNotificationPermission())
+            }
+        },
+        onCloseBanner = { viewModel.closeResendBanner() },
+        onBack = handleBack,
+        onClose = handleClose,
+        onNext = {
+            if (state.otpInput.length == 6 && !isNavigating && !state.isLoading) {
+                viewModel.verifyOtpAndPerformUpdate()
+            }
+        },
+        onDismissPermissionDialog = { viewModel.dismissPermissionDialog() }
+    )
+
+    LaunchedEffect(Unit) {
+        events.onViewScreen("Verificacion_OTP_Mar")
     }
 
 
     ElectronicInvoiceOtpContent(
         state = state,
         events = events,
-        isNextEnabled = isNextEnabled,
-        phoneToShow = viewModel.phoneToShow
+        isButtonEnabled = state.otpInput.length == 6,
+        phoneToShow = phoneToShow,
+        isNavigating = isNavigating
     )
 }
 
@@ -80,12 +312,51 @@ fun ElectronicInvoiceOtpScreen(
 fun ElectronicInvoiceOtpContent(
     state: ElectronicInvoiceState,
     events: ElectronicInvoiceEvents,
-    isNextEnabled: Boolean = false,
-    phoneToShow: String
+    isButtonEnabled: Boolean,
+    phoneToShow: String,
+    isNavigating: Boolean = false
 ) {
+    val haptic = LocalHapticFeedback.current
+    val focusManager = LocalFocusManager.current
 
+    var bufferedHasAttempts by remember { mutableStateOf(true) }
 
-    val hasAttempts = state.resendAttempts > 0
+    val containerScale = remember { Animatable(1f) }
+    val glowAlpha = remember { Animatable(0f) }
+    val iconScale = remember { Animatable(1f) }
+
+    LaunchedEffect(state.isLoading, state.resendAttempts) {
+        if (!state.isLoading) {
+            val currentHasAttempts = state.resendAttempts > 0
+
+            if (bufferedHasAttempts && !currentHasAttempts) {
+                delay(300)
+                bufferedHasAttempts = false
+
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+
+                launch {
+                    containerScale.animateTo(1.05f, spring(dampingRatio = Spring.DampingRatioLowBouncy))
+                    containerScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+                }
+                launch {
+                    repeat(2) {
+                        glowAlpha.animateTo(0.6f, tween(300))
+                        glowAlpha.animateTo(0f, tween(300))
+                    }
+                }
+                launch {
+                    delay(200)
+                    iconScale.animateTo(1.4f, spring(dampingRatio = Spring.DampingRatioLowBouncy))
+                    iconScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+                }
+            } else {
+                bufferedHasAttempts = currentHasAttempts
+            }
+        }
+    }
+
+    val isInteractionEnabled = !isNavigating && !state.isLoading
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -101,8 +372,12 @@ fun ElectronicInvoiceOtpContent(
             bottomBar = {
                 ElectronicInvoiceBottomBar(
                     onBack = events.onBack,
-                    onNext = events.onConfirmUpdate,
-                    isNextEnabled = isNextEnabled && !state.isLoading,
+                    onNext = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        events.onNext()
+                    },
+                    isNextEnabled = isButtonEnabled && isInteractionEnabled,
+                    isBackEnabled = isInteractionEnabled,
                     showBanner = state.showResendSuccess,
                     onCloseBanner = events.onCloseBanner
                 )
@@ -115,102 +390,217 @@ fun ElectronicInvoiceOtpContent(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
             ) {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = stringResource(R.string.otp_input_header),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
+                AnimateElectronicOtpItem(index = 0) {
+                    Text(
+                        text = stringResource(R.string.otp_input_header),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
+                        fontFamily = IberPangeaFamily,
+                        color = Color.Black
+                    )
+                }
 
-                Text(
-                    text = stringResource(R.string.otp_description, phoneToShow),
-                    fontSize = 12.sp,
-                    color = Color.DarkGray,
-                    lineHeight = 12.sp,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                AnimateElectronicOtpItem(index = 1) {
+                    Text(
+                        text = stringResource(R.string.otp_description, phoneToShow),
+                        fontSize = 12.sp,
+                        color = Color.Black,
+                        lineHeight = 12.sp,
+                        modifier = Modifier.padding(top = 16.dp),
+                        fontFamily = IberPangeaFamily
+                    )
+                }
 
-                TextField(
-                    value = state.otpInput,
-                    onValueChange = events.onOtpChange,
-                    modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
-                    placeholder = { Text(stringResource(R.string.otp_placeholder), fontSize = 14.sp) },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = Done
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.LightGray,
-                        focusedIndicatorColor = GreenDarkIberdrola
-                    ),
-                    singleLine = true
-                )
+                AnimateElectronicOtpItem(index = 2) {
+                    IberdrolaTextField(
+                        value = state.otpInput,
+                        onValueChange = {
+                            if (it.length <= 6) {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                events.onOtpChange(it)
+                            }
+                        },
+                        label = stringResource(R.string.otp_placeholder),
+                        isError = state.error != null,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.NumberPassword,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                if (isButtonEnabled && isInteractionEnabled) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    focusManager.clearFocus()
+                                    events.onNext()
+                                } else {
+                                    focusManager.clearFocus()
+                                }
+                            }
+                        )
+                    )
+
+                    if (state.error != null) {
+                        Text(
+                            text = stringResource(state.error),
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp,
+                            fontFamily = IberPangeaFamily,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Surface(
-                    color = if (hasAttempts) Color(0xFFE3F2FD) else Color(0xFFFFEBEE),
-                    shape = RoundedCornerShape(
-                        topStart = 0.dp,
-                        topEnd = 16.dp,
-                        bottomEnd = 16.dp,
-                        bottomStart = 16.dp
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Info,
-                            contentDescription = null,
-                            tint = if (hasAttempts) Color(0xFF455A64) else Color(0xFFC62828),
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = stringResource(R.string.otp_not_received_title),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                color = if (hasAttempts) Color(0xFF263238) else Color(0xFFB71C1C)
-                            )
-                            Text(
-                                text = if (hasAttempts)
-                                    stringResource(R.string.otp_not_received_desc, state.resendAttempts)
-                                else
-                                    stringResource(R.string.otp_no_attempts_left),
-                                fontSize = 12.sp,
-                                lineHeight = 18.sp,
-                                color = if (hasAttempts) Color(0xFF455A64) else Color(0xFFD32F2F),
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
-                            if (hasAttempts) {
-                                Text(
-                                    text = stringResource(R.string.otp_resend_link),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = GreenDarkIberdrola,
-                                    textDecoration = TextDecoration.Underline,
-                                    modifier = Modifier
-                                        .clickable { events.onResendOtp() }
+                AnimateElectronicOtpItem(index = 3) {
+                    val backgroundColor by animateColorAsState(
+                        targetValue = if (bufferedHasAttempts) Color(0xFFE3F2FD) else Color(0xFFFFEBEE),
+                        animationSpec = tween(600),
+                        label = "background"
+                    )
+                    val iconColor by animateColorAsState(
+                        targetValue = if (bufferedHasAttempts) Color(0xFF455A64) else Color(0xFFC62828),
+                        animationSpec = tween(600),
+                        label = "icon"
+                    )
+
+                    Surface(
+                        color = backgroundColor,
+                        shape = RoundedCornerShape(
+                            topStart = 0.dp,
+                            topEnd = 16.dp,
+                            bottomEnd = 16.dp,
+                            bottomStart = 16.dp
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .graphicsLayer {
+                                scaleX = containerScale.value
+                                scaleY = containerScale.value
+                            }
+                            .border(
+                                width = 2.dp,
+                                color = Color(0xFFC62828).copy(alpha = glowAlpha.value),
+                                shape = RoundedCornerShape(
+                                    topStart = 0.dp,
+                                    topEnd = 16.dp,
+                                    bottomEnd = 16.dp,
+                                    bottomStart = 16.dp
                                 )
+                            )
+                            .animateContentSize()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Icon(
+                                imageVector = if (bufferedHasAttempts) Icons.Outlined.Info else Icons.Outlined.ErrorOutline,
+                                contentDescription = null,
+                                tint = iconColor,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .graphicsLayer {
+                                        scaleX = iconScale.value
+                                        scaleY = iconScale.value
+                                    }
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            AnimatedContent(
+                                targetState = bufferedHasAttempts,
+                                transitionSpec = {
+                                    (fadeIn(tween(400)) + scaleIn(initialScale = 0.8f))
+                                        .togetherWith(fadeOut(tween(300)) + scaleOut(targetScale = 0.8f))
+                                },
+                                label = "content"
+                            ) { targetHasAttempts ->
+                                Column {
+                                    Text(
+                                        text = stringResource(R.string.otp_not_received_title),
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = if (targetHasAttempts) Color(0xFF263238) else Color(0xFFB71C1C),
+                                        fontFamily = IberPangeaFamily
+                                    )
+
+                                    val descriptionId = when {
+                                        !targetHasAttempts -> R.string.otp_no_attempts_left
+                                        state.resendAttempts >= 3 -> R.string.otp_not_received_desc_initial
+                                        state.resendAttempts == 1 -> R.string.otp_not_received_desc_singular
+                                        else -> R.string.otp_not_received_desc
+                                    }
+                                    
+                                    val descriptionText = stringResource(descriptionId, state.resendAttempts)
+
+                                    Text(
+                                        text = descriptionText,
+                                        fontSize = 12.sp,
+                                        lineHeight = 18.sp,
+                                        color = if (targetHasAttempts) Color(0xFF455A64) else Color(0xFFD32F2F),
+                                        modifier = Modifier.padding(top = 4.dp),
+                                        fontFamily = IberPangeaFamily
+                                    )
+                                    if (targetHasAttempts) {
+                                        Text(
+                                            text = stringResource(R.string.otp_resend_link),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (!isInteractionEnabled) Color.Gray else GreenDarkIberdrola,
+                                            textDecoration = TextDecoration.Underline,
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .clickable(enabled = isInteractionEnabled) {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                    events.onResendOtp(true)
+                                                }
+                                                .padding(vertical = 2.dp),
+                                            fontFamily = IberPangeaFamily
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
+
         if (state.isLoading) {
             LoadingOverlay()
         }
     }
 }
+
+@Composable
+fun AnimateElectronicOtpItem(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    val visibleState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(500))
+        ) + slideInVertically(
+            animationSpec = tween(durationMillis = 600, delayMillis = (index * 80).coerceAtMost(500)),
+            initialOffsetY = { it / 4 }
+        )
+    ) {
+        Column {
+            content()
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun ElectronicInvoiceOtpPreview() {
@@ -218,6 +608,7 @@ fun ElectronicInvoiceOtpPreview() {
         ElectronicInvoiceOtpContent(
             state = ElectronicInvoiceState(otpInput = ""),
             events = ElectronicInvoiceEvents(),
+            isButtonEnabled = false,
             phoneToShow = "******45",
         )
     }
@@ -234,6 +625,7 @@ fun ElectronicInvoiceOtpResentPreview() {
                 showResendSuccess = true
             ),
             events = ElectronicInvoiceEvents(),
+            isButtonEnabled = false,
             phoneToShow = "******45",
         )
     }
@@ -247,6 +639,7 @@ fun ElectronicInvoiceOtpLoadingPreview() {
                 isLoading = true
             ),
             events = ElectronicInvoiceEvents(),
+            isButtonEnabled = false,
             phoneToShow = "******45",
         )
     }

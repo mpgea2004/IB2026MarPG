@@ -1,7 +1,7 @@
 package com.iberdrola.practicas2026.MarPG.domain.use_case.contracts
 
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
-import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileState // <-- Importa el State de la UI
+import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileState
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk

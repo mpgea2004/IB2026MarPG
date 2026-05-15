@@ -30,8 +30,9 @@ class CheckFeedbackUseCaseTest {
     }
 
     @Test
-    fun `shouldShowFeedback debe ser true cuando los intentos restantes son 0 o menos`() = runTest {
+    fun `shouldShowFeedback debe ser true cuando los intentos son 0 y deberia pedirse feedback`() = runTest {
         every { dataStore.remainingAttempts } returns flowOf(0)
+        every { dataStore.shouldAskFeedback } returns flowOf(true)
 
         val result = useCase.shouldShowFeedback().first()
 
@@ -41,6 +42,17 @@ class CheckFeedbackUseCaseTest {
     @Test
     fun `shouldShowFeedback debe ser false cuando aun quedan intentos positivos`() = runTest {
         every { dataStore.remainingAttempts } returns flowOf(3)
+        every { dataStore.shouldAskFeedback } returns flowOf(true)
+
+        val result = useCase.shouldShowFeedback().first()
+
+        assertFalse(result)
+    }
+
+    @Test
+    fun `shouldShowFeedback debe ser false si el flag de pedir feedback es false independientemente de los intentos`() = runTest {
+        every { dataStore.remainingAttempts } returns flowOf(0)
+        every { dataStore.shouldAskFeedback } returns flowOf(false)
 
         val result = useCase.shouldShowFeedback().first()
 
@@ -61,5 +73,12 @@ class CheckFeedbackUseCaseTest {
         useCase.setNextTregua(diasTregua)
 
         coVerify { dataStore.resetTo(diasTregua) }
+    }
+
+    @Test
+    fun `dontAskAgain debe deshabilitar el feedback en el DataStore`() = runTest {
+        useCase.dontAskAgain()
+
+        coVerify { dataStore.disableFeedback() }
     }
 }

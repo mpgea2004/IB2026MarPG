@@ -1,6 +1,7 @@
 package com.iberdrola.practicas2026.MarPG.data.local.preferences
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -17,10 +18,15 @@ class FeedbackDataStore @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     companion object {
-        private val REMAINING_ATTEMPTS = intPreferencesKey("remaining_attempts")    }
+        private val REMAINING_ATTEMPTS = intPreferencesKey("remaining_attempts")
+        private val SHOULD_ASK_FEEDBACK = booleanPreferencesKey("should_ask_feedback")
+    }
 
     val remainingAttempts: Flow<Int> = context.dataStore.data
         .map { it[REMAINING_ATTEMPTS] ?: 1 }
+
+    val shouldAskFeedback: Flow<Boolean> = context.dataStore.data
+        .map { it[SHOULD_ASK_FEEDBACK] ?: true }
 
     suspend fun decrementAttempts() {
         context.dataStore.edit { prefs ->
@@ -31,5 +37,9 @@ class FeedbackDataStore @Inject constructor(
 
     suspend fun resetTo(value: Int) {
         context.dataStore.edit { it[REMAINING_ATTEMPTS] = value }
+    }
+
+    suspend fun disableFeedback() {
+        context.dataStore.edit { it[SHOULD_ASK_FEEDBACK] = false }
     }
 }

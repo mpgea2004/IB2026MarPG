@@ -5,14 +5,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.ConfigUpdate
+import com.google.firebase.remoteconfig.ConfigUpdateListener
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.feedback.CheckFeedbackUseCase
+import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** Gestión de estado para la Home y control de lógica de feedback con DataStore */@HiltViewModel
+@HiltViewModel
 class HomeViewModel @Inject constructor(
     private val checkFeedbackUseCase: CheckFeedbackUseCase,
     private val userPrefs: UserPreferencesRepository,
@@ -22,54 +30,116 @@ class HomeViewModel @Inject constructor(
     var state by mutableStateOf(HomeState())
         private set
 
-    val events = HomeEvents(
-        onProfileClick = {
-            logAnalyticsUseCase("click_home_profile")
-        },
-        onNavigateToInvoices = {
-            logAnalyticsUseCase("nav_ver_facturas", mapOf("desde" to "home"))
-        },
-        onNavigateToElectronicInvoice = {
-            logAnalyticsUseCase("nav_factura_electronica", mapOf("desde" to "home"))
-        },
-        onToggleCloud = { enabled ->
-            state = state.copy(isCloudEnabled = enabled)
-            logAnalyticsUseCase("config_data_source", mapOf("modo" to if (enabled) "nube" else "local"))
-        },
-        onFeedbackOption = { target ->
-            val optionName = when(target) {
-                10 -> "valorar"
-                3 -> "luego"
-                else -> "cerrar"
-            }
-            logAnalyticsUseCase("click_feedback_option", mapOf("option" to optionName))
-            viewModelScope.launch {
-                checkFeedbackUseCase.setNextTregua(target)
-            }
-        },
-        onDismissFeedback = {
-            viewModelScope.launch { checkFeedbackUseCase.setNextTregua(1) }
-        }
-    )
-
     init {
-        logAnalyticsUseCase("view_home_mar")
+        logAnalyticsUseCase("view_home", priority = AnalyticsPriority.HIGH)
+        fetchRemoteConfig()
         observeFeedback()
         observeUserProfile()
     }
 
+    private fun fetchRemoteConfig() {
+        val remoteConfig = Firebase.remoteConfig
+        
+        remoteConfig.setDefaultsAsync(mapOf("show_gas_contracts" to true))
+
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 0
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+
+        val cachedValue = remoteConfig.getBoolean("show_gas_contracts")
+        state = state.copy(isGasEnabled = cachedValue)
+
+        remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
+            override fun onUpdate(configUpdate: ConfigUpdate) {
+                remoteConfig.activate().addOnCompleteListener {
+                    val isEnabled = remoteConfig.getBoolean("show_gas_contracts")
+                    state = state.copy(isGasEnabled = isEnabled)
+                }
+            }
+            override fun onError(error: FirebaseRemoteConfigException) {}
+        })
+
+        remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val isGasEnabled = remoteConfig.getBoolean("show_gas_contracts")
+                logAnalyticsUseCase("remote_config_fetched", mapOf("enseñar_gas" to isGasEnabled), priority = AnalyticsPriority.LOW)
+                state = state.copy(isGasEnabled = isGasEnabled)
+            } else {
+                state = state.copy(isGasEnabled = true)
+            }
+        }
+    }
 
     private fun observeUserProfile() {
         viewModelScope.launch {
             userPrefs.userProfileFlow.collect { profile ->
-                state = state.copy(userName = profile.name.ifEmpty { "Usuario" })            }
+                val isProfileComplete = profile.name.isNotEmpty() &&
+                        profile.email.isNotEmpty() &&
+                        profile.password.isNotEmpty()
+
+                state = state.copy(
+                    userName = profile.name,
+                    isProfileComplete = isProfileComplete,
+                    isFullProfileComplete = isProfileComplete &&
+                            profile.phone.isNotEmpty() &&
+                            profile.address.isNotEmpty()
+                )
+            }
         }
     }
+    
     private fun observeFeedback() {
         viewModelScope.launch {
             checkFeedbackUseCase.shouldShowFeedback().collect { shouldShow ->
-                state = state.copy(isSheetVisible = shouldShow)
+                if (shouldShow) {
+                    if (!state.isSheetVisible) {
+                        logAnalyticsUseCase("view_feedback_sheet", priority = AnalyticsPriority.LOW)
+                        state = state.copy(
+                            isFeedbackSubmitted = false,
+                            isSheetVisible = true
+                        )
+                    }
+                } else {
+                    if (!state.isFeedbackSubmitted) {
+                        state = state.copy(isSheetVisible = false)
+                    }
+                }
             }
         }
+    }
+
+    fun onOptionSelected(target: Int) {
+        if (state.isFeedbackSubmitted && target == 1) {
+            state = state.copy(isSheetVisible = false)
+            return 
+        }
+
+        logAnalyticsUseCase("click_feedback_opcion", mapOf("puntuacion" to target), priority = AnalyticsPriority.HIGH)
+        viewModelScope.launch {
+            if (target == 10) {
+                state = state.copy(isFeedbackSubmitted = true)
+                checkFeedbackUseCase.setNextTregua(target)
+            } else {
+                checkFeedbackUseCase.setNextTregua(target)
+                state = state.copy(isSheetVisible = false)
+            }
+        }
+    }
+
+    fun onCloseSheet() {
+        state = state.copy(isSheetVisible = false)
+    }
+
+    fun onDontAskAgain() {
+        logAnalyticsUseCase("click_feedback_no_preguntar_otra", priority = AnalyticsPriority.MEDIUM)
+        viewModelScope.launch {
+            checkFeedbackUseCase.dontAskAgain()
+            state = state.copy(isSheetVisible = false)
+        }
+    }
+
+    fun onNavigateWithProfileCheck(onSuccess: () -> Unit) {
+        onSuccess()
     }
 }

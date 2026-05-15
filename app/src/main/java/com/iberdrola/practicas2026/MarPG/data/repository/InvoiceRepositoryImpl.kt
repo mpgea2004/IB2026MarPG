@@ -1,11 +1,10 @@
 package com.iberdrola.practicas2026.MarPG.data.repository
 
 import android.content.Context
+import android.util.Log
 import com.google.gson.Gson
 import com.iberdrola.practicas2026.MarPG.data.local.dao.InvoiceDao
 import com.iberdrola.practicas2026.MarPG.data.mapper.toDomain
-import com.iberdrola.practicas2026.MarPG.data.mapper.toDomainList
-import com.iberdrola.practicas2026.MarPG.data.mapper.toEntity
 import com.iberdrola.practicas2026.MarPG.data.mapper.toEntityList
 import com.iberdrola.practicas2026.MarPG.data.model.InvoiceResponse
 import com.iberdrola.practicas2026.MarPG.data.network.InvoiceApiServer
@@ -18,18 +17,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
+import javax.inject.Singleton
 import retrofit2.HttpException
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-/**
- * Implementación del repositorio de facturas.
- * Centraliza la lógica de datos mediante el patrón Single Source of Truth (SSOT),
- * priorizando la base de datos local (Room) sobre la red (Retrofit).
- */
+@Singleton
 class InvoiceRepositoryImpl @Inject constructor(
     private val invoiceApiServer: InvoiceApiServer,
     private val invoiceDao: InvoiceDao,
@@ -37,86 +34,81 @@ class InvoiceRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ): InvoiceRepository {
 
-    /**
-     * Obtiene el listado de facturas.
-     * @param isCloud True: Sincroniza API con Room. False: Lee un archivo estático de Assets.
-     */
+    private var lastModeIsCloud: Boolean? = null
+
     override fun getAllInvoices(isCloud: Boolean): Flow<List<Invoice>> = flow {
+        val modeChanged = lastModeIsCloud != isCloud
+        lastModeIsCloud = isCloud
+        
         if(isCloud){
-            //Preparo el flujo reactivo de la base de datos local (SSOT)
-            val databaseFlow = getInvoicesFromDatabase()
+            if (!modeChanged) {
+                val cache = getInvoicesFromDatabaseOnce()
+                emit(cache)
+            }
 
             try {
-                //Emito el primer valor de la DB rápido para que no haya espera
-                emit(getInvoicesFromDatabaseOnce())
-                //Intento de actualización desde Mockoon
                 val response = invoiceApiServer.getInvoices()
 
-                //Actualizamos la Fuente Única de Verdad
                 invoiceDao.refreshCache(response.invoices.toEntityList())
-
             } catch (e: Exception) {
                 val customException = when (e) {
                     is UnknownHostException,
                     is ConnectException,
                     is SocketTimeoutException,
                     is IOException -> InvoiceException.NetworkError
-
                     is HttpException -> InvoiceException.ServerError(e.code())
                     else -> InvoiceException.Unknown
                 }
                 throw customException
             }
-            emitAll(databaseFlow)
+            emitAll(getInvoicesFromDatabase())
 
-        }else {
-            // Modo Local (Assets)
+        } else {
             try {
-                //Simulo tiempo de carga entre 1 y 3 segundos
-                delay((1000..3000).random().toLong())
-
-                //Intento leer el archivo de assets
-                val jsonText = context.assets.open("invoice.json").bufferedReader().use {
-                    it.readText()
+                val currentDb = getInvoicesFromDatabaseOnce()
+                if (modeChanged || currentDb.isEmpty()) {
+                    delay((1000..3000).random().toLong())
+                    
+                    val jsonText = context.assets.open("invoice.json").bufferedReader().use { it.readText() }
+                    val response = gson.fromJson(jsonText, InvoiceResponse::class.java)
+                    
+                    invoiceDao.refreshCache(response.invoices.toEntityList())
                 }
-
-                //Intento convertir el texto en objeto
-                val response = gson.fromJson(jsonText, InvoiceResponse::class.java)
-
-                //transformo y emito
-                val invoiceList = response.invoices.toDomainList()
-                emit(invoiceList)
-
             } catch (e: Exception) {
-                //Si el archivo no existe, el JSON es inválido o falla el mapeo,
-                //lanzo la excepción personalizada para que el ViewModel la capture.
-                e.printStackTrace()
                 throw InvoiceException.LocalDataError
             }
+            emitAll(getInvoicesFromDatabase())
         }
     }
 
-    /**
-     *Función auxiliar para obtener las facturas de Room una sola vez
-     */
+    override fun getInvoiceById(id: String): Flow<Invoice?> {
+        return invoiceDao.getInvoiceByIdFlow(id)
+            .map { entity -> 
+                entity?.toDomain()
+            }
+    }
+
     private suspend fun getInvoicesFromDatabaseOnce(): List<Invoice> {
-        //leo la lista actual de entidades y la mapeo a dominio
         return try {
-            //lectura de la caché
             invoiceDao.getAllInvoicesOnce().map { it.toDomain() }
         } catch (e: Exception) {
-            emptyList()//si falla devuelvo vacia
+            emptyList()
         }
     }
 
-    /**
-     * Crea un flujo reactivo ligado a Room.
-     * El operador .map transforma las entidades de base de datos a modelos de dominio.
-     */
     fun getInvoicesFromDatabase(): Flow<List<Invoice>> {
-
         return invoiceDao.getAllInvoices().map { entities ->
             entities.map { it.toDomain() }
         }
+    }
+
+    override suspend fun payInvoice(id: String, isCloud: Boolean) {
+        if (isCloud) {
+            try {
+                invoiceApiServer.payInvoice(id)
+            } catch (e: Exception) {
+            }
+        }
+        invoiceDao.updateInvoiceToPaid(id)
     }
 }

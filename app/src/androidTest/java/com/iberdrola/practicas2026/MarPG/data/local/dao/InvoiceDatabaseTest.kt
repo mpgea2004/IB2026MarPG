@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.After
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,14 +27,10 @@ class InvoiceDatabaseTest {
     }
 
     @Test
-    fun database_ShouldProvideAllDaosCorrectly() {
-        val invoiceDao = db.invoiceDao()
-        val electronicInvoiceDao = db.electronicInvoiceDao()
-        val userDao = db.userDao()
-
-        assertNotNull("InvoiceDao no debería ser nulo", invoiceDao)
-        assertNotNull("ElectronicInvoiceDao no debería ser nulo", electronicInvoiceDao)
-        assertNotNull("UserDao no debería ser nulo", userDao)
+    fun database_ShouldProvideAllDaosCorectly() {
+        assertNotNull("InvoiceDao no deberia ser nulo", db.invoiceDao())
+        assertNotNull("ElectronicInvoiceDao no debería ser nulo", db.electronicInvoiceDao())
+        assertNotNull("UserDao no debería ser nulo", db.userDao())
     }
 
     @Test
@@ -43,7 +40,7 @@ class InvoiceDatabaseTest {
         val instance1 = InvoiceDatabase.getDatabase(context)
         val instance2 = InvoiceDatabase.getDatabase(context)
 
-        assert(instance1 === instance2)
+        assertTrue("La base de datos debería ser un Singleton", instance1 === instance2)
 
         instance1.close()
     }

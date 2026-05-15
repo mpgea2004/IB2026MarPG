@@ -3,10 +3,14 @@ package com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.domain.model.ElectronicInvoice
+import com.iberdrola.practicas2026.MarPG.domain.model.ContractType
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.FormatUserPhoneUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateElectronicInvoiceUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.UpdateUserPhoneUseCase
@@ -15,7 +19,9 @@ import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.VerifyUserPas
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,100 +38,26 @@ class ElectronicInvoiceViewModel @Inject constructor(
     var state by mutableStateOf(ElectronicInvoiceState())
         private set
 
-    val phoneToShow: String
-        get() = formatUserPhoneUseCase(state.userProfile.phone)
+    private var hasAcknowledgedSameEmail = false
+    private var currentSimulationId = 0L
 
-    val isNextEnabled: Boolean
-        get() = when (state.currentStep) {
-            ElectronicInvoiceStep.SELECTION -> {
-                state.selectedContract != null
-            }
-            ElectronicInvoiceStep.FORM -> {
-                val emailValid = validateEmailUseCase(state.emailInput)
-                if (state.selectedContract?.isEnabled == false) {
-                    emailValid && state.isLegalAccepted
-                } else {
-                    emailValid
-                }
-            }
-            ElectronicInvoiceStep.VERIFICATION -> {
-                state.otpInput.length == 6
-            }
-            ElectronicInvoiceStep.SUCCESS -> true
-        }
-
-    val events = ElectronicInvoiceEvents(
-        onSelectContract = { contract ->
-            selectContract(contract)
-        },
-
-        onEmailChange = { nuevoEmail ->
-            state = state.copy(
-                emailInput = nuevoEmail,
-            )
-        },
-
-        onLegalCheckChange = { accepted ->
-            state = state.copy(
-                isLegalAccepted = accepted,
-            )
-            logAnalytics("efactura_legal_toggle", mapOf("accepted" to accepted))
-        },
-
-        onOtpChange = { nuevoOtp ->
-            if (nuevoOtp.length <= 6 && nuevoOtp.all { it.isDigit() }) {
-                state = state.copy(
-                    otpInput = nuevoOtp,
-                )
-            }
-        },
-
-        onConfirmUpdate = {
-            logAnalytics("efactura_confirm_update_click")
-            performUpdate()
-        },
-
-        onConfirmDeactivate = {
-            logAnalytics("efactura_confirm_deactivate_click")
-            performDeactivate()
-        },
-
-        onResendOtp = {
-            handleResendOtp()
-        },
-
-        onCloseBanner = {
-            state = state.copy(showResendSuccess = false)
-            logAnalytics("efactura_close_success_banner")
-        },
-
-        onShowLegal = { title, content ->
-            state = state.copy(selectedLegalTitle = title, selectedLegalContent = content, showLegalSheet = true)
-            logAnalytics("efactura_view_legal_detail", mapOf("section" to title))
-        },
-
-        onDismissLegal = {
-            state = state.copy(showLegalSheet = false)
-        },
-
-        onBack = {
-            logAnalytics("efactura_nav_back", mapOf("from_step" to state.currentStep.name))
-        },
-        onViewScreen = { screenName ->
-            logAnalytics("view_screen", mapOf("screen_name" to screenName))
-        },
-    )
+    companion object {
+        private const val TWENTY_FOUR_HOURS_MS = 86400000L
+        private const val MAX_RESEND_ATTEMPTS = 3
+    }
 
     init {
         observeUserProfile()
-        logAnalytics("view_efactura_flow_start")
+        logAnalytics("view_electronic_invoice_flow_start", mapOf("message" to "Inicio del flujo de factura electrónica"), priority = AnalyticsPriority.HIGH)
+        observeOtpAttempts()
     }
 
     private fun observeUserProfile() {
         viewModelScope.launch {
             userPrefs.userProfileFlow.collect { profile ->
                 state = state.copy(
-                    userProfile = profile
+                    userProfile = profile,
+                    formattedPhone = formatUserPhoneUseCase(profile.phone)
                 )
 
                 if (state.emailInput.isEmpty() && profile.email.isNotEmpty()) {
@@ -135,28 +67,124 @@ class ElectronicInvoiceViewModel @Inject constructor(
         }
     }
 
+    private fun observeOtpAttempts() {
+        viewModelScope.launch {
+            snapshotFlow { state.selectedContract?.type }.collectLatest { type ->
+                if (type == null) {
+                    state = state.copy(resendAttempts = MAX_RESEND_ATTEMPTS, lastResendTimestamp = 0L, remainingTime = "")
+                } else {
+                    userPrefs.getOtpResendDataFlow(type).collectLatest { (attempts, timestamp) ->
+                        while (true) {
+                            val currentTime = System.currentTimeMillis()
+                            val timeElapsed = currentTime - timestamp
+                            val isExpired = timestamp != 0L && (timeElapsed > TWENTY_FOUR_HOURS_MS)
+
+                            val finalAttempts = if (isExpired) MAX_RESEND_ATTEMPTS else attempts
+                            val finalTimestamp = if (isExpired) 0L else timestamp
+
+                            val timeRemainingMs = (finalTimestamp + TWENTY_FOUR_HOURS_MS) - currentTime
+
+                            val formattedTime = if (finalTimestamp != 0L && finalAttempts <= 0 && timeRemainingMs > 0) {
+                                val totalSeconds = timeRemainingMs / 1000
+                                val hours = totalSeconds / 3600
+                                val minutes = (totalSeconds % 3600) / 60
+                                val seconds = totalSeconds % 60
+                                if (hours > 0) {
+                                    String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
+                                } else {
+                                    String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+                                }
+                            } else ""
+
+                            state = state.copy(
+                                resendAttempts = finalAttempts,
+                                lastResendTimestamp = finalTimestamp,
+                                remainingTime = formattedTime
+                            )
+
+                            if (isExpired || finalAttempts > 0 || timestamp == 0L) break
+
+                            delay(1000L)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     fun selectContract(contract: ElectronicInvoice) {
+        currentSimulationId++
         state = state.copy(
             selectedContract = contract,
             emailInput = contract.email ?: "",
             isEditingEmail = contract.isEnabled,
             isLegalAccepted = false,
             isSuccess = false,
-            error = null
+            error = null,
+            showSameEmailWarning = false,
+            otpInput = "",
+            showSimulatedNotification = false,
+            simulatedOtpCode = ""
         )
-        logAnalytics("efactura_contract_selected", mapOf(
-            "contract_type" to contract.type.toString(),
+        hasAcknowledgedSameEmail = false
+        val typeName = if (contract.type == ContractType.LUZ) "Luz" else "Gas"
+        logAnalytics("electronic_invoice_contract_selected", mapOf(
+            "contract_type" to typeName,
             "already_enabled" to contract.isEnabled
-        ))
+        ), priority = AnalyticsPriority.MEDIUM)
     }
 
+    fun onEmailChanged(nuevoEmail: String) {
+        state = state.copy(
+            emailInput = nuevoEmail,
+            showSameEmailWarning = false,
+            error = null
+        )
+        hasAcknowledgedSameEmail = false
+    }
 
-    fun performUpdate() {
+    fun onLegalAccepted(accepted: Boolean) {
+        state = state.copy(isLegalAccepted = accepted)
+    }
+
+    fun canContinue(): Boolean {
+        val email = state.emailInput.trim()
+        val isEmailValid = validateEmailUseCase(email)
+        val contract = state.selectedContract ?: return false
+
+        val result = if (!contract.isEnabled) {
+            isEmailValid && state.isLegalAccepted
+        } else {
+            isEmailValid
+        }
+
+        return result
+    }
+
+    fun verifyOtpAndPerformUpdate() {
+        if (state.otpInput == state.simulatedOtpCode) {
+            logAnalytics("otp_verification_success", priority = AnalyticsPriority.HIGH)
+            val type = state.selectedContract?.type
+            viewModelScope.launch {
+                if (type != null) {
+                    userPrefs.updateOtpResendData(type, MAX_RESEND_ATTEMPTS, 0L)
+                }
+            }
+            performUpdate()
+        } else {
+            logAnalytics("otp_verification_error", mapOf("reason" to "Código incorrecto"), priority = AnalyticsPriority.HIGH)
+            state = state.copy(error = R.string.error_incorrect_otp)
+        }
+    }
+
+    private fun performUpdate() {
         val contract = state.selectedContract ?: return
 
         viewModelScope.launch {
-            state = state.copy(isLoading = true)
+            state = state.copy(isLoading = true, error = null)
             try {
+                delay(2500)
+
                 val updatedContract = contract.copy(
                     isEnabled = true,
                     email = state.emailInput
@@ -170,13 +198,14 @@ class ElectronicInvoiceViewModel @Inject constructor(
                     isSuccess = true,
                     error = null
                 )
-                logAnalytics("efactura_update_success", mapOf(
-                    "type" to contract.type.toString(),
-                    "step" to "final_confirmation"
-                ))
+                val typeName = if (contract.type == ContractType.LUZ) "Luz" else "Gas"
+                logAnalytics("electronic_invoice_update_success", mapOf(
+                    "type" to typeName,
+                    "step" to "confirmacion_final"
+                ), priority = AnalyticsPriority.HIGH)
             } catch (e: Exception) {
-                state = state.copy(isLoading = false, error = e.message)
-                logAnalytics("efactura_api_error", mapOf("error_msg" to (e.message ?: "unknown")))
+                state = state.copy(isLoading = false, error = R.string.error_unexpected)
+                logAnalytics("electronic_invoice_api_error", priority = AnalyticsPriority.HIGH)
             }
         }
     }
@@ -188,6 +217,7 @@ class ElectronicInvoiceViewModel @Inject constructor(
             state = state.copy(isLoading = true, isSuccess = false)
 
             try {
+                delay(2000)
                 val updatedContract = contract.copy(
                     isEnabled = false
                 )
@@ -201,72 +231,228 @@ class ElectronicInvoiceViewModel @Inject constructor(
                     isSuccess = true,
                     error = null
                 )
-                logAnalytics("efactura_deactivate_success")
+                logAnalytics("electronic_invoice_deactivate_success", priority = AnalyticsPriority.HIGH)
             } catch (e: Exception) {
-                state = state.copy(isLoading = false, error = e.message)
-                logAnalytics("efactura_deactivate_error", mapOf("reason" to e.message))
+                state = state.copy(isLoading = false, error = R.string.error_unexpected)
+                logAnalytics("electronic_invoice_deactivate_error", mapOf("reason" to "Error en la desactivación"), priority = AnalyticsPriority.HIGH)
             }
         }
     }
 
-    fun handleResendOtp() {
-        if (state.resendAttempts > 0) {
-            viewModelScope.launch {
-                state = state.copy(
-                    resendAttempts = state.resendAttempts - 1,
-                    isLoading = true,
-                    showResendSuccess = false
-                )
-                delay(1500)
-                state = state.copy(isLoading = false, showResendSuccess = true)
-                logAnalytics("efactura_otp_resend_click", mapOf("attempts_remaining" to state.resendAttempts))
-            }
-        }else {
-            logAnalytics("efactura_otp_resend_limit_reached")
+    fun onOtpChanged(nuevoOtp: String) {
+        if (nuevoOtp.length <= 6) {
+            state = state.copy(otpInput = nuevoOtp, error = null)
         }
     }
+
+    fun clearOtp() {
+        currentSimulationId++
+        state = state.copy(
+            otpInput = "",
+            error = null,
+            showSimulatedNotification = false,
+            simulatedOtpCode = ""
+        )
+    }
+
+    fun startOtpSimulation(isPermissionGranted: Boolean = true) {
+        if (!isPermissionGranted) {
+            state = state.copy(showPermissionDialog = true)
+            return
+        }
+
+        currentSimulationId++
+        val simulationId = currentSimulationId
+
+        viewModelScope.launch {
+            val isFirstTime = state.simulatedOtpCode.isEmpty()
+
+            state = state.copy(otpInput = "", showSimulatedNotification = false)
+            delay(1000)
+
+
+            if (!isFirstTime) {
+                delay(500)
+                if (simulationId == currentSimulationId) {
+                    state = state.copy(otpInput = state.simulatedOtpCode)
+                }
+                return@launch
+            }
+
+            delay(1000)
+
+            if (simulationId != currentSimulationId) return@launch
+
+            val simulatedCode = (100000..999999).random().toString()
+            state = state.copy(simulatedOtpCode = simulatedCode)
+
+            state = state.copy(
+                showSimulatedNotification = true,
+            )
+
+            delay(2000)
+
+            if (simulationId != currentSimulationId) return@launch
+
+            simulatedCode.forEachIndexed { index, _ ->
+                delay(100)
+                if (simulationId != currentSimulationId) return@forEachIndexed
+                state = state.copy(otpInput = simulatedCode.take(index + 1))
+            }
+
+            delay(2000)
+            if (simulationId != currentSimulationId) return@launch
+            state = state.copy(showSimulatedNotification = false)
+        }
+    }
+
+    fun onResendOtp(isPermissionGranted: Boolean = true) {
+        if (!isPermissionGranted) {
+            state = state.copy(showPermissionDialog = true)
+            return
+        }
+
+        val type = state.selectedContract?.type ?: return
+        if (state.resendAttempts > 0) {
+            viewModelScope.launch {
+                currentSimulationId++
+                val newAttempts = state.resendAttempts - 1
+                val timestamp = System.currentTimeMillis()
+
+                userPrefs.updateOtpResendData(type, newAttempts, timestamp)
+
+                state = state.copy(
+                    isLoading = true,
+                    showResendSuccess = false,
+                    otpInput = "",
+                    simulatedOtpCode = ""
+                )
+                delay(2000)
+                state = state.copy(isLoading = false, showResendSuccess = true)
+                startOtpSimulation(isPermissionGranted = true)
+                logAnalytics("electronic_invoice_otp_resend_click", mapOf(
+                    "attempts_remaining" to state.resendAttempts
+                ), priority = AnalyticsPriority.MEDIUM)
+            }
+        }else {
+            logAnalytics("electronic_invoice_otp_resend_limit_reached", priority = AnalyticsPriority.MEDIUM)
+        }
+    }
+
+    fun closeResendBanner() {
+        state = state.copy(showResendSuccess = false)
+    }
+    
+
+    fun onShowLegalDetail(title: String, content: String) {
+        state = state.copy(
+            selectedLegalTitle = title,
+            selectedLegalContent = content,
+            showLegalSheet = true
+        )
+        logAnalytics("click_show_legal_detail", mapOf(
+            "title" to title
+        ), priority = AnalyticsPriority.LOW)
+    }
+
+    fun onDismissLegalSheet() {
+        state = state.copy(showLegalSheet = false)
+    }
+
     fun onContinueClick(onNavigateToOtp: () -> Unit) {
+        if (state.resendAttempts <= 0 && state.simulatedOtpCode.isEmpty()) {
+            logAnalytics("click_continue_no_otp_attempts", priority = AnalyticsPriority.MEDIUM)
+            state = state.copy(showNoAttemptsDialog = true)
+            return
+        }
+
+        if (!canContinue()) {
+            val email = state.emailInput.trim()
+            if (!validateEmailUseCase(email)) {
+                logAnalytics("validation_error_email", mapOf(
+                    "email" to email
+                ), priority = AnalyticsPriority.MEDIUM)
+                state = state.copy(error = R.string.error_invalid_email_format)
+            }
+            return
+        }
+
+        val isSameEmail = state.emailInput == state.selectedContract?.email
+
+        if (isSameEmail && !hasAcknowledgedSameEmail) {
+            state = state.copy(showSameEmailWarning = true)
+            hasAcknowledgedSameEmail = true
+            logAnalytics("view_same_email_warning", priority = AnalyticsPriority.LOW)
+            return
+        }
+
         if (state.userProfile.phone.isEmpty()) {
             state = state.copy(showNoPhoneDialog = true)
-            logAnalytics("efactura_missing_phone_alert")
+            logAnalytics("electronic_invoice_missing_phone_alert", priority = AnalyticsPriority.MEDIUM)
         } else {
+            state = state.copy(showSameEmailWarning = false)
             state = state.copy(
                 currentStep = ElectronicInvoiceStep.VERIFICATION,
-                otpInput = ""
+                showSameEmailWarning = false
             )
+            logAnalytics("click_continue_to_otp", priority = AnalyticsPriority.MEDIUM)
             onNavigateToOtp()
         }
     }
 
+    fun dismissSameEmailWarning() {
+        state = state.copy(showSameEmailWarning = false)
+    }
+
     fun onNewPhoneChanged(nuevoTelefono: String) {
         if (nuevoTelefono.all { it.isDigit() } && nuevoTelefono.length <= 9) {
-            state = state.copy(newPhoneInput = nuevoTelefono)
+            state = state.copy(newPhoneInput = nuevoTelefono, error = null)
         }
     }
 
     fun onPasswordChanged(nuevaPass: String) {
-        state = state.copy(passwordInput = nuevaPass)
+        state = state.copy(passwordInput = nuevaPass, error = null)
+    }
+
+    fun togglePasswordVisibility() {
+        state = state.copy(isPasswordVisible = !state.isPasswordVisible)
     }
 
     fun savePhoneAndContinue(onSuccess: () -> Unit) {
         viewModelScope.launch {
-            state = state.copy(isLoading = true, error = null)
+            try {
+                state = state.copy(isLoading = true, error = null)
 
-            if (verifyUserPasswordUseCase(state.passwordInput)) {
+                delay(1000)
 
-                val success = updateUserPhoneUseCase(state.newPhoneInput)
+                val isPasswordCorrect = verifyUserPasswordUseCase(state.passwordInput)
 
-                if (success) {
-                    state = state.copy(showNoPhoneDialog = false, passwordInput = "")
-                    logAnalytics("efactura_phone_update_success")
-                    onSuccess()
+                if (isPasswordCorrect) {
+                    val wasUpdated = updateUserPhoneUseCase(state.newPhoneInput)
+                    if (wasUpdated) {
+                        logAnalytics("save_phone_success", priority = AnalyticsPriority.HIGH)
+                        state = state.copy(
+                            showNoPhoneDialog = false,
+                            passwordInput = "",
+                            error = null
+                        )
+                        onSuccess()
+                    } else {
+                        logAnalytics("save_phone_error", mapOf("reason" to "Formato de teléfono inválido"), priority = AnalyticsPriority.HIGH)
+                        state = state.copy(error = R.string.error_invalid_phone_format)
+                    }
                 } else {
-                    state = state.copy(error = "El formato del teléfono no es válido")
+                    logAnalytics("save_phone_error", mapOf("reason" to "Contraseña incorrecta"), priority = AnalyticsPriority.HIGH)
+                    state = state.copy(
+                        error = R.string.error_incorrect_password
+                    )
                 }
-            } else {
-                state = state.copy(error = "La contraseña introducida no es correcta")
+            } catch (e: Exception) {
+                logAnalytics("save_phone_error", mapOf("reason" to "Error inesperado al guardar teléfono"), priority = AnalyticsPriority.HIGH)
+                state = state.copy(error = R.string.error_unexpected)
+            } finally {
+                state = state.copy(isLoading = false)
             }
-            state = state.copy(isLoading = false)
         }
     }
 
@@ -274,39 +460,116 @@ class ElectronicInvoiceViewModel @Inject constructor(
         state = state.copy(showNoPhoneDialog = false, error = null, passwordInput = "")
     }
 
+    fun onDeactivateClick() {
+        logAnalytics("click_deactivate_electronic_invoice", priority = AnalyticsPriority.MEDIUM)
+        if (state.userProfile.address.isEmpty()) {
+            state = state.copy(showNoAddressDialog = true)
+        } else {
+            state = state.copy(showDeactivationConfirmDialog = true)
+        }
+    }
+
+    fun onDeactivateWithAddress(address: String) {
+        viewModelScope.launch {
+            try {
+                state = state.copy(isLoading = true, error = null)
+
+                delay(1000)
+
+                val isPasswordCorrect = verifyUserPasswordUseCase(state.passwordInput)
+
+                if (isPasswordCorrect) {
+                    logAnalytics("save_address_and_deactivate_success", priority = AnalyticsPriority.HIGH)
+                    userPrefs.updateAddress(address)
+                    state = state.copy(showNoAddressDialog = false, passwordInput = "")
+                    performDeactivate()
+                } else {
+                    logAnalytics("save_address_and_deactivate_error", mapOf("reason" to "Contraseña incorrecta"), priority = AnalyticsPriority.HIGH)
+                    state = state.copy(error = R.string.error_incorrect_password)
+                }
+            } catch (e: Exception) {
+                logAnalytics("save_address_and_deactivate_error", mapOf("reason" to "Error inesperado al guardar dirección"), priority = AnalyticsPriority.HIGH)
+                state = state.copy(error = R.string.error_unexpected)
+            } finally {
+                state = state.copy(isLoading = false)
+            }
+        }
+    }
+
+    fun onNewAddressChanged(newAddress: String) {
+        state = state.copy(newAddressInput = newAddress, error = null)
+    }
+
+    fun closeAddressDialog() {
+        state = state.copy(showNoAddressDialog = false, error = null, passwordInput = "", newAddressInput = "")
+    }
+
+    fun closeDeactivationDialog() {
+        state = state.copy(showDeactivationConfirmDialog = false)
+    }
+
+    fun discardChanges() {
+        logAnalytics("click_discard_electronic_invoice_changes", priority = AnalyticsPriority.LOW)
+        state.selectedContract?.let { selectContract(it) }
+    }
+
+    fun onEditClick(onNavigate: () -> Unit) {
+        logAnalytics("click_edit_electronic_invoice", priority = AnalyticsPriority.MEDIUM)
+        if (state.resendAttempts <= 0 && state.simulatedOtpCode.isEmpty()) {
+            state = state.copy(showNoAttemptsDialog = true)
+        } else {
+            onNavigate()
+        }
+    }
+
+    fun closeNoAttemptsDialog() {
+        state = state.copy(showNoAttemptsDialog = false)
+    }
+
+    fun onNavigateStarted() {
+        state = state.copy(isNavigating = true)
+    }
+
     fun logSuccessScreen(isDeactivation: Boolean, isEditingEmail: Boolean, contractType: String) {
         val eventName = when {
-            isDeactivation -> "elec_invoice_deactivation_success"
-            isEditingEmail -> "elec_invoice_modification_success"
-            else -> "elec_invoice_activation_success"
+            isDeactivation -> "electronic_invoice_deactivation_success"
+            isEditingEmail -> "electronic_invoice_modification_success"
+            else -> "electronic_invoice_activation_success"
         }
-        logAnalytics(eventName, mapOf("contract_type" to contractType))
-        logAnalytics("view_screen", mapOf("screen_name" to "Pantalla_Exito_Final_Verde"))
-    }
-
-    fun logDetailScreenView(contractType: String) {
-        logAnalytics("view_screen", mapOf(
-            "screen_name" to "Detalle_Factura_Electronica_Mar",
+        logAnalytics(eventName, mapOf(
             "contract_type" to contractType
-        ))
+        ), priority = AnalyticsPriority.HIGH)
+        logAnalytics("view_screen", mapOf("screen_name" to "Pantalla de éxito final"), priority = AnalyticsPriority.HIGH)
     }
 
-    fun logDeactivateAttempt(contractType: String) {
-        logAnalytics("elec_invoice_deactivate_attempt", mapOf("contract_type" to contractType))
+    fun logAnalytics(name: String, params: Map<String, Any?> = emptyMap(), priority: AnalyticsPriority = AnalyticsPriority.MEDIUM) {
+        logAnalyticsUseCase(name, params, priority)
     }
 
-    fun logDeactivateCancel(contractType: String) {
-        logAnalytics("elec_invoice_deactivation_cancel", mapOf("contract_type" to contractType))
+    fun onNavigateFinished() {
+        state = state.copy(isNavigating = false)
     }
 
-    fun logDeactivateConfirmed(contractId: String) {
-        logAnalytics("elec_invoice_deactivation_confirmed", mapOf("contract_id" to contractId))
+    fun updatePermissionPermanentlyDenied(isDenied: Boolean) {
+        state = state.copy(
+            isPermissionPermanentlyDenied = isDenied,
+            showPermissionDialog = true
+        )
     }
 
-    fun logAnalytics(name: String, params: Map<String, Any?> = emptyMap()) {
-        logAnalyticsUseCase(name, params)
+    fun dismissPermissionDialog() {
+        state = state.copy(showPermissionDialog = false)
     }
-    fun updateStep(step: ElectronicInvoiceStep) {
-        state = state.copy(currentStep = step)
+
+    fun onPermissionGranted() {
+        state = state.copy(showPermissionDialog = false)
+        startOtpSimulation(true)
+    }
+
+    fun onPermissionNeeded(isPermanentlyDenied: Boolean) {
+        state = state.copy(
+            showPermissionDialog = true,
+            isPermissionPermanentlyDenied = isPermanentlyDenied
+        )
     }
 }

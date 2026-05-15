@@ -7,19 +7,21 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.TextGrey
 
 
-/** Pestaña de filtrado por energía */
 
 @Composable
 fun InvoiceTabItem(
@@ -29,16 +31,19 @@ fun InvoiceTabItem(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { onClick() }
+        modifier = Modifier
+            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+            .clickable { onClick() }
+            .padding(top = 8.dp)
     ) {
         Text(
             text = text,
             fontSize = 14.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             color = if (isSelected) Color.Black else TextGrey,
-            modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 8.dp)
+            modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
+            fontFamily = IberPangeaFamily
         )
-        //Barra verde
         Box(
             modifier = Modifier
                 .height(3.dp)

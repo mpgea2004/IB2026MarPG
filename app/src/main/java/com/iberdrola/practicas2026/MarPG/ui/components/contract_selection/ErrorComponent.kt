@@ -1,6 +1,14 @@
 package com.iberdrola.practicas2026.MarPG.ui.components.contract_selection
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -18,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
+import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 
 @Composable
 fun ErrorComponent(
@@ -46,7 +55,8 @@ fun ErrorComponent(
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            fontFamily = IberPangeaFamily
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -55,7 +65,8 @@ fun ErrorComponent(
             text = message,
             fontSize = 16.sp,
             color = Color.Gray,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            fontFamily = IberPangeaFamily
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -67,12 +78,13 @@ fun ErrorComponent(
                 contentColor = Color.White
             ),
             modifier = Modifier.fillMaxWidth(0.7f),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(50.dp)
+            shape = RoundedCornerShape(50.dp)
         ) {
             Text(
                 text = stringResource(R.string.error_button_retry),
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 4.dp)
+                modifier = Modifier.padding(vertical = 4.dp),
+                fontFamily = IberPangeaFamily
             )
         }
     }

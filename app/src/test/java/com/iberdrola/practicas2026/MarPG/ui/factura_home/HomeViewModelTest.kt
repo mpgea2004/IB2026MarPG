@@ -1,14 +1,22 @@
 package com.iberdrola.practicas2026.MarPG.ui.factura_home
 
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
+import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.remoteConfig
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
 import com.iberdrola.practicas2026.MarPG.domain.use_case.feedback.CheckFeedbackUseCase
 import com.iberdrola.practicas2026.MarPG.ui.electronic_invoice_detail.MainDispatcherRule
 import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileState
-import io.mockk.clearAllMocks
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.every
+import io.mockk.slot
+import io.mockk.unmockkAll
 import io.mockk.verify
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
@@ -18,6 +26,8 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,12 +42,31 @@ class HomeViewModelTest {
     private val checkFeedbackUseCase = mockk<CheckFeedbackUseCase>(relaxed = true)
     private val userPrefs = mockk<UserPreferencesRepository>(relaxed = true)
     private val logAnalytics = mockk<LogAnalyticsEventUseCase>(relaxed = true)
+    private val remoteConfig = mockk<FirebaseRemoteConfig>(relaxed = true)
 
     private val userProfileFlow = MutableStateFlow(ProfileState(name = "Mar"))
     private val feedbackFlow = MutableStateFlow(false)
 
     @Before
     fun setUp() {
+        mockkStatic("com.google.firebase.FirebaseKt")
+        mockkStatic("com.google.firebase.remoteconfig.RemoteConfigKt")
+        
+        every { Firebase.remoteConfig } returns remoteConfig
+        
+        val mockTask = mockk<Task<Boolean>>(relaxed = true)
+        every { remoteConfig.fetchAndActivate() } returns mockTask
+        every { remoteConfig.setDefaultsAsync(any<Map<String, Any>>()) } returns mockk(relaxed = true)
+        every { remoteConfig.setConfigSettingsAsync(any()) } returns mockk(relaxed = true)
+        
+        val slot = slot<OnCompleteListener<Boolean>>()
+        every { mockTask.addOnCompleteListener(capture(slot)) } answers {
+            slot.captured.onComplete(mockTask)
+            mockTask
+        }
+        every { mockTask.isSuccessful } returns true
+        every { remoteConfig.getBoolean(any()) } returns true
+
         every { userPrefs.userProfileFlow } returns userProfileFlow
         every { checkFeedbackUseCase.shouldShowFeedback() } returns feedbackFlow
 
@@ -50,7 +79,7 @@ class HomeViewModelTest {
 
     @After
     fun tearDown() {
-        clearAllMocks()
+        unmockkAll()
     }
 
     @Test
@@ -69,31 +98,23 @@ class HomeViewModelTest {
         userProfileFlow.value = ProfileState(name = "")
         advanceUntilIdle()
 
-        assertEquals("Usuario", viewModel.state.userName)
-    }
-
-    @Test
-    fun `al activar el modo nube se debe actualizar el estado y enviar evento a analytics`() {
-        viewModel.events.onToggleCloud(true)
-
-        assertTrue(viewModel.state.isCloudEnabled)
-        verify { logAnalytics("config_data_source", mapOf("modo" to "nube")) }
-
-        viewModel.events.onToggleCloud(false)
-        assertFalse(viewModel.state.isCloudEnabled)
-        verify { logAnalytics("config_data_source", mapOf("modo" to "local")) }
+        assertEquals("", viewModel.state.userName)
     }
 
     @Test
     fun `cuando se selecciona una opcion de feedback se debe llamar al caso de uso con los dias correctos`() = runTest {
-        viewModel.events.onFeedbackOption(10)
+        viewModel.onOptionSelected(10)
 
+        advanceUntilIdle()
         coVerify { checkFeedbackUseCase.setNextTregua(10) }
-        verify { logAnalytics("click_feedback_option", mapOf("option" to "valorar")) }
+        verify { logAnalytics("click_feedback_opcion", mapOf("puntuacion" to 10), AnalyticsPriority.HIGH) }
+        assertTrue(viewModel.state.isFeedbackSubmitted)
 
-        viewModel.events.onFeedbackOption(3)
+        viewModel.onOptionSelected(3)
+        advanceUntilIdle()
         coVerify { checkFeedbackUseCase.setNextTregua(3) }
-        verify { logAnalytics("click_feedback_option", mapOf("option" to "luego")) }
+        verify { logAnalytics("click_feedback_opcion", mapOf("puntuacion" to 3), AnalyticsPriority.HIGH) }
+        assertFalse(viewModel.state.isSheetVisible)
     }
 
     @Test
@@ -102,5 +123,50 @@ class HomeViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.state.isSheetVisible)
+        verify { logAnalytics("view_feedback_sheet", priority = AnalyticsPriority.LOW) }
+    }
+
+    @Test
+    fun `al cerrar el sheet el estado debe actualizarse`() {
+        viewModel.onCloseSheet()
+        assertFalse(viewModel.state.isSheetVisible)
+    }
+
+    @Test
+    fun `al pulsar en no volver a preguntar se debe llamar al caso de uso y cerrar el sheet`() = runTest {
+        viewModel.onDontAskAgain()
+        advanceUntilIdle()
+        coVerify { checkFeedbackUseCase.dontAskAgain() }
+        assertFalse(viewModel.state.isSheetVisible)
+        verify { logAnalytics("click_feedback_no_preguntar_otra", priority = AnalyticsPriority.MEDIUM) }
+    }
+
+    @Test
+    fun `navegar con check de perfil debe llamar el callback onSuccess`() = runTest {
+        userProfileFlow.value = ProfileState(name = "Mar", email = "")
+        advanceUntilIdle()
+        
+        var navigated = false
+        viewModel.onNavigateWithProfileCheck { navigated = true }
+
+        advanceUntilIdle()
+        assertTrue(navigated)
+    }
+
+    @Test
+    fun `al navegar con check de perfil debe ejecutar el callback`() = runTest {
+        var navigated = false
+        viewModel.onNavigateWithProfileCheck { navigated = true }
+
+        advanceUntilIdle()
+        assertTrue(navigated)
+    }
+
+    @Test
+    fun `onNavigateWithProfileCheck debe ser llamado sin errores`() {
+        var callbackExecuted = false
+        viewModel.onNavigateWithProfileCheck { callbackExecuted = true }
+
+        assertTrue(callbackExecuted)
     }
 }

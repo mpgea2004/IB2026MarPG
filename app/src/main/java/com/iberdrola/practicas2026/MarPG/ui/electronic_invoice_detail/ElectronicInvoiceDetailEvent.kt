@@ -9,13 +9,17 @@ data class ElectronicInvoiceEvents(
     val onLegalCheckChange: (Boolean) -> Unit = {},
     val onConfirmUpdate: () -> Unit = {},
     val onConfirmDeactivate: () -> Unit = {},
-    val onResendOtp: () -> Unit = {},
+    val onResendOtp: (Boolean) -> Unit = {},
     val onExitFlow: () -> Unit = {},
     val onBack: () -> Unit = {},
     val onNext: () -> Unit = {},
     val onCloseBanner: () -> Unit = {},
     val onShowLegal: (String, String) -> Unit = {_,_ -> },
     val onDismissLegal: () -> Unit = {},
+    val onDismissSameEmailWarning: () -> Unit = {},
     val onClose: () -> Unit = {},
     val onViewScreen: (String) -> Unit = {},
+    val onDismissPermissionDialog: () -> Unit = {},
+    val onPermissionResult: (Boolean) -> Unit = {},
+    val onUpdatePermissionDenied: (Boolean) -> Unit = {}
 )

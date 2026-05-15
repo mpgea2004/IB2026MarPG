@@ -23,10 +23,6 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import javax.inject.Inject
 
-/**
- * Implementación del repositorio de fact elect.
- * Sigue el patrón SSOT (Single Source of Truth) igual que InvoiceRepositoryImpl.
- */
 class ElectronicInvoiceRepositoryImpl @Inject constructor(
     private val api: ElectronicInvoiceApiService,
     private val dao: ElectronicInvoiceDao,
@@ -83,9 +79,6 @@ class ElectronicInvoiceRepositoryImpl @Inject constructor(
         dao.updateElectronicInvoice(electronicInvoice.toEntity())
     }
 
-    /**
-     * Obtiene los contratos de Room una sola vez (Snapshot).
-     */
     private suspend fun getElectronicInvoiceFromDatabaseOnce(): List<ElectronicInvoice> {
         return try {
             dao.getAllElectronicInvoiceOnce().map { it.toDomain() }
@@ -94,9 +87,6 @@ class ElectronicInvoiceRepositoryImpl @Inject constructor(
         }
     }
 
-    /**
-     * Crea el flujo reactivo conectado a Room.
-     */
     private fun getElectronicInvoiceFromDatabase(): Flow<List<ElectronicInvoice>> {
         return dao.getAllElectronicInvoice().map { entities ->
             entities.map { it.toDomain() }

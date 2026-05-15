@@ -5,10 +5,6 @@ import com.iberdrola.practicas2026.MarPG.domain.repository.ElectronicInvoiceRepo
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-/**
- * Caso de uso para obtener la lista de contratos de la aplicación
- * Sigue la lógica de negocio de decidir si se sincroniza con la nube o no
- */
 class GetElectronicInvoiceUseCase @Inject constructor(
     private val repository: ElectronicInvoiceRepository
 ) {
