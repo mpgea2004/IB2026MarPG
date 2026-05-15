@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -36,7 +35,7 @@ import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListScreen
 import com.iberdrola.practicas2026.MarPG.ui.factura_list.InvoiceListViewModel
 import com.iberdrola.practicas2026.MarPG.ui.faq.FaqScreen
 import com.iberdrola.practicas2026.MarPG.ui.login.LoginScreen
-import com.iberdrola.practicas2026.MarPG.ui.login.RegisterScreen
+import com.iberdrola.practicas2026.MarPG.ui.regrister.RegisterScreen
 import com.iberdrola.practicas2026.MarPG.ui.user_profile.ProfileScreen
 
 object Routes {

@@ -1,4 +1,4 @@
-package com.iberdrola.practicas2026.MarPG.ui.login
+package com.iberdrola.practicas2026.MarPG.ui.regrister
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

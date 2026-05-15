@@ -1,4 +1,4 @@
-package com.iberdrola.practicas2026.MarPG.ui.login
+package com.iberdrola.practicas2026.MarPG.ui.regrister
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -257,7 +257,7 @@ fun RegisterContent(
                     text = stringResource(R.string.register_login_question),
                     fontFamily = IberPangeaFamily,
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = Color.DarkGray
                 )
                 Text(
                     text = stringResource(R.string.register_login_action),

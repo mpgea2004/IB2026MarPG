@@ -193,6 +193,11 @@ class InvoiceListViewModel @Inject constructor(
                 searchQuery = ""
                 lastMinLimit = 0f
                 lastMaxLimit = 500f
+            } else {
+                currentFilterState = currentFilterState.copy(
+                    minPrice = minInvoiceAmount,
+                    maxPrice = maxInvoiceAmount
+                )
             }
 
             prepareLoadingState()

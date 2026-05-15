@@ -223,7 +223,7 @@ fun LoginContent(
                     text = stringResource(R.string.login_register_question),
                     fontFamily = IberPangeaFamily,
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = Color.DarkGray
                 )
                 Text(
                     text = stringResource(R.string.login_register_action),

@@ -1,4 +1,4 @@
-package com.iberdrola.practicas2026.MarPG.ui.login
+package com.iberdrola.practicas2026.MarPG.ui.regrister
 
 data class RegisterState(
     val name: String = "",

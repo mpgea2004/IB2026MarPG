@@ -1,4 +1,4 @@
-package com.iberdrola.practicas2026.MarPG.ui.login
+package com.iberdrola.practicas2026.MarPG.ui.regrister
 
 data class RegisterEvents(
     val onNameChange: (String) -> Unit,
