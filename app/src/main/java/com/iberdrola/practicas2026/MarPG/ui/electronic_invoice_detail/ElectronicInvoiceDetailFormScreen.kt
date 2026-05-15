@@ -590,8 +590,7 @@ fun ElectronicInvoiceDetailFormScreenContent(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 16.dp)
-                            .focusable(false),
+                            .padding(vertical = 16.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Box(
@@ -600,6 +599,7 @@ fun ElectronicInvoiceDetailFormScreenContent(
                                 .height(4.dp)
                                 .clip(CircleShape)
                                 .background(Color.LightGray)
+                                .clickable { }
                         )
                     }
                 }

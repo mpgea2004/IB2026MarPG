@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +51,7 @@ import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.WhiteApp
 import androidx.compose.ui.res.stringResource
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 
 @Composable
 fun LoginScreen(
@@ -58,6 +60,14 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val state = viewModel.state
+
+    LaunchedEffect(Unit) {
+        viewModel.logAnalytics(
+            "view_screen",
+            mapOf("screen_name" to "Login"),
+            priority = AnalyticsPriority.LOW
+        )
+    }
 
     val events = LoginEvents(
         onEmailChanged = viewModel::onEmailChanged,

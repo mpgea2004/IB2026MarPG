@@ -240,40 +240,16 @@ fun ElectronicInvoiceOtpScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        if (state.isPermissionPermanentlyDenied) {
-                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                data = Uri.fromParts("package", context.packageName, null)
-                            }
-                            context.startActivity(intent)
-                        } else {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            }
-                        }
                         viewModel.dismissPermissionDialog()
+                        onCloseToHome()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = GreenIberdrola),
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                 ) {
                     Text(
-                        text = stringResource(if (state.isPermissionPermanentlyDenied) R.string.permission_go_to_settings else R.string.common_ok),
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.dismissPermissionDialog()
-                        onCloseToHome()
-                    },
-                    modifier = Modifier
-                ) {
-                    Text(
                         text = stringResource(R.string.permission_back),
-                        color = GreenIberdrola,
+                        color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                 }

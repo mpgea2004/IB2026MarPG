@@ -71,6 +71,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.remoteconfig.remoteConfig
 import com.iberdrola.practicas2026.MarPG.R
 import com.iberdrola.practicas2026.MarPG.ui.theme.BackgroundApp
+import com.iberdrola.practicas2026.MarPG.ui.theme.GreenDarkIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.GreenIberdrola
 import com.iberdrola.practicas2026.MarPG.ui.theme.IberPangeaFamily
 import com.iberdrola.practicas2026.MarPG.ui.theme.LightGreenIberdrola
@@ -117,13 +118,15 @@ fun FaqContent(
                 Text(
                     text = stringResource(R.string.crash_dialog_title),
                     fontFamily = IberPangeaFamily,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = GreenDarkIberdrola
                 )
             },
             text = {
                 Text(
                     text = stringResource(R.string.crash_dialog_message),
-                    fontFamily = IberPangeaFamily
+                    fontFamily = IberPangeaFamily,
+                    color = Color.Black
                 )
             },
             confirmButton = {

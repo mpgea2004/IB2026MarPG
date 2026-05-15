@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.ValidateEmailUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -15,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
     private val userPrefs: UserPreferencesRepository,
-    private val validateEmailUseCase: ValidateEmailUseCase
+    private val validateEmailUseCase: ValidateEmailUseCase,
+    private val logAnalyticsUseCase: LogAnalyticsEventUseCase
 ) : ViewModel() {
 
     var state by mutableStateOf(RegisterState())
@@ -43,6 +46,7 @@ class RegisterViewModel @Inject constructor(
     fun onToggleConfirmPasswordVisibility() {
         state = state.copy(isConfirmPasswordVisible = !state.isConfirmPasswordVisible)
     }
+
     fun onRegisterClick(onSuccess: () -> Unit) {
         val isNameValid = state.name.isNotBlank()
         val isEmailValid = validateEmailUseCase(state.email)
@@ -76,9 +80,25 @@ class RegisterViewModel @Inject constructor(
                 )
                 userPrefs.updateProfile(updatedProfile)
 
+                logAnalytics("register_success", mapOf(
+                    "email" to state.email,
+                    "name" to state.name
+                ), priority = AnalyticsPriority.HIGH)
+
                 state = state.copy(isLoading = false, registerSuccess = true)
                 onSuccess()
             }
+        } else {
+            logAnalytics("register_failure", mapOf(
+                "name_error" to (nameError != null),
+                "email_error" to (emailError != null),
+                "password_error" to (passwordError != null),
+                "match_error" to (confirmPasswordError != null)
+            ), priority = AnalyticsPriority.MEDIUM)
         }
+    }
+
+    fun logAnalytics(name: String, params: Map<String, Any?> = emptyMap(), priority: AnalyticsPriority = AnalyticsPriority.MEDIUM) {
+        logAnalyticsUseCase(name, params, priority)
     }
 }

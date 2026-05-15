@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iberdrola.practicas2026.MarPG.data.local.preferences.UserPreferencesRepository
 import com.iberdrola.practicas2026.MarPG.domain.use_case.contracts.ValidateEmailUseCase
+import com.iberdrola.practicas2026.MarPG.domain.use_case.events.LogAnalyticsEventUseCase
+import com.iberdrola.practicas2026.MarPG.domain.resository.AnalyticsPriority
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -15,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val userPrefs: UserPreferencesRepository,
-    private val validateEmailUseCase: ValidateEmailUseCase
+    private val validateEmailUseCase: ValidateEmailUseCase,
+    private val logAnalyticsUseCase: LogAnalyticsEventUseCase
 ) : ViewModel() {
 
     var state by mutableStateOf(LoginState())
@@ -57,9 +60,20 @@ class LoginViewModel @Inject constructor(
                 )
                 userPrefs.updateProfile(updatedProfile)
 
+                logAnalytics("login_success", mapOf("email" to state.email), priority = AnalyticsPriority.HIGH)
+
                 state = state.copy(isLoading = false, loginSuccess = true)
                 onSuccess()
             }
+        } else {
+            logAnalytics("login_failure", mapOf(
+                "email_error" to (emailError != null),
+                "password_error" to (passwordError != null)
+            ), priority = AnalyticsPriority.MEDIUM)
         }
+    }
+
+    fun logAnalytics(name: String, params: Map<String, Any?> = emptyMap(), priority: AnalyticsPriority = AnalyticsPriority.MEDIUM) {
+        logAnalyticsUseCase(name, params, priority)
     }
 }

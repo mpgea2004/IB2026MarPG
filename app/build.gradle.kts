@@ -52,7 +52,7 @@ tasks.register<Exec>("adbReverse") {
     
     val adbPath = "${System.getenv("LOCALAPPDATA")}\\Android\\Sdk\\platform-tools\\adb.exe"
     
-    commandLine(adbPath, "-s", "QWI7ZXDEDICYORXO", "reverse", "tcp:3000", "tcp:3000")
+    commandLine(adbPath, "reverse", "tcp:3000", "tcp:3000")
     
     isIgnoreExitValue = true
 }
